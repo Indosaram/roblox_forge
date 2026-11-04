@@ -83,6 +83,7 @@ function M.run(host: any, p: any, options: any?): any
 		return false
 	end
 	local skipGuide: { [string]: boolean } = {}
+	local routeVisits: { [string]: number } = {}
 	-- The next open guide objective, as CharacterText.guideObjective picks it for the HUD line.
 	local function guideTarget(): (any, any)
 		local ch = extensions().character or {}
@@ -876,6 +877,13 @@ function M.run(host: any, p: any, options: any?): any
 			elseif o.action == "craft" then
 				local recipe = if o.target == "axe" then recipeFor("stone-axe") else recipeFor(o.target)
 				if recipe then
+					-- Make here whatever inputs this island's stations can make before sailing for a
+					-- station: the chain otherwise ping-pongs between two islands that each lack one.
+					for _, input in recipe.inputs do
+						if count(p.bag().items, input.item) < input.quantity then
+							p.obtain(input.item, input.quantity, 120)
+						end
+					end
 					local missing = Kit.missingStation(Content.recipes, recipe, function(item: string): number
 						return count(p.bag().items, item)
 					end, function(kind: string): boolean
@@ -892,6 +900,23 @@ function M.run(host: any, p: any, options: any?): any
 						return false
 					end)
 					p.event("guide-craft-route", { recipe = recipe.id, missing = missing, layout = host.layoutId })
+					local routeKey = g.id .. "|" .. tostring(host.layoutId) .. "|" .. tostring(missing)
+					routeVisits[routeKey] = (routeVisits[routeKey] or 0) + 1
+					if missing and routeVisits[routeKey] > 3 then
+						p.stall(
+							"dead-end",
+							"craft "
+								.. recipe.id
+								.. " needs a "
+								.. missing
+								.. " station; sailing for it keeps returning to "
+								.. tostring(host.layoutId),
+							owner("genres/survival-coop/module/CharacterText.luau", "function M.guideObjective"),
+							"the HUD line must name where the missing station stands (or the station must exist where its inputs are)"
+						)
+						skipGuide[g.id] = true
+						continue
+					end
 					if missing then
 						-- Recipes name their station; the chart's island layouts supply its visible destination.
 						for _, row in require("./src/shared/SeaChart").ISLANDS do

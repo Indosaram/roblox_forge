@@ -23,7 +23,8 @@ return {
 		h.click(find(h, "skill-processing"))
 		local need = find(h, "SkillNeed")
 		assert(need and string.find(need.Text, "0 / 3", 1, true), "proficiency requirement shown")
-		assert(need and string.find(need.Text, "24", 1, true), "remaining training count shown")
+		-- Fun-first mastery curve: proficiency 3 is 5 category actions from zero.
+		assert(need and string.find(need.Text, "5", 1, true), "remaining training count shown")
 		local learn = find(h, "learn-processing_2")
 		assert(learn and learn.AutoButtonColor == false, "proficiency-locked Learn is disabled")
 	end,

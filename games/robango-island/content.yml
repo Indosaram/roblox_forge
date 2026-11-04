@@ -25821,6 +25821,14 @@ layouts:
           y: 4
           z: -48
       -
+        # Fun-first: the harbor hub carries a campfire so a whole recipe chain (dried fiber, tanned leather,
+        # the workbench) is made in one place instead of sailing between home and harbor.
+        id: "station.campfire.t1"
+        position:
+          x: -128
+          y: 4
+          z: -48
+      -
         id: "station.workbench.t1"
         position:
           x: -104
