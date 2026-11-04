@@ -547,8 +547,8 @@ function M.run(Journey: any, options: any): any
 							for itemId, stack in bag().items do
 								local w = stack.quantity * (weightOf[stack.catalogId] or 0)
 								if slotsFull then
-									-- A full bag of slots frees a slot only when a whole stack goes (Drop takes 5):
-									-- the smallest stack of the most-carried material.
+									-- A full bag of slots frees a slot only when a whole stack goes (Drop + confirm
+									-- drops it): the smallest stack of the most-carried material.
 									w = totals[stack.catalogId] * 1000 - stack.quantity
 								end
 								if w > weight and stack.catalogId ~= item and (stack.durabilityMilli or 0) == 0 then
@@ -569,7 +569,14 @@ function M.run(Journey: any, options: any): any
 							if not drop then
 								break
 							end
+							-- Drop asks once; its confirm drops the whole unreserved stack.
 							click(drop)
+							render()
+							local confirm = find("DropConfirm-" .. heaviest)
+							if not confirm then
+								break
+							end
+							click(confirm)
 							dropped += 1
 							-- The HUD sends on a task; the sheet's next Drop is enabled once the answer lands.
 							wait(1)
@@ -762,7 +769,7 @@ function M.run(Journey: any, options: any): any
 		end
 		return count(bag().items, item) >= want
 	end
-	-- A craft collect refused FULL_SLOTS: the bag sheet's Drop (5 per tap) empties the smallest stack
+	-- A craft collect refused FULL_SLOTS: the bag sheet's Drop (then its confirm) empties the smallest stack
 	-- of a plain material (not a tool, not what is being made) so the output gets a slot.
 	local function freeSlot(keep: string): boolean
 		local before = 0
@@ -778,20 +785,23 @@ function M.run(Journey: any, options: any): any
 		if not smallest then
 			return false
 		end
-		for _ = 1, math.ceil(quantity / 5) do
-			closeSheets()
-			h.hud.open("bag")
-			render()
-			local cell = find(smallest)
-			if cell then
-				click(cell)
-			end
-			local drop = find("Drop-" .. smallest)
-			if not drop then
-				break
-			end
+		closeSheets()
+		h.hud.open("bag")
+		render()
+		local cell = find(smallest)
+		if cell then
+			click(cell)
+		end
+		-- Drop asks once; its confirm drops the whole unreserved stack.
+		local drop = find("Drop-" .. smallest)
+		if drop then
 			click(drop)
-			wait(1)
+			render()
+			local confirm = find("DropConfirm-" .. smallest)
+			if confirm then
+				click(confirm)
+				wait(1)
+			end
 		end
 		closeSheets()
 		local after = 0

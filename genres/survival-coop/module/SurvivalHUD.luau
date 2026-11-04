@@ -414,6 +414,8 @@ function M.start(options: Options)
 	capacityFill.Name, capacityFill.BorderSizePixel = "Fill", 0
 	capacityFill.BackgroundColor3, capacityFill.Parent = Color3.fromRGB(127, 224, 156), capacityTrack
 	local section, selected, recipeId, structureId = "", nil, nil, nil
+	-- The bag stack whose Drop was tapped once: the next render shows its confirm.
+	local dropArmed: string? = nil
 	local ghostLocked = false
 	local allRecipes = false
 	-- Recipe order fixed when the craft sheet opens or its filter/category changes (Model.keepOrder).
@@ -1708,11 +1710,30 @@ function M.start(options: Options)
 						command("transfer-deposit", { item.itemId, 1 })
 					end)
 					controls.parent = detailPane
-					-- Drop: makes room anywhere (a full bag on a route island refuses every gather).
+					-- Drop: makes room anywhere (a full bag on a route island refuses every gather). It frees a
+					-- slot: the whole unreserved stack goes after a confirm tap (journey6h @124.5m: 'Drop 5' x8
+					-- never emptied a 50-stack, so the bag stayed full).
 					if not wornHere then
-						mutation("Drop-" .. item.itemId, t("drop"), "item-drop", function()
-							command("item-drop", { item.itemId, 5 })
-						end)
+						local droppable = item.quantity
+						for _, amounts in bag.reservations or {} do
+							droppable -= amounts[item.itemId] or 0
+						end
+						if dropArmed == item.itemId and droppable > 0 then
+							mutation(
+								"DropConfirm-" .. item.itemId,
+								string.format(t("drop_confirm"), droppable),
+								"item-drop",
+								function()
+									dropArmed = nil
+									command("item-drop", { item.itemId, droppable })
+								end
+							)
+						else
+							mutation("Drop-" .. item.itemId, t("drop"), "item-drop", function()
+								dropArmed = item.itemId
+								render()
+							end)
+						end
 					end
 					local cost = Model.repairCost(item, options.content)
 					if cost then

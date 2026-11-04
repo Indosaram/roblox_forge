@@ -3278,6 +3278,7 @@ cli.chart.sail_harbor,original,agent:hephaestus/fxB,2026-11-02
 exp.exp_next_window,original,agent:hephaestus/fxB,2026-11-02
 gth.bag_full,original,agent:hephaestus/fxC,2026-11-02
 hud.drop,original,agent:hephaestus/fxC,2026-11-02
+hud.drop_confirm,original,agent:hephaestus/bag,2026-11-04
 guide_go_purchase,original,agent:maho/journey6h,2026-11-02
 guide_go_place,original,agent:maho/journey6h,2026-11-02
 guide_go_equip,original,agent:maho/journey6h,2026-11-02

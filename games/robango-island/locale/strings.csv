@@ -1961,7 +1961,7 @@ hud.select,Select an item for details,genre text hud,Select an item for details,
 hud.TRANSPORT_FAILED,Connection uncertain. Retry the same request; do not repeat the purchase or craft.,genre text hud,Connection uncertain. Retry the same request; do not repeat the purchase or craft.,연결 상태가 불확실해요. 같은 요청을 재시도하세요.
 hud.HANDSHAKE_FAILED,"Supplies are not connected. Refresh, then try again.",genre text hud,"Supplies are not connected. Refresh, then try again.",보급품 연결이 안 됐어요. 새로 고친 뒤 다시 시도하세요.
 hud.REQUEST_EXPIRED,Session expired. Refresh before a new action.,genre text hud,Session expired. Refresh before a new action.,세션이 만료됐어요. 새로 고친 뒤 작업하세요.
-hud.capacity,"Not enough space. Store items, then collect again; reserved ingredients are safe.",genre text hud,"Not enough space. Store items, then collect again; reserved ingredients are safe.",공간이 부족해요. 아이템을 보관한 뒤 다시 받으세요. 예약 재료는 유지돼요.
+hud.capacity,"Your bag is full. Free a slot with Drop in the bag (or store or sell some), then collect again; the finished item waits.",genre text hud,"Your bag is full. Free a slot with Drop in the bag (or store or sell some), then collect again; the finished item waits.","가방이 가득 찼어요. 가방에서 버리기로 한 칸을 비우거나 보관·판매한 뒤 다시 받으세요. 완성품은 그대로 기다려요."
 hud.stale,Supplies changed. Refresh and check the new amounts before retrying.,genre text hud,Supplies changed. Refresh and check the new amounts before retrying.,보급품이 변경됐어요. 새로 고쳐 수량을 확인한 뒤 다시 시도하세요.
 hud.materials,"Gather more ingredients, or cancel another reservation.",genre text hud,"Gather more ingredients, or cancel another reservation.",재료를 더 채집하거나 다른 예약을 취소하세요.
 hud.MISSING_INPUTS,"Not enough free materials. Gather more, or cancel a reserved job to free them.",genre text hud,"Not enough free materials. Gather more, or cancel a reserved job to free them.",쓸 수 있는 재료가 모자라요. 더 채집하거나 예약한 작업을 취소해 재료를 풀어 주세요.
@@ -3282,7 +3282,8 @@ cli.chart.via_harbor,Sail from the harbor,client sea chart label,Sail from the h
 cli.chart.sail_harbor,Sail to the harbor,client sea chart label,Sail to the harbor,항구로 출항
 exp.exp_next_window,Next window opens in %s,genre text exp,Next window opens in %s,다음 항로는 %s 후에 열려요
 gth.bag_full,"Your bag is full. Store items at the warehouse, sell at the harbor, or drop some in the bag",gather refusal when the gathered items do not fit the bag,"Your bag is full. Store items at the warehouse, sell at the harbor, or drop some in the bag","가방이 가득 찼어요. 창고에 보관하거나 항구에서 팔거나, 가방에서 버려 공간을 만드세요"
-hud.drop,Drop 5,genre text hud,Drop 5,5개 버리기
+hud.drop,Drop,genre text hud,Drop,버리기
+hud.drop_confirm,Drop all %d,genre text hud bag drop confirm,Drop all %d,%d개 모두 버리기
 guide_go_purchase,learn the %s skill (Menu > Skills),HUD objective guide action,learn the %s skill (Menu > Skills),%s 기술 배우기 (메뉴 > 기술)
 guide_go_place,"place %s (B key, Menu > Build)",HUD objective guide action,"place %s (B key, Menu > Build)","%s 설치하기 (B 키, 메뉴 > 건설)"
 guide_go_equip,equip %s (Menu > Equipment),HUD objective guide action,equip %s (Menu > Equipment),%s 장착하기 (메뉴 > 장비)
