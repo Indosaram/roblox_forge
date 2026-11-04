@@ -37,6 +37,8 @@ M.OPEN = table.freeze({
 	["cancel-draft"] = "clan-roles",
 	["equip-loan"] = "camp",
 	["return-loan"] = "camp",
+	-- Practice drills run from the Operations sheet (its Make button), at the stand or anywhere.
+	practice = "operations",
 })
 
 local function before(a: any, b: any): boolean

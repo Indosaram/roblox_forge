@@ -1333,13 +1333,31 @@ function M.run(host: any, p: any, options: any?): any
 							end
 						end
 						p.walk(at, 2)
+						local triggered = false
 						for _, prompt in p.prompts() do
 							if prompt:GetAttribute("ForgeOperation") == o.target then
 								p.trigger(prompt)
+								triggered = true
 								break
 							end
 						end
 						p.closeSheets()
+						-- The HUD line names Menu > Operations: its Make button runs the drill anywhere.
+						local last = p.lastCommand()
+						if not triggered or not (last and last.ok) then
+							p.openTile("operations")
+							p.render()
+							clickNamed("Make-" .. o.target)
+							p.closeSheets()
+							last = p.lastCommand()
+						end
+						p.event("practice-stand", {
+							operation = o.target,
+							prompt = triggered,
+							command = last and last.action,
+							ok = last and last.ok,
+							reason = last and last.reason,
+						})
 					end
 				end
 			elseif o.action == "preview-refund" or o.action == "cancel-preview" then

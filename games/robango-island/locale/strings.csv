@@ -3308,3 +3308,4 @@ guide_where_species,%s: it roams the Route 1 drift isles,HUD objective capture p
 chr.guide_target_melee_2,Melee 2 (club stun),genre text chr,Melee 2 (club stun),근접 2 (곤봉 기절)
 chr.guide_target_survival_3,Survival 3 (capture),genre text chr,Survival 3 (capture),생존 3 (포획)
 guide_input_hunt,"%s (%s: hunt %s)",HUD objective craft input raw from hunting,"%s (%s: hunt %s)","%s (%s: %s 사냥)"
+guide_go_practice,"drill %s once: open the Operations tile, then tap Make",HUD objective guide action,"drill %s once: open the Operations tile, then tap Make","%s 연습 (메뉴 > 작업: 만들기)"
