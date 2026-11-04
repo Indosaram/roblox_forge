@@ -1511,61 +1511,77 @@ return function(content: any, source, world, backend, clock, options, provision,
 	factoryPorts.archipelago = archipelago
 	local roleWorld: any = world
 	factoryPorts.expeditionStore = expeditionStore
+	-- p134 v74 #6a: on a live DataStore the opening flush and the heartbeat reads hold the expedition
+	-- document across a yield, and a guide event that met that answered DOCUMENT_BUSY and was dropped
+	-- (the opening's fiber and hatchet never counted: guides 0/42, fiber 0/3). The event waits for the
+	-- document instead (bounded, one Heartbeat at a time); its receipt id keeps the retry exactly-once.
+	local DEVELOPMENT_WAIT_SECONDS = 10
 	factoryPorts.recordDevelopment = function(actor, receiptId, event)
 		local guideCompleted = false
-		local recorded = expeditionStore.transaction(actor, function(document)
-			local development = document.development or { points = 0, definitions = {}, instabilityAccess = 1 }
-			development.events = development.events or {}
-			development.progress = development.progress or {}
-			if development.events[receiptId] then
-				return { ok = true }
-			end
-			development.events[receiptId] = true
-			local data = personalData(actor) or {}
-			local progression = data.progression or { level = 1, paid = {} }
-			local level = progression.level
-			local function grade(points)
-				return developmentFacts({ development = { points = points } }).grade
-			end
-			local function record(applied)
-				for _, guide in GuideEvents.apply(content, development, level, grade, applied) do
-					ArchipelagoExtension.enqueueGuide(document, guide)
-					guideCompleted = true
+		local recorded, waited = nil, 0
+		repeat
+			guideCompleted = false
+			recorded = expeditionStore.transaction(actor, function(document)
+				local development = document.development or { points = 0, definitions = {}, instabilityAccess = 1 }
+				development.events = development.events or {}
+				development.progress = development.progress or {}
+				if development.events[receiptId] then
+					return { ok = true }
 				end
-			end
-			record(event)
-			-- A skill node learned or gear worn before its guide opened can never be learned or put on
-			-- again, so holding it satisfies an open guide's purchase/equip step (audit6h P9 guides).
-			local worn = {}
-			local bag = if data.inventory then data.inventory.bag else nil
-			for _, itemId in if data.gear then data.gear.equipped or {} else {} do
-				local item = if bag then bag.items[itemId] else nil
-				if item then
-					worn[item.catalogId] = true
+				development.events[receiptId] = true
+				local data = personalData(actor) or {}
+				local progression = data.progression or { level = 1, paid = {} }
+				local level = progression.level
+				local function grade(points)
+					return developmentFacts({ development = { points = points } }).grade
 				end
-			end
-			local paid = progression.paid or {}
-			for _, guide in content.guides or {} do
-				if
-					not development.definitions[guide.id]
-					and GuideEvents.open(guide, level, grade(development.points))
-				then
-					for _, objective in guide.objectives do
-						local held = (objective.action == "purchase" and paid[objective.target] ~= nil)
-							or (objective.action == "equip" and worn[objective.target] == true)
-						if held and (development.progress[objective.id] or 0) < objective.quantity then
-							record({
-								action = objective.action,
-								target = objective.target,
-								quantity = objective.quantity,
-							})
+				local function record(applied)
+					for _, guide in GuideEvents.apply(content, development, level, grade, applied) do
+						ArchipelagoExtension.enqueueGuide(document, guide)
+						guideCompleted = true
+					end
+				end
+				record(event)
+				-- A skill node learned or gear worn before its guide opened can never be learned or put on
+				-- again, so holding it satisfies an open guide's purchase/equip step (audit6h P9 guides).
+				local worn = {}
+				local bag = if data.inventory then data.inventory.bag else nil
+				for _, itemId in if data.gear then data.gear.equipped or {} else {} do
+					local item = if bag then bag.items[itemId] else nil
+					if item then
+						worn[item.catalogId] = true
+					end
+				end
+				local paid = progression.paid or {}
+				for _, guide in content.guides or {} do
+					if
+						not development.definitions[guide.id]
+						and GuideEvents.open(guide, level, grade(development.points))
+					then
+						for _, objective in guide.objectives do
+							local held = (objective.action == "purchase" and paid[objective.target] ~= nil)
+								or (objective.action == "equip" and worn[objective.target] == true)
+							if held and (development.progress[objective.id] or 0) < objective.quantity then
+								record({
+									action = objective.action,
+									target = objective.target,
+									quantity = objective.quantity,
+								})
+							end
 						end
 					end
 				end
+				document.development = development
+				return { ok = true }
+			end)
+			local retry = not recorded.ok and recorded.reason == "DOCUMENT_BUSY" and waited < DEVELOPMENT_WAIT_SECONDS
+			if retry then
+				waited += task.wait()
 			end
-			document.development = development
-			return { ok = true }
-		end)
+		until not retry
+		if not recorded.ok then
+			warn("ForgeGuideEvent " .. actor .. " " .. receiptId .. " not recorded: " .. tostring(recorded.reason))
+		end
 		-- Guide xp/coins/items settle through the mission reward outbox (once per guide receipt).
 		if recorded.ok and guideCompleted then
 			archipelago.settleRewards(actor)

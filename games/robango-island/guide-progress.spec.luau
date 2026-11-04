@@ -1268,6 +1268,57 @@ cases["the first band alone lifts a fresh player to island grade 2 (route 1)"] =
 	assert(server.session.close(ACTOR).ok and server.factory.close().ok, "release")
 end
 
+cases["v74 #6a: a guide event waits for an expedition document another writer holds (opening flush)"] = function()
+	local at = { value = 1000 }
+	local server = boot(Memory.new(), "job:guide-busy", at)
+	server.at = at
+	assert(server.session.join(ACTOR).ok, "join")
+	assert(server.session.dispatch(ACTOR, "survival-coop:vitals-wake", {}).ok, "Start")
+	-- The opening director's flush: a transaction on the same document, yielding (a live UpdateAsync)
+	-- while the gather that completed the opening's fiber step is recorded.
+	local holding, flushed = true, false
+	local store = server.factory.expeditionStore
+	local transaction = store.transaction
+	-- The hold ends on the event under test: the first writer refused DOCUMENT_BUSY by the flush.
+	store.transaction = function(actor, transform)
+		local result = transaction(actor, transform)
+		if not result.ok and result.reason == "DOCUMENT_BUSY" then
+			holding = false
+		end
+		return result
+	end
+	task.spawn(function()
+		transaction(ACTOR, function(document)
+			local spins = 0
+			while holding and spins < 2000 do
+				spins += 1
+				task.wait()
+			end
+			document.opening = { step = "bone" }
+			return { ok = true }
+		end)
+		flushed = true
+	end)
+	send(server, "gather", { "fiber-bush-01", 0 })
+	-- Read once the flush has released the document (its own completion, bounded).
+	for _ = 1, 200 do
+		if flushed then
+			break
+		end
+		task.wait()
+	end
+	assert(flushed, "the flush finished")
+	local document = server.factory.expeditionStore.snapshot(ACTOR)
+	assert(document.opening and document.opening.step == "bone", "the flush committed")
+	local development = document.development or {}
+	assert(
+		((development.progress or {})["rw.g01.first-gather.1"] or 0) == 3,
+		"fiber counted for the first-gather guide: " .. serde.encode("json", development)
+	)
+	assert((development.definitions or {})["rw.g01.first-gather"], "first gather completed")
+	assert(server.session.close(ACTOR).ok and server.factory.close().ok, "release")
+end
+
 cases["p103 camp equipment loans escrow the item and refuse out-of-turn takes, returns and recalls"] = function()
 	local guide: any = nil
 	for _, row in content.guides do
