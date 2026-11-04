@@ -121,9 +121,10 @@ return {
 		assert(string.find(source, "ctx.walkTo(", 1, true), "show the way walks there")
 		local inactive = assert(string.find(source, "if not active then", 1, true))
 		local stop = assert(string.find(source, "return", inactive, true))
+		-- After the opening the marker follows the HUD guide step (p134 v73), hidden with none.
 		assert(
-			string.find(string.sub(source, inactive, stop), "way.step(nil, nil)", 1, true),
-			"hidden after the opening"
+			string.find(string.sub(source, inactive, stop), "placeWay(guideCard(), guideTarget()", 1, true),
+			"after the opening the guide step drives the marker"
 		)
 		local client = fs.readFile("games/robango-island/src/client/RobangoIslandClient.client.luau")
 		assert(string.find(client, "scoped.walkTo", 1, true), "the client passes the tap router walk")

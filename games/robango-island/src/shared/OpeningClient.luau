@@ -13,6 +13,7 @@ local DinosaurRig = require("../../../../genres/survival-coop/module/DinosaurRig
 local CameraConfig = require("./CameraConfig")
 local Waypoint = require("./Waypoint")
 local CampPanel = require("../../../../genres/survival-coop/module/CampPanel")
+local CharacterText = require("../../../../genres/survival-coop/module/CharacterText")
 local M = {}
 
 M.COLD_OPEN_SECONDS, M.SKIP_AFTER = 25, 1.0
@@ -444,8 +445,11 @@ function M.factory(ctx: any): any
 		ground = groundY,
 	})
 	-- 'Show the way': the tap-walk (TapRouter.moveTo) to the current target.
+	-- The walk goes to the target the marker shows this frame: the opening step's, else (after the
+	-- opening) the HUD guide step's (p134 v73: the harbor's 'gather Fiber' had no direction at all).
+	local currentTarget: Vector3? = nil
 	local function showWay()
-		local target = wayTarget()
+		local target = currentTarget
 		if target and ctx.walkTo then
 			ctx.walkTo(target, M.WAY_ARRIVE)
 		end
@@ -627,6 +631,71 @@ function M.factory(ctx: any): any
 			end
 		end)
 	)
+	-- Waypoint toward `target` with `quest` as the quest card (the opening tracker, or the HUD's
+	-- ObjectiveTracker after the opening); nil target or card hides the marker and the walk offer.
+	local function placeWay(quest: any, target: Vector3?, root: BasePart?, campAction: any)
+		currentTarget = target
+		-- Toward the current step's target; the tracker tap offers the walk there. Another
+		-- guide's marker (the sea chart's 'show the dock') takes the one marker while it is set.
+		local yielded = typeof(player:GetAttribute(Waypoint.OVERRIDE_ATTRIBUTE)) == "Vector3"
+		way.step(if root then root.Position else nil, if yielded then nil else target)
+		-- Under any sheet, the menu grid or the sea chart the arrow, the tracker tap and the walk button
+		-- hide (the beam and the pin stay), and the quest card itself may be hidden by its dock.
+		local modal = Waypoint.covered(playerGui, function(name: string): any
+			return player:GetAttribute(name)
+		end)
+		way.gui.Enabled = not modal
+		if modal then
+			wayOfferUntil = 0
+		end
+		local guiAt = way.gui.AbsolutePosition
+		local trackerSeen = not modal
+			and not yielded
+			and M.shownChain(quest)
+			and quest.AbsoluteSize.X > 0
+			and target ~= nil
+		trackerTap.Visible = trackerSeen
+		local cardShown = not modal and M.shownChain(quest) and quest.AbsoluteSize.X > 0
+		campButton.Visible = cardShown and campAction ~= nil
+		if cardShown then
+			local at, size = quest.AbsolutePosition, quest.AbsoluteSize
+			campButton.Position = UDim2.fromOffset(at.X - guiAt.X, at.Y - guiAt.Y + size.Y + 6)
+		end
+		if trackerSeen then
+			local at, size = quest.AbsolutePosition, quest.AbsoluteSize
+			trackerTap.Position = UDim2.fromOffset(at.X - guiAt.X, at.Y - guiAt.Y)
+			trackerTap.Size = UDim2.fromOffset(size.X, size.Y)
+			-- Under the Open camp button when both would not fit side by side.
+			local below = if campButton.Visible and size.X < 246 then 50 else 0
+			wayButton.Position = UDim2.fromOffset(at.X - guiAt.X + size.X - 120, at.Y - guiAt.Y + size.Y + 6 + below)
+		end
+		wayButton.Visible = trackerSeen
+			and os.clock() < wayOfferUntil
+			and Waypoint.shown(if root then root.Position else nil, target)
+	end
+	-- The HUD guide step's quest card (the genre ObjectiveTracker) while it shows that step's line.
+	local guideLine: string?, guideObjective: any = nil, nil
+	local function guideCard(): any
+		local genre = ctx.objectiveSlot and ctx.objectiveSlot:FindFirstChild("ObjectiveTracker")
+		if genre and guideLine and string.find(genre.Text, guideLine, 1, true) then
+			return genre
+		end
+		return nil
+	end
+	--- World point of the HUD guide step in the current world: the nearest node of a gather step.
+	local function guideTarget(): Vector3?
+		if not guideObjective then
+			return nil
+		end
+		local world = workspace:FindFirstChild("ForgeRoleWorld")
+		local layoutId = world and world:GetAttribute("ForgeLayoutId")
+		local root = rootPart()
+		return Waypoint.guideTarget(
+			Waypoint.layout(ctx.content, layoutId),
+			guideObjective,
+			if root then root.Position else nil
+		)
+	end
 	local function frame()
 		local now = serverNow()
 		local active = view ~= nil and view.active == true
@@ -648,8 +717,7 @@ function M.factory(ctx: any): any
 		stageGuide()
 		stageRing(now, rootPart())
 		if not active then
-			way.step(nil, nil)
-			trackerTap.Visible, wayButton.Visible, campButton.Visible = false, false, false
+			placeWay(guideCard(), guideTarget(), rootPart(), nil)
 			dodge.Visible = false
 			if boar then
 				boar:Destroy()
@@ -799,48 +867,21 @@ function M.factory(ctx: any): any
 			showCard(nil)
 		end
 		placeBoat(now)
-		-- Waypoint toward the current step's target; the tracker tap offers the walk there. Another
-		-- guide's marker (the sea chart's 'show the dock') takes the one marker while it is set.
-		local target = wayTarget()
-		local yielded = typeof(player:GetAttribute(Waypoint.OVERRIDE_ATTRIBUTE)) == "Vector3"
-		way.step(if root then root.Position else nil, if yielded then nil else target)
-		-- Under any sheet, the menu grid or the sea chart the arrow, the tracker tap and the walk button
-		-- hide (the beam and the pin stay), and the quest card itself may be hidden by its dock.
-		local modal = Waypoint.covered(playerGui, function(name: string): any
-			return player:GetAttribute(name)
-		end)
-		way.gui.Enabled = not modal
-		if modal then
-			wayOfferUntil = 0
-		end
-		local guiAt = way.gui.AbsolutePosition
-		local trackerSeen = not modal
-			and not yielded
-			and M.shownChain(tracker)
-			and tracker.AbsoluteSize.X > 0
-			and target ~= nil
-		trackerTap.Visible = trackerSeen
-		local cardShown = not modal and M.shownChain(tracker) and tracker.AbsoluteSize.X > 0
-		campButton.Visible = cardShown and campAction ~= nil
-		if cardShown then
-			local at, size = tracker.AbsolutePosition, tracker.AbsoluteSize
-			campButton.Position = UDim2.fromOffset(at.X - guiAt.X, at.Y - guiAt.Y + size.Y + 6)
-		end
-		if trackerSeen then
-			local at, size = tracker.AbsolutePosition, tracker.AbsoluteSize
-			trackerTap.Position = UDim2.fromOffset(at.X - guiAt.X, at.Y - guiAt.Y)
-			trackerTap.Size = UDim2.fromOffset(size.X, size.Y)
-			-- Under the Open camp button when both would not fit side by side.
-			local below = if campButton.Visible and size.X < 246 then 50 else 0
-			wayButton.Position = UDim2.fromOffset(at.X - guiAt.X + size.X - 120, at.Y - guiAt.Y + size.Y + 6 + below)
-		end
-		wayButton.Visible = trackerSeen
-			and os.clock() < wayOfferUntil
-			and Waypoint.shown(if root then root.Position else nil, target)
+		placeWay(tracker, wayTarget(), root, campAction)
 	end
 	table.insert(connections, RunService.Heartbeat:Connect(frame))
 	local stop = ctx.onSnapshot(function(latest)
 		view = if type(latest) == "table" then latest.opening else nil
+		local ch = if type(latest) == "table" then latest.character else nil
+		guideLine, guideObjective = nil, nil
+		if ctx.content and type(ch) == "table" then
+			-- The same line ContractsPanel puts on the HUD tracker (without its touch wording, which
+			-- only changes the hint, so the step itself is matched on the guide title and target).
+			local line, objective =
+				CharacterText.guideObjective(ctx.locale, ctx.content, ch, ctx.names or {}, ctx.solo == true)
+			guideObjective = objective
+			guideLine = if line then string.match(line, "^[^:]+") else nil
+		end
 	end)
 	return {
 		destroy = function()

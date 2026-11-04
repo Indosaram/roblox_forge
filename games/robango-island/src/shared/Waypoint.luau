@@ -38,6 +38,26 @@ function M.resolve(layout: any, id: string): Vector3?
 	return nil
 end
 
+--- World target of a guide objective in `layout` (p134 v73: the harbor's first gather step had no
+--- direction): for a gather step the resource node of that item nearest `from` (the first one with
+--- no position to measure from); nil for any other step or an item this layout has no node of.
+function M.guideTarget(layout: any, objective: any, from: Vector3?): Vector3?
+	if type(layout) ~= "table" or type(objective) ~= "table" or objective.action ~= "gather" then
+		return nil
+	end
+	local best: Vector3?, distance = nil, math.huge
+	for _, node in layout.resourceNodes or {} do
+		if node.item == objective.target and node.position then
+			local at = Vector3.new(node.position.x, node.position.y, node.position.z)
+			local d = if from then M.distance(from, at) else 0
+			if d < distance then
+				best, distance = at, d
+			end
+		end
+	end
+	return best
+end
+
 --- The content layout `layoutId`, or nil.
 function M.layout(content: any, layoutId: string?): any?
 	for _, layout in (if type(content) == "table" then content.layouts or {} else {}) :: { any } do

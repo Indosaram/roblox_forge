@@ -5,6 +5,8 @@ local Text = require("../../genres/survival-coop/module/CharacterText")
 local Model = require("../../genres/survival-coop/module/SurvivalHUDModel")
 local HudLocale = require("../../genres/survival-coop/module/SurvivalHUDLocale")
 local Spoilage = require("../../core/domain/survival/Spoilage")
+local Harness = require("./PanelHarness.fixture")
+local roblox: any = require("@lune/roblox")
 require("./PackText.fixture") -- installs the strings.csv lookup the genre text tables read
 
 local NAMES = { fiber = "고사리 섬유", ["axe-t1"] = "도끼" }
@@ -62,5 +64,49 @@ return {
 			HudLocale.freshness("ko-kr", 200) == "신선도 20% - 곧 먹거나 냉장고에 넣으세요",
 			"spoiling unchanged"
 		)
+	end,
+	["v73 #2: at the harbor the guide gather step points the waypoint and 'show the way' at a fiber node"] = function()
+		local harbor: any = nil
+		for _, layout in Content.layouts do
+			harbor = if layout.id == "rw.harbor" then layout else harbor
+		end
+		local fiber: any = nil
+		for _, node in harbor.resourceNodes do
+			fiber = if node.item == "fiber" then node.position else fiber
+		end
+		assert(fiber, "the harbor has a fiber node")
+		local h = Harness.harness({ width = 800, height = 360, realHud = true })
+		local world = h.new("Folder", "ForgeRoleWorld")
+		world:SetAttribute("ForgeLayoutId", "rw.harbor")
+		world.Parent = h.workspace
+		local character = h.new("Model", "Character")
+		local root = h.new("Part", "HumanoidRootPart")
+		root.Position, root.Parent = roblox.Vector3.new(fiber.x + 60, fiber.y, fiber.z + 40), character
+		character.Parent = h.workspace
+		h.player.Character = character
+		-- A returning account off the opening: no opening view, the HUD line is the first-gather guide.
+		h.publish({
+			contracts = { tutorial = { step = "declare-settlement", hint = "tutorial.declare-settlement" } },
+			character = { level = 3, points = 50, definitions = {}, progress = {} },
+		})
+		local function find(name: string): any
+			for _, item in h.playerGui:GetDescendants() do
+				if item.Name == name then
+					return item
+				end
+			end
+			return nil
+		end
+		local line = assert(find("ObjectiveTracker"), "HUD tracker").Text
+		assert(string.find(line, "고사리 섬유", 1, true), "the HUD line is the gather guide: " .. line)
+		local beam = assert(find("WaypointBeam") or h.workspace:FindFirstChild("WaypointBeam", true), "beam")
+		assert(beam.Parent ~= nil, "a beam marks the gather target")
+		local at = beam.CFrame.Position
+		assert(math.abs(at.X - fiber.x) < 0.01 and math.abs(at.Z - fiber.z) < 0.01, "beam on the fiber node")
+		local tap = assert(find("OpeningTrackerTap"), "quest card tap")
+		assert(tap.Visible, "the quest card offers the walk")
+		h.click(tap)
+		assert(assert(find("OpeningShowWay"), "show the way").Visible, "'show the way' after a card tap")
+		assert(#h.errors == 0, tostring(h.errors[1]))
 	end,
 }

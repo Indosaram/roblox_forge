@@ -204,7 +204,7 @@ local function openGuide(
 	minRank: number,
 	solo: boolean?,
 	touch: boolean?
-): string?
+): (string?, any?)
 	local done, progress = ch.definitions or {}, ch.progress or {}
 	for _, g in Guide.visible(content, solo) do
 		if not done[g.id] and Guide.open(g, level, grade) and ((g.gates or {}).developmentRank or 0) >= minRank then
@@ -223,7 +223,7 @@ local function openGuide(
 				local what =
 					M.format(locale, "guide_go_sheet", M.text(locale, verb), targetName(locale, o.target, names))
 				local have = math.min(progress[o.id] or 0, o.quantity)
-				return M.format(locale, "guide_next", title(locale, g, names), what, have, o.quantity)
+				return M.format(locale, "guide_next", title(locale, g, names), what, have, o.quantity), o
 			end
 			if strings[go] then
 				-- p134 v73 (phone): a touch device reads the key-free row ("walk up and tap"), never "E".
@@ -253,7 +253,7 @@ local function openGuide(
 					end
 				end
 				local have = math.min(progress[o.id] or 0, o.quantity)
-				return M.format(locale, "guide_next", title(locale, g, names), what, have, o.quantity)
+				return M.format(locale, "guide_next", title(locale, g, names), what, have, o.quantity), o
 			end
 		end
 	end
@@ -264,8 +264,16 @@ end
 -- that grade's band; with none open, route 1's gate plus the next authored step (a support region
 -- opening at the harbor departure post, or the next guide's level). With `solo`, guides whose steps
 -- need another player (GuideEvents.multiplayer) are skipped. With `touch`, step hints that name a
--- key (E, C, B) read their guide_go_<action>_touch row instead.
-function M.guideObjective(locale: string, content: any, ch: any, names: any, solo: boolean?, touch: boolean?): string?
+-- key (E, C, B) read their guide_go_<action>_touch row instead. The second value is the guide
+-- objective the line names ({ id, action, target, quantity }), nil when the line names none.
+function M.guideObjective(
+	locale: string,
+	content: any,
+	ch: any,
+	names: any,
+	solo: boolean?,
+	touch: boolean?
+): (string?, any?)
 	local level, grade, done = ch.level or 1, math.floor((ch.points or 0) / 100), ch.definitions or {}
 	local needLevel, needRank = Party.gates(content, 1)
 	if grade < needRank then
@@ -273,15 +281,17 @@ function M.guideObjective(locale: string, content: any, ch: any, names: any, sol
 	elseif level >= needLevel then
 		-- Route open: an open guide of the bands past the route grade leads (route 1 stays on the
 		-- Routes card); only with none open does the line point at the route.
-		return openGuide(locale, content, ch, names, level, grade, needRank + 1, solo, touch)
-			or M.text(locale, "guide_route_open")
+		local line, objective = openGuide(locale, content, ch, names, level, grade, needRank + 1, solo, touch)
+		return line or M.text(locale, "guide_route_open"), objective
 	end
 	-- Grade met but below the route level: a guide of the route's grade first, else any still-open
 	-- start guide (chart2 lowered route 1 to grade 1, reached after two of the four start guides).
-	local open = openGuide(locale, content, ch, names, level, grade, needRank, solo, touch)
-		or openGuide(locale, content, ch, names, level, grade, 0, solo, touch)
+	local open, objective = openGuide(locale, content, ch, names, level, grade, needRank, solo, touch)
+	if not open then
+		open, objective = openGuide(locale, content, ch, names, level, grade, 0, solo, touch)
+	end
 	if open then
-		return open
+		return open, objective
 	end
 	local gate = M.format(locale, "guide_route_level", grade, needLevel, level)
 	local region: number? = nil
