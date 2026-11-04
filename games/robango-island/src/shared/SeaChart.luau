@@ -160,6 +160,11 @@ end
 M.SAIL_REACH = 20
 M.DOCK_ARRIVE = 6 -- the 'show the dock' walk stops this close to the sail spot
 M.DOCK_MARK_SECONDS = 60 -- an unpressed dock mark (chart opened away from it) stays this long
+-- p134 v73: the first Set sail after the dock walk answered COMMAND_PENDING (the session held the
+-- actor for a moment: a recovery sweep or lease renew on a slow DataStore) and the card showed
+-- 'still finishing your last action' as final. The same request (same id, replay-safe) is re-sent
+-- this many times, this far apart, before that line shows.
+M.SAIL_RETRIES, M.SAIL_RETRY_SECONDS = 10, 1
 
 --- Whether the chart offers 'show the dock' for a player at `root` with `spot` the nearest sail
 --- spot (nil: none known, never offered).
@@ -832,10 +837,20 @@ function M.panel(ctx: any): any
 			return
 		end
 		busy = true
-		local result = if card.viaHarbor
-			then ctx.send("survival-coop:mission-action", { "sail", "harbor" })
-			elseif card.drift then ctx.send("survival-coop:party-action", { "depart", tostring(card.route) })
-			else ctx.send("survival-coop:mission-action", { "sail", card.role })
+		local function go(): any
+			return if card.viaHarbor
+				then ctx.send("survival-coop:mission-action", { "sail", "harbor" })
+				elseif card.drift then ctx.send("survival-coop:party-action", { "depart", tostring(card.route) })
+				else ctx.send("survival-coop:mission-action", { "sail", card.role })
+		end
+		local result = go()
+		for _ = 1, M.SAIL_RETRIES do
+			if not (result and result.reason == "COMMAND_PENDING") then
+				break
+			end
+			task.wait(M.SAIL_RETRY_SECONDS)
+			result = go()
+		end
 		busy = false
 		local reason = if result and result.ok then "travelling" else (result and result.reason or "travel_refused")
 		status = ctx.reason(reason)

@@ -165,6 +165,7 @@ local function mountPanel(role: string, snapshot: any, clock: (() -> number)?, o
 		Vector3 = roblox.Vector3,
 		CFrame = roblox.CFrame,
 		os = { clock = clock or os.clock },
+		task = { wait = opts.wait or function() end },
 		require = function(path: string): any
 			if string.find(path, "Waypoint$") then
 				-- The real marker module on the same fake Instance tree.
@@ -1018,5 +1019,31 @@ return {
 		engine.move("1", { x = p.X + SeaChart.SAIL_REACH + 30, y = p.Y, z = p.Z + 40 })
 		assert(world.sailPoint("1") == nil, "far from every dock refuses")
 		world.destroy()
+	end,
+	["v73 #4: a sail the session answers COMMAND_PENDING is re-sent by itself, not shown as final"] = function()
+		local facts = { level = 3, developmentRank = 0 }
+		local sent, waits = 0, 0
+		local panel = mountPanel("onboarding", { expedition = { now = 1, facts = facts } }, nil, {
+			spots = "dock:0,0,0",
+			at = roblox.Vector3.new(1, 0, 1),
+			wait = function()
+				waits += 1
+			end,
+			send = function(_action, _args)
+				sent += 1
+				-- The actor is held for the first three answers (a recovery sweep), then the sail goes.
+				return if sent <= 3
+					then { ok = false, reason = "COMMAND_PENDING" }
+					else { ok = true, reason = "travelling" }
+			end,
+		})
+		panel.gui.Enabled = true
+		panel.find("Isle-harbor").Activated:Fire()
+		local sail = assert(panel.find("Sail"), "card primary")
+		sail.Activated:Fire()
+		assert(sent == 4 and waits == 3, "re-sent until it went: " .. sent .. " sends, " .. waits .. " waits")
+		local status = assert(panel.find("SheetStatus"), "status line")
+		assert(not string.find(status.Text, "COMMAND_PENDING", 1, true), "no pending refusal: " .. status.Text)
+		panel.destroy()
 	end,
 }
