@@ -452,9 +452,12 @@ function M.shellPanel(
 			local buys = harbor and harbor.prices or {}
 			local tradable = {}
 			local present: { [string]: boolean } = {}
-			for id, item in state.items do
+			-- A snapshot that has not carried the bag yet sells nothing (no stall on a nil list).
+			for id, item in state.items or {} do
 				-- Solo: what the harbor buys; otherwise what the player market trades.
-				if if ctx.solo then buys[item.catalogId] ~= nil else table.find(state.catalogIds, item.catalogId) then
+				if
+					if ctx.solo then buys[item.catalogId] ~= nil else table.find(state.catalogIds or {}, item.catalogId)
+				then
 					table.insert(tradable, id)
 					present[M.category(definitions[item.catalogId])] = true
 				end
