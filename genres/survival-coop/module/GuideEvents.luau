@@ -201,6 +201,20 @@ function M.visible(content: any, solo: boolean?): { any }
 			table.insert(out, guide)
 		end
 	end
+	-- Unlock order (level, then grade, then id): the HUD follows the first open guide, and id order
+	-- left a guide that opens at L12 (g41 second pet) behind every g32-g40 step.
+	table.sort(out, function(a: any, b: any): boolean
+		local ga, gb = a.gates or {}, b.gates or {}
+		local la, lb = ga.characterLevel or 1, gb.characterLevel or 1
+		if la ~= lb then
+			return la < lb
+		end
+		local ra, rb = ga.developmentRank or 0, gb.developmentRank or 0
+		if ra ~= rb then
+			return ra < rb
+		end
+		return a.id < b.id
+	end)
 	return out
 end
 
