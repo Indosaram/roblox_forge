@@ -14,6 +14,7 @@ local CameraConfig = require("./CameraConfig")
 local Waypoint = require("./Waypoint")
 local CampPanel = require("../../../../genres/survival-coop/module/CampPanel")
 local CharacterText = require("../../../../genres/survival-coop/module/CharacterText")
+local GuideEvents = require("../../../../genres/survival-coop/module/GuideEvents")
 local M = {}
 
 M.COLD_OPEN_SECONDS, M.SKIP_AFTER = 25, 1.0
@@ -682,19 +683,21 @@ function M.factory(ctx: any): any
 		end
 		return nil
 	end
-	--- World point of the HUD guide step in the current world: the nearest node of a gather step.
+	--- World point of the HUD guide step in the current world: the nearest node of a gather step, or
+	--- the anchor an acknowledgement step is performed at when it stands in this world.
 	local function guideTarget(): Vector3?
 		if not guideObjective then
 			return nil
 		end
 		local world = workspace:FindFirstChild("ForgeRoleWorld")
 		local layoutId = world and world:GetAttribute("ForgeLayoutId")
+		local layout = Waypoint.layout(ctx.content, layoutId)
+		local at, anchorId = GuideEvents.where(ctx.content, guideObjective.action, guideObjective.target, layoutId)
+		if at ~= nil and at == layoutId and anchorId then
+			return Waypoint.resolve(layout, anchorId)
+		end
 		local root = rootPart()
-		return Waypoint.guideTarget(
-			Waypoint.layout(ctx.content, layoutId),
-			guideObjective,
-			if root then root.Position else nil
-		)
+		return Waypoint.guideTarget(layout, guideObjective, if root then root.Position else nil)
 	end
 	local function frame()
 		local now = serverNow()

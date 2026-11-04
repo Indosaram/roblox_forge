@@ -312,6 +312,33 @@ local function anchors(content: any, verb: string, target: string): { [string]: 
 	return out
 end
 
+-- Guide-sheet steps that run a home storage transfer, which the server accepts only on the home island.
+local HOME_VERBS = { deposit = true, retrieve = true }
+
+--- Where a guide-sheet step is performed: the id of the layout that holds an anchor the
+--- acknowledgement (verb, target) names (`here`, the current layout id, first; then content order),
+--- plus that anchor id; "rw.home" for the home storage steps. nil when the step can be performed
+--- anywhere. The HUD line and the guide row's refusal name this place (the g13 laboratory stands only
+--- at the harbor: the home 'laboratory-pad' is a build pad, not a laboratory).
+function M.where(content: any, verb: string, target: string, here: string?): (string?, string?)
+	if HOME_VERBS[verb] then
+		return "rw.home", nil
+	end
+	if not table.find(M.VERBS, verb) then
+		return nil, nil
+	end
+	local places = anchors(content, verb, target)
+	local found: string?, at: string? = nil, nil
+	for _, layout in content.layouts or {} do
+		for _, anchor in layout.anchors or {} do
+			if places[anchor.id] and (found == nil or layout.id == here) then
+				found, at = layout.id, anchor.id
+			end
+		end
+	end
+	return found, at
+end
+
 --- True when no world anchor is named by (verb, target), or the actor stands within reach of one
 --- of the named anchors of the world's current layout. A world with placed anchor parts answers
 --- through world.anchorReach (reach to the visible part, never to the authored point that can lie

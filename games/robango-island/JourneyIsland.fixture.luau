@@ -1359,6 +1359,89 @@ function M.run(host: any, p: any, options: any?): any
 					ok = last and last.ok,
 					reason = last and last.reason,
 				})
+			elseif
+				o.action == "inspect"
+				or o.action == "inspect-rate"
+				or o.action == "activate"
+				or o.action == "deposit"
+				or o.action == "retrieve"
+				or o.action == "preview"
+				or o.action == "acknowledge-level-gate"
+			then
+				-- Guide-sheet steps: the HUD line names the place ('Sea chart > <isle>') when the step is
+				-- bound to one; sail there, walk to the anchor this world shows, then tap the guide row.
+				local Text = require("../../genres/survival-coop/module/CharacterText")
+				local place = Text.place("ko-kr", Content, o.action, o.target)
+				local layoutId, anchorId = GuideEvents.where(Content, o.action, o.target, host.layoutId)
+				local isle = if layoutId then string.gsub(layoutId, "^rw%.", "") else nil
+				local named = place ~= nil and string.find(text, place, 1, true) ~= nil
+				if place and not named then
+					p.stall(
+						"friction",
+						"guide " .. g.id .. " (" .. o.action .. " " .. o.target .. ") HUD names no place: " .. text,
+						owner("genres/survival-coop/module/CharacterText.luau", "function M.place("),
+						"the guide line must name the isle the step is performed at"
+					)
+				end
+				if named and layoutId and layoutId ~= host.layoutId then
+					local ok, why = sail(assert(isle, "place-bound step without an isle"))
+					p.event("sail", { to = isle, ok = ok, reason = why, from = host.layoutId, forGuide = o.id })
+					if ok then
+						continue
+					end
+				end
+				local at = if anchorId then anchor(anchorId) else nil
+				if at then
+					p.walk(at, 2)
+				elseif o.action == "deposit" or o.action == "retrieve" then
+					if o.action == "deposit" then
+						p.obtain(o.target, o.quantity, 300)
+					end
+					p.walk(Content.homePolicy.dock, 2)
+				end
+				p.openTile("guides")
+				local row = p.find("Objective-" .. o.id)
+				local shownRow = row and row.Text
+				if row then
+					p.click(row)
+				end
+				local status = p.find("Status")
+				local last = p.lastCommand()
+				p.event("guide-sheet-step", {
+					guide = g.id,
+					step = o.id,
+					place = isle,
+					named = named,
+					anchor = anchorId,
+					layout = host.layoutId,
+					row = if shownRow then cut(shownRow, 60) else nil,
+					command = last and last.action,
+					ok = last and last.ok,
+					reason = last and last.reason,
+					status = if status then cut(status.Text, 80) else nil,
+				})
+				p.closeSheets()
+			elseif o.action == "assemble" then
+				-- The HUD line names Menu > Practice > Make: the guide-gated assembly row runs anywhere.
+				for _, operation in Content.operations do
+					if operation.outputs[1] and operation.outputs[1].item == o.target then
+						for _, input in operation.inputs do
+							p.obtain(input.item, input.quantity * o.quantity, 300)
+						end
+						p.openTile("operations")
+						p.render()
+						clickNamed("Make-" .. operation.id)
+						p.closeSheets()
+						local last = p.lastCommand()
+						p.event("guide-assemble", {
+							operation = operation.id,
+							command = last and last.action,
+							ok = last and last.ok,
+							reason = last and last.reason,
+						})
+						break
+					end
+				end
 			elseif o.action == "preview-refund" or o.action == "cancel-preview" then
 				p.openTile("character")
 				clickNamed("OpenReset")

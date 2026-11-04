@@ -9,6 +9,7 @@ local Rules = require("./CharacterRules")
 local Text = require("./CharacterText")
 local Sheet = require("./CharacterSheet")
 local GuideEvents = require("./GuideEvents")
+local HUDModel = require("./SurvivalHUDModel")
 local M = {}
 
 local ACK: { [string]: any } = {}
@@ -39,7 +40,33 @@ M.OPEN = table.freeze({
 	["return-loan"] = "camp",
 	-- Practice drills run from the Operations sheet (its Make button), at the stand or anywhere.
 	practice = "operations",
+	-- Guide-gated assembly (g20 bandages) is an Operations row too (OperationExtension).
+	assemble = "operations",
 })
+
+-- Home storage steps (g16) run the real home transfer from the row: the first bag stack of the
+-- target goes into home storage, or the first home-storage stack comes back. The server accepts it
+-- only on the home island (HomeExtension: OUT_OF_RANGE elsewhere).
+local function transfer(data: any, objective: any): (string?, { any }?)
+	local home = data.home
+	if type(home) ~= "table" or type(home.homeId) ~= "string" then
+		return nil, nil
+	end
+	local deposit = objective.action == "deposit"
+	local source = if deposit then HUDModel.bag(data.survival or {}) else home.storage
+	local ids = {}
+	for id, item in (if type(source) == "table" then source.items else nil) or {} do
+		if item.catalogId == objective.target then
+			table.insert(ids, id)
+		end
+	end
+	table.sort(ids)
+	if not ids[1] then
+		return nil, nil
+	end
+	local args: { any } = { home.homeId, { itemId = ids[1], quantity = 1 } }
+	return "survival-coop:" .. (if deposit then "home-deposit" else "home-withdraw"), args
+end
 
 local function before(a: any, b: any): boolean
 	local ga, gb = a.gates or {}, b.gates or {}
@@ -114,7 +141,13 @@ function M.model(locale: string, data: any): { Sheet.Row }
 				local action, args = nil, nil
 				if tap then
 					action, args = ACK[objective.action](objective.target)
+				elseif pending and (objective.action == "deposit" or objective.action == "retrieve") then
+					action, args = transfer(data, objective)
+					tap = action ~= nil
 				end
+				-- A step bound to a place: its out-of-reach refusal names the place (the g13 laboratory
+				-- stands at the harbor), never the generic 'move closer'.
+				local place = if tap then Text.place(locale, content, objective.action, objective.target) else nil
 				table.insert(rows, {
 					name = "Objective-" .. objective.id,
 					text = Text.format(
@@ -131,6 +164,7 @@ function M.model(locale: string, data: any): { Sheet.Row }
 					action = action,
 					args = args,
 					open = panel,
+					away = if place then Text.format(locale, "guide_away", place) else nil,
 				})
 			end
 		end

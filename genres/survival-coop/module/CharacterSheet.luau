@@ -16,6 +16,8 @@ export type Row = {
 	focus: any?,
 	enabled: boolean?,
 	success: string?,
+	-- Refusal shown for OUT_OF_RANGE when the row's step is bound to a place (it names the place).
+	away: string?,
 }
 
 -- Shared between screens: the item the equipment sheet hands to modify/support.
@@ -67,6 +69,9 @@ function M.activate(locale: string, row: Row, send: (string, { any }) -> any, op
 	end
 	local result = send(row.action, row.args or {})
 	if type(result) ~= "table" or not result.ok then
+		if row.away and type(result) == "table" and result.reason == "OUT_OF_RANGE" then
+			return row.away
+		end
 		return Text.refusal(locale, if type(result) == "table" then result.reason else nil)
 	end
 	return if row.success then Text.text(locale, row.success) else ""

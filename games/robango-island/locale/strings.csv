@@ -3315,3 +3315,6 @@ guide_go_place_touch,place %s (Menu > Build),HUD objective guide action on touch
 hud.FOOD_SPOILED,"This food has spoiled and cannot be eaten. Drop it, or compost it (Craft).",food refusal: the stack spoiled,"This food has spoiled and cannot be eaten. Drop it, or compost it (Craft).",상해서 먹을 수 없는 음식이에요. 버리거나 퇴비로 만드세요 (제작).
 hud.freshness_spoiled,Spoiled - cannot be eaten,bag item detail food freshness at zero,Spoiled - cannot be eaten,상함 - 먹을 수 없어요
 cli.way.nopath,"No walkable way from here. Step around the obstacle and press again, or follow the arrow.",show-the-way walk blocked with no path to the target,"No walkable way from here. Step around the obstacle and press again, or follow the arrow.","여기서는 걸어갈 길이 막혔어요. 장애물을 비켜 선 뒤 다시 누르거나 화살표를 따라가요."
+guide_go_sheet_at,"%s %s (Sea chart > %s, then Menu > Guides)",HUD objective guide action (guide sheet step bound to a place),"%s %s (Sea chart > %s, then Menu > Guides)","%s %s (해도 > %s, 그다음 메뉴 > 안내)"
+guide_away,This step works only at %s. Go there and tap it again.,guide sheet row refusal: the step is performed at a place,This step works only at %s. Go there and tap it again.,이 단계는 %s에서만 돼요. 그곳에 가서 다시 누르세요.
+guide_go_assemble,assemble %s: tap Make in the Practice tile (Menu),HUD objective guide action,assemble %s: tap Make in the Practice tile (Menu),%s 조립: 메뉴 > 연습과 악기 > 만들기

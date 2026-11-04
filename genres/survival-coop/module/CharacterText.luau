@@ -188,6 +188,15 @@ local function targetName(locale: string, target: string, names: any): string
 	return names[target] or target
 end
 
+--- Chart name of the place a guide-sheet step is performed (GuideEvents.where: the harbor for the
+--- g13 laboratory and the g20 beacon, the home isle for home storage), or nil when it can be done
+--- anywhere.
+function M.place(locale: string, content: any, action: string, target: string): string?
+	local layout = Guide.where(content, action, target)
+	local key = if layout then "cli.chart.isle." .. string.gsub(layout, "^rw%.", "") else nil
+	return if key and strings[key] then M.text(locale, key) else nil
+end
+
 local function title(locale: string, guide: any, names: any): string
 	local key = "guide_" .. string.sub(guide.id, 4, 6)
 	return if strings[key] then M.text(locale, key) else names[guide.id] or guide.id
@@ -219,9 +228,23 @@ local function openGuide(
 			local verb = "guide_act_" .. string.gsub(o.action, "%-", "_")
 			if not strings[go] and strings[verb] and strings.guide_go_sheet then
 				-- Steps without a HUD verb row read as "<Verb> <target> (Menu > Guides)": the guide
-				-- sheet row carries that step's own button.
-				local what =
-					M.format(locale, "guide_go_sheet", M.text(locale, verb), targetName(locale, o.target, names))
+				-- sheet row carries that step's own button. A step bound to a place names it (the row is
+				-- refused anywhere else).
+				local place = M.place(locale, content, o.action, o.target)
+				local what = if place
+					then M.format(
+						locale,
+						"guide_go_sheet_at",
+						M.text(locale, verb),
+						targetName(locale, o.target, names),
+						place
+					)
+					else M.format(
+						locale,
+						"guide_go_sheet",
+						M.text(locale, verb),
+						targetName(locale, o.target, names)
+					)
 				local have = math.min(progress[o.id] or 0, o.quantity)
 				return M.format(locale, "guide_next", title(locale, g, names), what, have, o.quantity), o
 			end
