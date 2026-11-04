@@ -3309,3 +3309,6 @@ chr.guide_target_melee_2,Melee 2 (club stun),genre text chr,Melee 2 (club stun),
 chr.guide_target_survival_3,Survival 3 (capture),genre text chr,Survival 3 (capture),생존 3 (포획)
 guide_input_hunt,"%s (%s: hunt %s)",HUD objective craft input raw from hunting,"%s (%s: hunt %s)","%s (%s: %s 사냥)"
 guide_go_practice,"%s: tap Make in the Practice tile (Menu)",HUD objective guide action,"%s: tap Make in the Practice tile (Menu)","%s: 메뉴 > 연습과 악기 > 만들기"
+guide_go_gather_touch,"gather %s (walk up, tap its button)",HUD objective guide action on touch devices (no key hint),"gather %s (walk up, tap its button)",%s 채집 (다가가서 버튼 누르기)
+guide_go_craft_touch,craft %s (Menu > Craft),HUD objective guide action on touch devices (no key hint),craft %s (Menu > Craft),%s 제작 (메뉴 > 제작)
+guide_go_place_touch,place %s (Menu > Build),HUD objective guide action on touch devices (no key hint),place %s (Menu > Build),%s 설치하기 (메뉴 > 건설)

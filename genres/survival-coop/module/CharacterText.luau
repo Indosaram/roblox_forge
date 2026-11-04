@@ -202,7 +202,8 @@ local function openGuide(
 	level: number,
 	grade: number,
 	minRank: number,
-	solo: boolean?
+	solo: boolean?,
+	touch: boolean?
 ): string?
 	local done, progress = ch.definitions or {}, ch.progress or {}
 	for _, g in Guide.visible(content, solo) do
@@ -225,7 +226,9 @@ local function openGuide(
 				return M.format(locale, "guide_next", title(locale, g, names), what, have, o.quantity)
 			end
 			if strings[go] then
-				local what = M.format(locale, go, targetName(locale, o.target, names))
+				-- p134 v73 (phone): a touch device reads the key-free row ("walk up and tap"), never "E".
+				local row = if touch and strings[go .. "_touch"] then go .. "_touch" else go
+				local what = M.format(locale, row, targetName(locale, o.target, names))
 				if o.action == "gather" then
 					what = whereIsle(locale, content, o.target, what) or what
 				elseif o.action == "craft" then
@@ -260,22 +263,23 @@ end
 -- HUD objective: the next open start guide; after route 1's grade, the next open waypoint guide of
 -- that grade's band; with none open, route 1's gate plus the next authored step (a support region
 -- opening at the harbor departure post, or the next guide's level). With `solo`, guides whose steps
--- need another player (GuideEvents.multiplayer) are skipped.
-function M.guideObjective(locale: string, content: any, ch: any, names: any, solo: boolean?): string?
+-- need another player (GuideEvents.multiplayer) are skipped. With `touch`, step hints that name a
+-- key (E, C, B) read their guide_go_<action>_touch row instead.
+function M.guideObjective(locale: string, content: any, ch: any, names: any, solo: boolean?, touch: boolean?): string?
 	local level, grade, done = ch.level or 1, math.floor((ch.points or 0) / 100), ch.definitions or {}
 	local needLevel, needRank = Party.gates(content, 1)
 	if grade < needRank then
-		return openGuide(locale, content, ch, names, level, grade, 0, solo)
+		return openGuide(locale, content, ch, names, level, grade, 0, solo, touch)
 	elseif level >= needLevel then
 		-- Route open: an open guide of the bands past the route grade leads (route 1 stays on the
 		-- Routes card); only with none open does the line point at the route.
-		return openGuide(locale, content, ch, names, level, grade, needRank + 1, solo)
+		return openGuide(locale, content, ch, names, level, grade, needRank + 1, solo, touch)
 			or M.text(locale, "guide_route_open")
 	end
 	-- Grade met but below the route level: a guide of the route's grade first, else any still-open
 	-- start guide (chart2 lowered route 1 to grade 1, reached after two of the four start guides).
-	local open = openGuide(locale, content, ch, names, level, grade, needRank, solo)
-		or openGuide(locale, content, ch, names, level, grade, 0, solo)
+	local open = openGuide(locale, content, ch, names, level, grade, needRank, solo, touch)
+		or openGuide(locale, content, ch, names, level, grade, 0, solo, touch)
 	if open then
 		return open
 	end
