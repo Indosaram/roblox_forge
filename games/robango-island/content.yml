@@ -3171,12 +3171,13 @@ recipes:
         quantity: 1
     station: "workbench"
   -
+    # Fun-first (owner 2026-11-03): the first clothing set asks 3+2 leather (was 5+3) and the first chest 5 wood + 2 fiber (was 8+4); the hunt-and-tan loop stays, minus the repeat trips.
     id: "temperate-top"
     craftMillis: 15000
     inputs:
       -
         item: "leather"
-        quantity: 5
+        quantity: 3
       -
         item: "dried-fiber"
         quantity: 2
@@ -3206,7 +3207,7 @@ recipes:
     inputs:
       -
         item: "leather"
-        quantity: 3
+        quantity: 2
       -
         item: "dried-fiber"
         quantity: 1
@@ -4023,10 +4024,10 @@ recipes:
     inputs:
       -
         item: "dried-wood"
-        quantity: 8
+        quantity: 5
       -
         item: "dried-fiber"
-        quantity: 4
+        quantity: 2
     outputs:
       -
         item: "storage-kit"

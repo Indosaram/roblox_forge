@@ -8391,13 +8391,13 @@
            'item':
             'dried-fiber'
            'quantity':
-            4
+            2
            
           - 
            'item':
             'dried-wood'
            'quantity':
-            8
+            5
            
           
          'outputs':
@@ -8805,7 +8805,7 @@
            'item':
             'leather'
            'quantity':
-            3
+            2
            
           
          'outputs':
@@ -8837,7 +8837,7 @@
            'item':
             'leather'
            'quantity':
-            5
+            3
            
           
          'outputs':
