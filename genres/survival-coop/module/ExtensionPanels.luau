@@ -1192,6 +1192,11 @@ function M.start(
 					tracker.Text = string.format(if ko then "조사: %dm" else "Survey: %dm", math.ceil(gap))
 				end
 			end
+			-- p134 v75 B2: the HUD card's last wrapped row was cut ('첫 채집: … (다가가서 버튼',
+			-- '항로 1이 열렸어요:'): its height came from AutomaticSize alone.
+			if shell and tracker and tracker:IsA("GuiObject") then
+				HudShell.fitQuestHeight(tracker, nil)
+			end
 			return
 		end
 		local chatRight, chat = chatEdges()

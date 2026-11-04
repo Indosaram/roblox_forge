@@ -1605,10 +1605,72 @@ end
 --- at a fixed label size. A card sized to the whole slot with TextScaled capped at 15 px left a dark
 --- box about 3x its two lines on PC (studio-after defect 13).
 M.QUEST_TEXT = table.freeze({ touch = 13, pc = 15 })
+
+--- Rows `text` wraps to at `size` px in `inner` px of width (a Hangul glyph ~1 em, Latin ~0.55 em),
+--- breaking at spaces like the engine. The fallback where TextService is not there (Lune specs).
+function M.questRows(text: string, size: number, inner: number): number
+	local rows = 0
+	for _, line in string.split(text, "\n") do
+		local used, count = 0, 1
+		for word in string.gmatch(line, "%S+") do
+			local w = textWidth(word, size)
+			local gap = if used > 0 then size * 0.3 else 0
+			if used > 0 and used + gap + w > inner then
+				count += 1
+				used = 0
+				gap = 0
+			end
+			-- A word wider than the card breaks inside itself.
+			while w > inner and inner > 0 do
+				count += 1
+				w -= inner
+			end
+			used += gap + w
+		end
+		rows += count
+	end
+	return rows
+end
+
+--- Minimum height (px) of a quest card label for its current text, capped at `limit`: the wrapped
+--- rows at the label's padded inner width plus its 6 px top/bottom padding. p134 v75 B2: the card's
+--- height came only from AutomaticSize, which on the phone left the wrapped last line a row short,
+--- so it ended in '...' ('마리트의 의뢰 수락...', '봉화 켜기...') though the cap had room. AutomaticSize
+--- still grows it if the engine needs more.
+function M.fitQuestHeight(label: any, limit: number?)
+	local pad = label:FindFirstChildOfClass("UIPadding")
+	local side = if pad then pad.PaddingLeft.Offset + pad.PaddingRight.Offset else 0
+	-- A label not laid out yet (or a headless spec instance) has no width to wrap at.
+	local laid, width = pcall(function()
+		return label.AbsoluteSize.X
+	end)
+	local inner = (if laid and type(width) == "number" then width else 0) - side
+	if inner <= 0 or label.Text == "" then
+		return
+	end
+	local size = label.TextSize
+	local tall = M.questRows(label.Text, size, inner) * size
+	local ok, measured = pcall(function()
+		return game:GetService("TextService"):GetTextSize(label.Text, size, label.Font, Vector2.new(inner, 1e5))
+	end)
+	if ok and typeof(measured) == "Vector2" then
+		tall = math.max(tall, measured.Y)
+	end
+	local need = math.ceil(tall) + 12 + 2
+	if limit and limit > 0 then
+		need = math.min(need, limit)
+	end
+	if label.Size.Y.Offset ~= need then
+		label.Size = UDim2.new(1, 0, 0, need)
+	end
+end
 function M.fitQuestText(label: any, limit: number?, touch: boolean)
 	label.TextScaled, label.TextWrapped = false, true
 	label.TextSize = if touch then M.QUEST_TEXT.touch else M.QUEST_TEXT.pc
-	label.Size, label.AutomaticSize = UDim2.fromScale(1, 0), Enum.AutomaticSize.Y
+	label.AutomaticSize = Enum.AutomaticSize.Y
+	if label.Size.X.Scale ~= 1 or label.Size.Y.Scale ~= 0 then
+		label.Size = UDim2.fromScale(1, 0)
+	end
 	label.TextTruncate = Enum.TextTruncate.AtEnd
 	for _, fit in label:GetChildren() do
 		if fit.ClassName == "UITextSizeConstraint" then
@@ -1625,6 +1687,7 @@ function M.fitQuestText(label: any, limit: number?, touch: boolean)
 	if pad then
 		pad.PaddingTop, pad.PaddingBottom = UDim.new(0, 6), UDim.new(0, 6)
 	end
+	M.fitQuestHeight(label, limit)
 end
 
 --- Places a GuiObject at a rect given in the space of `frame`'s ScreenGui (offset by `origin`).
