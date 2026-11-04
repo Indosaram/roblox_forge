@@ -644,5 +644,96 @@ return {
 				}
 		end
 		assert(TapRouter.walk(detour, goal, 6), "a short dodge round an obstacle is still a walk")
+	end, -- Staging v76 (SM-N981N): one 'show the way' press from 16 m walked 16 -> 17 -> 20 m round the tent
+	-- and stood at X22 Y56 with no blocked-path message. Each leg drifted less than WALK_AWAY from its
+	-- own start, so drift was never cut, and the blocked MoveTos each ran to the engine's 8 s timeout,
+	-- so the walk was still pushing (silently) when the player gave up and steered. Fails on 12df9def.
+	["v76: a walk drifting away in small steps stops close by with nopath"] = function()
+		local goal = { X = 2, Y = 0, Z = 60 }
+		local at = { X = 18, Y = 0, Z = 60 } -- 16 studs off
+		local now, farthest = 0, 16
+		local io: any = {}
+		function io.live()
+			return true
+		end
+		function io.position()
+			return at
+		end
+		function io.point(x, y, z)
+			return { X = x, Y = y, Z = z }
+		end
+		function io.clock()
+			return now
+		end
+		function io.path(from, _goal)
+			-- "Success" round the far side of the tent: every waypoint 1 stud farther from the target.
+			local points = { { position = from, jump = false } }
+			for index = 1, 40 do
+				table.insert(points, { position = { X = from.X + index, Y = 0, Z = from.Z }, jump = false })
+			end
+			return "Success", points
+		end
+		function io.step(point)
+			now += 1
+			at = { X = point.position.X, Y = 0, Z = point.position.Z }
+			farthest = math.max(farthest, math.sqrt((at.X - goal.X) ^ 2 + (at.Z - goal.Z) ^ 2))
+			return true
+		end
+		local arrived, why = TapRouter.walk(io, goal, 6)
+		assert(not arrived and why == "nopath", "a drifting walk says no path: " .. tostring(why))
+		assert(
+			farthest <= 16 + TapRouter.WALK_AWAY + TapRouter.WALK_SIDESTEP,
+			string.format("never drifts far: %.0f studs from the target", farthest)
+		)
+		assert(now <= TapRouter.WALK_WINDOW + 2, "stops within the progress window: " .. now .. " s")
+	end,
+	["v76: a walk pushing into the tent ends short with nopath in seconds, and the runtime toasts it"] = function()
+		local goal = { X = 2, Y = 0, Z = 60 }
+		local at = { X = 18, Y = 0, Z = 60 }
+		local now = 0
+		local io: any = {}
+		function io.live()
+			return true
+		end
+		function io.position()
+			return at
+		end
+		function io.point(x, y, z)
+			return { X = x, Y = y, Z = z }
+		end
+		function io.clock()
+			return now
+		end
+		function io.path(from, to)
+			return "Success", { { position = from, jump = false }, { position = to, jump = false } }
+		end
+		function io.step(_point)
+			now += 8 -- the engine's MoveTo timeout against the tent wall; the root barely moves
+			at = { X = at.X - 0.3, Y = 0, Z = at.Z }
+			return false
+		end
+		local arrived, why = TapRouter.walk(io, goal, 6)
+		assert(not arrived and why == "nopath", "a blocked walk says no path: " .. tostring(why))
+		-- Two blocked MoveTos at most (about 16 s), not WALK_STALLS legs of sidesteps and timeouts.
+		assert(now <= 16, "gives up in seconds, not a minute: " .. now .. " s")
+		-- The runtime step watchdog ends a MoveTo once the root stands still for STEP_STUCK seconds.
+		local clock = { value = 0 }
+		local stuck = TapRouter.stepWatch(function()
+			return clock.value
+		end)
+		assert(not stuck({ X = 0, Y = 0, Z = 0 }), "fresh step")
+		clock.value = 1
+		assert(not stuck({ X = 3, Y = 0, Z = 0 }), "moving")
+		clock.value = 1 + TapRouter.STEP_STUCK * 0.5
+		assert(not stuck({ X = 3.2, Y = 0, Z = 0 }), "briefly still")
+		clock.value = 1 + TapRouter.STEP_STUCK
+		assert(stuck({ X = 3.3, Y = 0, Z = 0 }), "stuck against the wall")
+		-- moveTo feeds the clock and the watchdog, and every short end except a cancel reports onFail
+		-- (the guide's cli.way.nopath toast); a drag, a newer walk or a respawn stays silent.
+		local source = fs.readFile("games/robango-island/src/client/TapRouter.luau")
+		local body = assert(string.find(source, "local function moveTo(", 1, true), "moveTo")
+		assert(string.find(source, "clock = os.clock,", body, true), "moveTo gives the walk a clock")
+		assert(string.find(source, "M.stepWatch(os.clock)", body, true), "moveTo watches each MoveTo")
+		assert(string.find(source, 'why ~= "cancelled" and onFail then', body, true), "short ends fail")
 	end,
 }

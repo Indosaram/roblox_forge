@@ -99,17 +99,56 @@ M.WALK_LEGS, M.WALK_STALL, M.WALK_STALLS, M.WALK_SIDESTEP = 64, 2, 4, 6
 -- that takes the character WALK_AWAY studs farther from the goal than where it started is cut there
 -- and counts as a stalled leg (sidestep, re-path), so WALK_STALLS such legs end the walk as 'nopath'.
 M.WALK_AWAY = 12
+-- p134 v76 (SM-N981N): one press from 16 m walked 16 -> 17 -> 20 m round the tent and stood there
+-- with no message until the player steered (which cancels silently). Each blocked MoveTo waited for
+-- the engine's 8 s timeout, so the WALK_STALLS legs took about a minute, and a leg's progress was
+-- measured from its own start, so legs that drift away and come back a little reset the stalls.
+-- Progress is now net: a leg counts only when it gets WALK_STALL studs closer than the walk's last
+-- progress mark; WALK_AWAY is measured from the closest point the walk reached (no slow drift); with
+-- `io.clock`, WALK_WINDOW seconds without progress end the walk as 'nopath'; and the runtime step
+-- gives up on a MoveTo once the root moved less than STEP_MOVE studs in STEP_STUCK seconds.
+M.WALK_WINDOW, M.STEP_STUCK, M.STEP_MOVE = 6, 1.5, 1
 local function flat(a: any, b: any): number
 	return math.sqrt((a.X - b.X) ^ 2 + (a.Z - b.Z) ^ 2)
+end
+--- Watchdog for one MoveTo: `seen(position)` returns true once the position has stayed within
+--- STEP_MOVE studs (flat) of where it last moved from for STEP_STUCK seconds of `clock`.
+function M.stepWatch(clock: () -> number): (any) -> boolean
+	local anchor: any, since = nil, 0
+	return function(position: any): boolean
+		local now = clock()
+		if anchor == nil or flat(anchor, position) >= M.STEP_MOVE then
+			anchor, since = position, now
+			return false
+		end
+		return now - since >= M.STEP_STUCK
+	end
 end
 --- Drives one walk to `goal`, done within `within` studs (flat). `io.position()` is the root
 --- position, `io.point(x, y, z)` builds a position, `io.path(from, goal)` returns a path status name
 --- and its waypoints ({ position, jump }), `io.step(waypoint)` walks to one waypoint and returns true
 --- (reached), false (MoveTo timed out or blocked) or nil (the walk was cancelled), `io.live()` is
---- false once a newer walk or a stop took over. Returns true on arrival, else false and why:
---- "cancelled" or "nopath" (blocked for WALK_STALLS legs in a row).
+--- false once a newer walk or a stop took over, optional `io.clock()` is seconds. Returns true on
+--- arrival, else false and why: "cancelled" or "nopath" (no net progress for WALK_STALLS legs or
+--- WALK_WINDOW seconds).
 function M.walk(io: any, goal: any, within: number): (boolean, string?)
 	local stalls = 0
+	local clock: (() -> number)? = io.clock
+	local best = flat(io.position(), goal) -- closest the walk got
+	local mark, markAt = best, if clock then clock() else 0 -- last net progress
+	-- Records the current position; true once the walk has gone WALK_WINDOW seconds without progress.
+	local function idle(): boolean
+		local d = flat(io.position(), goal)
+		best = math.min(best, d)
+		if d <= within then
+			return false
+		end
+		local now = if clock then clock() else 0
+		if d <= mark - M.WALK_STALL then
+			mark, markAt = d, now
+		end
+		return clock ~= nil and now - markAt > M.WALK_WINDOW
+	end
 	for _ = 1, M.WALK_LEGS do
 		if not io.live() then
 			return false, "cancelled"
@@ -127,9 +166,12 @@ function M.walk(io: any, goal: any, within: number): (boolean, string?)
 			if io.step(aside) == nil then
 				return false, "cancelled"
 			end
+			if idle() then
+				return false, if io.live() then "nopath" else "cancelled"
+			end
 		end
+		local legMark = mark
 		local status, points = io.path(io.position(), goal)
-		local start = flat(io.position(), goal)
 		for _, step in M.route(status, points, goal) do
 			if not io.live() or flat(io.position(), goal) <= within then
 				break
@@ -138,7 +180,10 @@ function M.walk(io: any, goal: any, within: number): (boolean, string?)
 			if reached == nil then
 				return false, "cancelled"
 			end
-			if reached == false or flat(io.position(), goal) > start + M.WALK_AWAY then
+			if idle() then
+				return false, if io.live() then "nopath" else "cancelled"
+			end
+			if reached == false or flat(io.position(), goal) > best + M.WALK_AWAY then
 				break -- re-path from here (heading away counts as no progress)
 			end
 		end
@@ -146,7 +191,10 @@ function M.walk(io: any, goal: any, within: number): (boolean, string?)
 		if after <= within then
 			return true
 		end
-		if before - after < M.WALK_STALL then
+		if idle() then
+			return false, if io.live() then "nopath" else "cancelled"
+		end
+		if mark > legMark - M.WALK_STALL then
 			stalls += 1
 			if stalls >= M.WALK_STALLS then
 				return false, if io.live() then "nopath" else "cancelled"
@@ -438,7 +486,7 @@ function M.start(options: { player: Player, blocked: () -> boolean, eligible: ((
 				Costs = { Water = math.huge },
 			})
 			local within = arrive or 1
-			local arrived, why = M.walk({
+			local arrived, ended = M.walk({
 				live = function(): boolean
 					return mine == serial and root.Parent ~= nil and humanoid.Health > 0
 				end,
@@ -446,6 +494,7 @@ function M.start(options: { player: Player, blocked: () -> boolean, eligible: ((
 					return root.Position
 				end,
 				point = Vector3.new,
+				clock = os.clock,
 				path = function(from: Vector3, to: Vector3): (string, { any })
 					local ok = pcall(function()
 						path:ComputeAsync(from, to)
@@ -470,8 +519,14 @@ function M.start(options: { player: Player, blocked: () -> boolean, eligible: ((
 					local done = humanoid.MoveToFinished:Once(function(reached)
 						finished = reached
 					end)
+					-- Pushing into a tent or a rock: give up on this MoveTo once the root stands still
+					-- (p134 v76), not after the engine's 8 s timeout.
+					local stuck = M.stepWatch(os.clock)
 					while finished == nil and mine == serial and flatDistance(root.Position, goal) > within do
 						RunService.Heartbeat:Wait()
+						if finished == nil and stuck(root.Position) then
+							finished = false
+						end
 					end
 					done:Disconnect()
 					if mine ~= serial then
@@ -488,7 +543,9 @@ function M.start(options: { player: Player, blocked: () -> boolean, eligible: ((
 			if flatDistance(root.Position, goal) <= within then
 				humanoid:MoveTo(root.Position)
 			end
-			if not arrived and why == "nopath" and onFail then
+			-- Any walk that ends short (not superseded by a newer walk, a stop or a respawn) says so.
+			local why: string = ended or "nopath"
+			if not arrived and why ~= "cancelled" and onFail then
 				onFail(why)
 			end
 			if onArrive then
