@@ -645,8 +645,31 @@ function M.run(Journey: any, options: any): any
 		end
 		crafting[label] = true
 		local made = false
+		-- A player makes the plainest recipe first: fewest inputs the bag lacks, then no skill node.
+		local candidates = {}
 		for _, recipe in Content.recipes do
 			if wanted(recipe.outputs[1].item) then
+				local lacking = 0
+				for _, input in recipe.inputs do
+					if count(bag().items, input.item) < input.quantity then
+						lacking += 1
+					end
+				end
+				local gated = 0
+				for _, detail in Content.recipeDetails or {} do
+					if detail.id == recipe.id then
+						gated = #(detail.skillNodes or {})
+					end
+				end
+				table.insert(candidates, { recipe = recipe, rank = lacking * 10 + gated })
+			end
+		end
+		table.sort(candidates, function(a, b)
+			return a.rank < b.rank or (a.rank == b.rank and a.recipe.id < b.recipe.id)
+		end)
+		for _, candidate in candidates do
+			local recipe = candidate.recipe
+			do
 				local ok, why = craft(recipe.id)
 				made = ok
 				if not ok then
