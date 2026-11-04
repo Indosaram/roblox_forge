@@ -749,9 +749,19 @@ function M.run(host: any, p: any, options: any?): any
 		for _ = 1, 12 do
 			local id, row = pet()
 			if not id then
+				p.event("tend", { action = action, species = species, pet = "none" })
 				return false
 			end
 			local phase = row.phase
+			p.event("tend", {
+				action = action,
+				pet = id,
+				phase = phase,
+				feeds = row.feeds,
+				readyAt = row.readyAt,
+				saddle = row.saddle,
+				last = (p.lastCommand() or {}).reason,
+			})
 			if phase == "Captured" then
 				press("place", id)
 			elseif phase == "PenPlaced" then
@@ -768,8 +778,14 @@ function M.run(host: any, p: any, options: any?): any
 					press("feed", id)
 				elseif action == "feed" then
 					return true
-				elseif not press("claim", id) then
-					p.wait(math.ceil(rules.trainingMillis / 1000 / 4))
+				else
+					-- The Claim button is pressed even while training runs (the server answers
+					-- NOT_READY); wait out a quarter of the training before pressing again.
+					press("claim", id)
+					local _, after = pet()
+					if after and after.phase == "Taming" then
+						p.wait(math.ceil(rules.trainingMillis / 1000 / 4))
+					end
 				end
 			elseif action == "tame" or action == "place-training" then
 				return true
