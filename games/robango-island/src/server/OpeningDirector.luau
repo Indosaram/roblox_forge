@@ -262,6 +262,7 @@ function M.new(layout: any, root: Instance, nowMillis: () -> number): any
 	local refusalCount = 0
 	local syncStakes: () -> () = function() end
 	local ports: Ports? = nil
+	local recordDevelopment: ((string, string, any) -> any)? = nil
 	local api: any = { folder = folder, stakes = stakes, beacon = beacon, boat = boat, mirror = mirror }
 
 	local function spawn(fn: () -> ())
@@ -343,6 +344,12 @@ function M.new(layout: any, root: Instance, nowMillis: () -> number): any
 		end
 		facts[actor] = current
 		local changed = Scene.advance(state, current, now, function(step, index, beat)
+			-- The opening accepts starter stock for this beat instead of requiring a fiber gather.
+			-- Credit only that completed beat, not held inventory during eat/join/other guide events.
+			local record = recordDevelopment
+			if step == "fiber" and record then
+				record(actor, "opening:fiber", { action = "gather", target = "fiber", quantity = 3 })
+			end
 			p.analytics(actor, step, index, beat)
 		end)
 		if changed then
@@ -351,6 +358,10 @@ function M.new(layout: any, root: Instance, nowMillis: () -> number): any
 		flush(actor)
 	end
 
+	--- Wires guide credit independently of the presentation/session ports.
+	function api.bindDevelopment(record: (string, string, any) -> any)
+		recordDevelopment = record
+	end
 	--- Wires the live session ports. Before this nothing is staged.
 	function api.bind(value: Ports)
 		ports = value
