@@ -668,6 +668,55 @@ function M.run(Journey: any, options: any): any
 			return ToolTiers.accepts(Content, required, output)
 		end)
 	end
+	-- A drop (hide, bone, meat) of a creature living here: the combat HUD flow, attack until it falls,
+	-- then the carcass picker takes that output (carcass-take). False when no such creature is here.
+	local function huntDrop(item: string): boolean
+		local droppers: { [string]: boolean } = {}
+		for _, row in Content.wildlifeDetails or {} do
+			for _, drop in row.dropReservoirs or {} do
+				if drop.item == item then
+					droppers[row.id] = true
+				end
+			end
+		end
+		local snapshot = host.factory.services.survivalWildlife.snapshot(ACTOR) or {}
+		local best, distance = nil, math.huge
+		for id, npc in snapshot do
+			if droppers[npc.catalogId] and npc.healthMilli > 0 then
+				local d = (npc.home.x - position.x) ^ 2 + (npc.home.z - position.z) ^ 2
+				if d < distance then
+					best, distance = id, d
+				end
+			end
+		end
+		if not best then
+			return false
+		end
+		walk(snapshot[best].home, 3)
+		for _, tag in { "spear", "starter-club", "stone-axe", "bone-knife" } do
+			if equipFor(tag) then
+				break
+			end
+		end
+		for _ = 1, 90 do
+			host.command("attack", { best })
+			wait(1)
+			local now = (host.factory.services.survivalWildlife.snapshot(ACTOR) or {})[best]
+			if not now or now.healthMilli == 0 then
+				break
+			end
+			if ((personal().vitals or {}).healthMilli or 1) <= 0 then
+				return false
+			end
+		end
+		local body = (host.factory.services.survivalWildlife.snapshot(ACTOR) or {})[best]
+		if body then
+			walk(body.position or body.home, 2)
+		end
+		local result = host.command("carcass-take", { best, item })
+		event("hunt-drop", { item = item, wild = best, ok = result.ok, reason = result.reason })
+		return result.ok == true
+	end
 	-- What a contract or guide asks the bag to hold: gather it where a node gives it, else craft it.
 	local function obtain(item: string, want: number, budgetSeconds: number?): boolean
 		local deadline = host.at.value + (budgetSeconds or 900)
@@ -676,6 +725,8 @@ function M.run(Journey: any, options: any): any
 				if not gatherItem(item, want, deadline - host.at.value) then
 					return false
 				end
+			elseif huntDrop(item) then
+				continue
 			elseif not make(item, function(output: string): boolean
 				return output == item
 			end) then

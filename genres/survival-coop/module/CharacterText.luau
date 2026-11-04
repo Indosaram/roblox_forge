@@ -98,6 +98,26 @@ end
 
 -- Inputs of a craft target the player cannot just pick up here: processed inputs (no node
 -- anywhere) name their recipe's station, wild-isle inputs name the isle. nil when none.
+-- Up to two creatures (display names) whose carcass gives `item`, preferring low-level species.
+local function huntedBy(content: any, item: string, names: any): string?
+	local found = {}
+	for _, row in content.wildlifeDetails or {} do
+		for _, drop in row.dropReservoirs or {} do
+			if drop.item == item then
+				table.insert(found, row)
+			end
+		end
+	end
+	table.sort(found, function(a, b)
+		return (a.level or 0) < (b.level or 0) or ((a.level or 0) == (b.level or 0) and a.id < b.id)
+	end)
+	local labels = {}
+	for index = 1, math.min(2, #found) do
+		table.insert(labels, names[found[index].id] or found[index].id)
+	end
+	return if #labels > 0 then table.concat(labels, "/") else nil
+end
+
 local function craftInputs(locale: string, content: any, target: string, names: any): string?
 	local recipe = recipeOf(content, target)
 	if not recipe or not strings.guide_inputs then
@@ -110,7 +130,17 @@ local function craftInputs(locale: string, content: any, target: string, names: 
 			local source = recipeOf(content, input.item)
 			if source then
 				local station = if source.station then names[source.station] or source.station else nil
-				table.insert(parts, if station then M.format(locale, "guide_input_station", name, station) else name)
+				local part = if station then M.format(locale, "guide_input_station", name, station) else name
+				-- A processed input whose raw comes from hunting (leather <- hide) names the creatures.
+				local raw = source.inputs and source.inputs[1] and source.inputs[1].item
+				local hunted = raw
+					and strings.guide_input_hunt
+					and not hasNode(content, raw)
+					and huntedBy(content, raw, names)
+				if hunted then
+					part = M.format(locale, "guide_input_hunt", part, names[raw] or raw, hunted)
+				end
+				table.insert(parts, part)
 			end
 		else
 			local placed = whereIsle(locale, content, input.item, name)

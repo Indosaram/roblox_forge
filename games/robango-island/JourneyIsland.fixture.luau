@@ -100,6 +100,52 @@ function M.run(host: any, p: any, options: any?): any
 		end
 		return nil, nil
 	end
+	-- The chart isle (not this one) whose wildlife drops `item` or a raw input of the recipe making
+	-- it, when no creature here does; nil otherwise.
+	local function dropIsle(item: string, depth: number?): string?
+		local droppers: { [string]: boolean } = {}
+		for _, row in Content.wildlifeDetails or {} do
+			for _, drop in row.dropReservoirs or {} do
+				if drop.item == item then
+					droppers[row.id] = true
+				end
+			end
+		end
+		if next(droppers) then
+			for _, npc in host.factory.services.survivalWildlife.snapshot(ACTOR) or {} do
+				if droppers[npc.catalogId] then
+					return nil
+				end
+			end
+			for _, row: any in require("./src/shared/SeaChart").ISLANDS :: { any } do
+				local l = row.role and layoutOf("rw." .. row.role)
+				if l and "rw." .. row.role ~= host.layoutId then
+					for _, spawn in l.spawns or {} do
+						if droppers[spawn.speciesId] then
+							return row.id
+						end
+					end
+				end
+			end
+			return nil
+		end
+		if (depth or 0) >= 2 then
+			return nil
+		end
+		for _, r in Content.recipes do
+			if r.outputs[1] and r.outputs[1].item == item then
+				for _, input in r.inputs do
+					if count(p.bag().items, input.item) < input.quantity then
+						local isle = dropIsle(input.item, (depth or 0) + 1)
+						if isle then
+							return isle
+						end
+					end
+				end
+			end
+		end
+		return nil
+	end
 	local function recipeFor(target: string): any
 		for _, r in Content.recipes do
 			if r.id == target then
@@ -882,6 +928,20 @@ function M.run(host: any, p: any, options: any?): any
 					for _, input in recipe.inputs do
 						if count(p.bag().items, input.item) < input.quantity then
 							p.obtain(input.item, input.quantity, 120)
+						end
+					end
+					-- A creature drop (hide for leather) no creature here gives: sail to a chart isle whose
+					-- wildlife carries it, as the player hunts where the animals are.
+					local huntIsle = nil
+					for _, input in recipe.inputs do
+						if count(p.bag().items, input.item) < input.quantity then
+							huntIsle = huntIsle or dropIsle(input.item)
+						end
+					end
+					if huntIsle then
+						p.event("hunt-route", { recipe = recipe.id, isle = huntIsle, layout = host.layoutId })
+						if sail(huntIsle) then
+							continue
 						end
 					end
 					local missing = Kit.missingStation(Content.recipes, recipe, function(item: string): number
