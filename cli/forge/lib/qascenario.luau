@@ -671,6 +671,86 @@ local function validateStep(
 	end
 end
 
+local AV_CUES = { "gather", "craft", "hit", "ambient" }
+-- Ops whose step window can never carry an AV interval: they mutate state without the actor's input.
+local AV_SHORTCUTS =
+	{ "advance_to", "advance_elapsed", "begin_clock", "restore", "server_command", "dispatch", "command", "obstacle" }
+
+--- The optional top-level `capture` block arms the owned AV recorder for one declared actor and
+--- freezes the coverage policy before the run: each interval names a cue and the 1-based index and
+--- op of one of that actor's own steps. The driver resolves every interval to the measured window of
+--- that step, so the policy (and coveragePolicySha256) is a pure function of this committed block and
+--- the measured run; nothing is chosen after the capture.
+local function validateCapture(errors: { string }, raw: any, players: { [string]: boolean })
+	local capture = raw.capture
+	if raw.kind ~= "studio" or type(capture) ~= "table" then
+		table.insert(errors, "capture: expected a studio scenario's capture mapping")
+		return
+	end
+	for key in capture do
+		if not table.find({ "actor", "maxGapSeconds", "maxClockErrorSeconds", "intervals" }, key) then
+			table.insert(errors, "capture: unknown field " .. tostring(key))
+		end
+	end
+	local actor = M.playerId(capture.actor)
+	if actor == nil or not players[actor] then
+		table.insert(errors, "capture.actor: expected a declared player id")
+	end
+	for _, limit in { "maxGapSeconds", "maxClockErrorSeconds" } do
+		if not isNonNegativeNumber(capture[limit]) or capture[limit] > 10 then
+			table.insert(errors, "capture." .. limit .. ": expected a finite number 0..10")
+		end
+	end
+	if not Validation.dense(capture.intervals, 64) or #(capture.intervals or {}) == 0 then
+		table.insert(errors, "capture.intervals: expected a nonempty dense list")
+		return
+	end
+	local ids: { [string]: boolean } = {}
+	local cues: { [string]: boolean } = {}
+	for index, interval in capture.intervals do
+		local label = string.format("capture.intervals[%d]", index)
+		if type(interval) ~= "table" then
+			table.insert(errors, label .. ": expected mapping")
+			continue
+		end
+		for key in interval do
+			if not table.find({ "id", "cue", "step", "op", "motion" }, key) then
+				table.insert(errors, label .. ": unknown field " .. tostring(key))
+			end
+		end
+		if not isId(interval.id) or ids[interval.id] then
+			table.insert(errors, label .. ".id: expected a unique id")
+		else
+			ids[interval.id] = true
+		end
+		if not table.find(AV_CUES, interval.cue) then
+			table.insert(errors, label .. ".cue: expected " .. table.concat(AV_CUES, "|"))
+		else
+			cues[interval.cue] = true
+		end
+		if type(interval.motion) ~= "boolean" then
+			table.insert(errors, label .. ".motion: expected boolean")
+		end
+		local step = if Validation.finite(interval.step) and interval.step % 1 == 0
+			then (raw.steps or {})[interval.step]
+			else nil
+		if type(step) ~= "table" then
+			table.insert(errors, label .. ".step: expected the index of a scenario step")
+		elseif step.op ~= interval.op then
+			table.insert(errors, label .. ".op: does not match the op of step " .. tostring(interval.step))
+		elseif table.find(AV_SHORTCUTS, step.op) then
+			table.insert(errors, label .. ".step: a shortcut step cannot carry an AV interval")
+		elseif actor == nil or M.playerId(step.player) ~= actor then
+			table.insert(errors, label .. ".step: must be a step of the capture actor")
+		end
+	end
+	for _, cue in AV_CUES do
+		if not cues[cue] then
+			table.insert(errors, "capture.intervals: missing cue " .. cue)
+		end
+	end
+end
+
 --- Returns every violation in a decoded scenario document, sorted. An empty
 --- list means the scenario is well formed; it does not mean it passes.
 function M.validate(raw: any): { string }
@@ -690,6 +770,7 @@ function M.validate(raw: any): { string }
 		"fixtures",
 		"data",
 		"partners",
+		"capture",
 		"steps",
 	}
 	for key in raw do
@@ -885,6 +966,9 @@ function M.validate(raw: any): { string }
 	if not Validation.dense(raw.steps, 512) or #(raw.steps or {}) == 0 then
 		table.insert(errors, "steps: expected a nonempty dense list")
 	else
+		if raw.capture ~= nil then
+			validateCapture(errors, raw, players)
+		end
 		local asserted = false
 		for index, step in raw.steps do
 			validateStep(errors, index, step, raw, players, fixtureOps)

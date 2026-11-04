@@ -3,7 +3,7 @@ import { spawn } from 'node:child_process';
 import { createInterface } from 'node:readline';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { gameplay, resolveReferences } from './studio-driver-gameplay.mjs';
-import { inputStep } from './studio-driver-input.mjs';
+import { inputStep, snapshotRead } from './studio-driver-input.mjs';
 import { attachSupplement, runDigest } from './studio-driver-artifacts.mjs';
 import {deviceStep,restoreDeviceCode,motionStep,obstacleStep,turnCamera,collectDeviceDiagnostics,captureGeometry,validateGeometry,decodeRaster,decodeRasterLuma} from './studio-driver-surface.mjs';
 import { assertVisualContent } from './studio-driver-content.mjs';
@@ -96,14 +96,8 @@ const literal = value => {
   return `{${Object.entries(value).map(([key, item]) => `[${Array.isArray(value) ? Number(key) + 1 : literal(key)}]=${literal(item)}`).join(',')}}`;
 };
 // The genre snapshot carries per-player state; co-op shared sections (warehouse, settlement,
-// gathering) live beside it in the session snapshot. A field whose head is absent from the genre
-// snapshot is read from the shared section that owns it.
-const SHARED_SNAPSHOTS = ['survivalSettlement', 'survivalGathering'];
-const sharedSnapshot = (genre, userId, field) => {
-  const head = Array.isArray(field) ? field[0] : String(field).split('.')[0];
-  return `local q=game:GetService('ServerStorage').ForgeQA;local value=q.snapshot:Invoke(${literal(genre)},${literal(userId)})
-if type(value)=='table' and value[${literal(head)}]==nil then for _,name in ${literal(SHARED_SNAPSHOTS)} do local shared=q.snapshot:Invoke(name,${literal(userId)});if type(shared)=='table' and shared[${literal(head)}]~=nil then value=shared;break end end end`;
-};
+// gathering, extensions such as the camp) live beside it in the session snapshot (snapshotRead).
+const sharedSnapshot = (genre, userId, field) => snapshotRead(genre, userId, Array.isArray(field) ? field[0] : String(field).split('.')[0]);
 
 export class StdioMcp {
   constructor(command, args, timeoutMs, lifecycle = new StudioLifecycle()) {
@@ -175,19 +169,58 @@ export class StdioMcp {
 
 // Production admission is separate from the capture executor: preexisting
 // configured IDs do not establish launch ownership or a recoverable session.
-export async function runOwnedStudio(scenario, config, transport, lifecycle, artifactWriter) {
-  if (config.capture?.probe === true) {
-    const capture = config.capture;
-    if (scenario.name !== 'owned-av-probe' || scenario.kind !== 'studio'
+// Decides which owned AV source a run arms, before any allocation. The probe arms through
+// config.capture.probe; a first-play scenario arms through its own schema-validated `capture`
+// block, which also freezes the interval policy (see captureIntervalPolicy). The two routes are
+// exclusive, and a scenario-declared capture never takes a caller-supplied policy or actor.
+export function armCapture(scenario, config) {
+  const capture = config.capture;
+  if (capture?.probe === true) {
+    if (scenario.name !== 'owned-av-probe' || scenario.kind !== 'studio' || scenario.capture !== undefined
         || scenario.audiovisualSources !== undefined || typeof capture.player !== 'string'
         || !Array.isArray(scenario.players) || scenario.players.filter(player => player === capture.player).length !== 1
         || capture.actorId !== undefined || capture.mode !== 'owned-process-loopback') {
       throw new Error('OWNED_AV_PROBE_CONFIG_INVALID');
     }
-    const manifest = relative(process.cwd(), resolve(config.artifactDirectory, 'av-probe-manifest.json')).replaceAll('\\', '/');
-    if (isAbsolute(manifest) || manifest.startsWith('../')) throw new Error('CAPTURE_PROBE_OUTSIDE_ROOT');
-    scenario = { ...scenario, audiovisualSources: { [manifest]: { purpose: 'owned-av-probe' } } };
+    return { scenario: { ...scenario, audiovisualSources: { [captureManifest(config, 'av-probe-manifest.json')]: { purpose: 'owned-av-probe' } } }, player: capture.player };
   }
+  if (scenario.capture === undefined) return { scenario, player: undefined };
+  const declared = scenario.capture;
+  if (scenario.kind !== 'studio' || scenario.audiovisualSources !== undefined || !declared || typeof declared !== 'object'
+      || !Array.isArray(scenario.players) || scenario.players.filter(player => String(player) === String(declared.actor)).length !== 1
+      || capture?.policy !== undefined || capture?.actorId !== undefined || capture?.player !== undefined
+      || (capture?.mode !== undefined && capture.mode !== 'owned-process-loopback')) {
+    throw new Error('SCENARIO_CAPTURE_CONFIG_INVALID');
+  }
+  return { scenario: { ...scenario, audiovisualSources: { [captureManifest(config, 'av.json')]: { purpose: 'first-play' } } }, player: String(declared.actor) };
+}
+
+function captureManifest(config, name) {
+  const manifest = relative(process.cwd(), resolve(config.artifactDirectory, name)).replaceAll('\\', '/');
+  if (isAbsolute(manifest) || manifest.startsWith('../')) throw new Error('CAPTURE_PROBE_OUTSIDE_ROOT');
+  return manifest;
+}
+
+// The AV coverage policy of a scenario-declared capture. Every interval is the measured window of
+// the step the committed declaration names, so the policy bytes (and coveragePolicySha256) follow
+// from the scenario and the run alone; a step of another actor, a shortcut or an op that differs
+// from the declaration is refused rather than re-targeted. Key order is fixed for the JSON digest.
+export function captureIntervalPolicy(declaration, steps, actorId) {
+  const intervals = declaration.intervals.map(interval => {
+    const step = steps[interval.step - 1];
+    if (!step || step.index !== interval.step || step.op !== interval.op || step.actor !== actorId || step.shortcut !== false
+        || !(Number.isFinite(step.startedSeconds) && Number.isFinite(step.elapsedSeconds) && step.elapsedSeconds > step.startedSeconds)) {
+      throw new Error('CAPTURE_INTERVAL_STEP_MISMATCH:' + interval.id);
+    }
+    return { id: interval.id, cue: interval.cue, step: interval.step, start: step.startedSeconds, end: step.elapsedSeconds, audioRequired: true, motion: interval.motion };
+  });
+  return { maxGapSeconds: declaration.maxGapSeconds, maxClockErrorSeconds: declaration.maxClockErrorSeconds, intervals };
+}
+
+export async function runOwnedStudio(scenario, config, transport, lifecycle, artifactWriter) {
+  const armed = armCapture(scenario, config);
+  const declaration = config.capture?.probe === true ? undefined : scenario.capture;
+  scenario = armed.scenario;
   if(config.persistence) {
     const ready=await openOwnedPersistence(config.persistence,lifecycle);
     config={...config,persistence:{...config.persistence,instanceId:ready.instanceId,hostReady:ready}};
@@ -215,8 +248,8 @@ export async function runOwnedStudio(scenario, config, transport, lifecycle, art
       return replacement;
     };
     const prepareCapture = scenario.audiovisualSources ? async (runtime, ownedProcess, clients, activeTransport) => {
-      const actor=config.capture?.probe===true
-        ? clients[scenario.players.indexOf(config.capture.player)]
+      const actor=armed.player!==undefined
+        ? clients[scenario.players.map(String).indexOf(armed.player)]
         : clients.find(client=>client.userId===config.capture?.actorId);
       const loaded=runtime.clients.find(client=>client.actorId===actor?.userId && client.studio_id===actor?.studioId);
       if(!loaded || loaded.sessionId!==runtime.server.sessionId)throw new Error('SOURCE_ACTOR_PROCESS_UNPROVEN');
@@ -229,7 +262,7 @@ export async function runOwnedStudio(scenario, config, transport, lifecycle, art
       capture.actorSource=source;
       return capture;
     } : undefined;
-    outcome = await runStudio(scenario, { ...config, serverId: admission.serverId, clients: admission.clients, processIdentity:admission.process, rejoin, capture:undefined, prepareCapture, capturePolicy:config.capture?.policy }, transport, artifactWriter);
+    outcome = await runStudio(scenario, { ...config, serverId: admission.serverId, clients: admission.clients, processIdentity:admission.process, rejoin, capture:undefined, prepareCapture, capturePolicy:config.capture?.policy, captureDeclaration:declaration }, transport, artifactWriter);
     outcome.session = admission;
     if(config.capture?.probe===true) {
       outcome.purpose='owned-av-probe';
@@ -973,7 +1006,7 @@ local value={result=result,saved=saved,revision=observed}`);
       const first=outcome.captureStartBracket,last=outcome.captureEndBracket;
       const a=(first.before+first.after)/2,b=(last.before+last.after)/2, duration=(qpcEnd-qpcStart)/frequency;
       const uncertainty=Math.max(first.after-first.before,last.after-last.before)/2;
-      const policy=config.capturePolicy;
+      const policy=config.captureDeclaration ? captureIntervalPolicy(config.captureDeclaration,outcome.steps,source.actorId) : config.capturePolicy;
       if(!policy || !Array.isArray(policy.intervals) || uncertainty>policy.maxClockErrorSeconds)throw new Error('CAPTURE_CLOCK_POLICY_UNPROVEN');
       const clock={offsetSeconds:a,rate:(b-a)/duration,uncertaintySeconds:uncertainty,driftSeconds:Math.abs((b-a)-duration),anchors:[{ptsSeconds:0,actionSeconds:a},{ptsSeconds:duration,actionSeconds:b}]};
       const loaded=outcome.runtime.clients.find(client=>client.actorId===source.actorId && client.studio_id===source.studioId);
@@ -997,6 +1030,8 @@ local value={result=result,saved=saved,revision=observed}`);
       if(isAbsolute(originalPath) || originalPath.startsWith('../'))throw new Error('CAPTURE_ORIGINAL_OUTSIDE_ROOT');
       receipt.original.path=originalPath;
       outcome.audiovisualSourceReceipt=await artifactWriter('av-source.json',Buffer.from(JSON.stringify(receipt)));
+      // The exact policy the receipt digests bind, for the operator's av.json `policy`.
+      outcome.audiovisualPolicy=policy;
       outcome.audiovisualSources={};
       for(const path of Object.keys(scenario.audiovisualSources))outcome.audiovisualSources[path]='sha256:'+hash(canonical(receipt));
       outcome.audiovisualArtifacts=[originalPath,outcome.audiovisualSourceReceipt,...source.registrationArtifacts];

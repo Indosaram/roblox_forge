@@ -33,10 +33,21 @@ const injectInput = async (call, args, label) => {
   if (result && result.isError === true) throw new Error(`${label} injection refused: ${boundedAck(result)}`);
   return { accepted: true, ack: boundedAck(result) };
 };
+// Session snapshot slices that live beside the genre slice (ForgeQA.snapshot answers any top-level
+// session key). A field whose head names one of them (`survivalExtensions.camp...`) reads that slice;
+// a field whose head is absent from the genre slice is read from the first slice that carries it.
+export const SHARED_SNAPSHOTS = ['survivalSettlement', 'survivalGathering', 'survivalExtensions'];
+export const snapshotRead = (genre, userId, head) => `local q=game:GetService('ServerStorage').ForgeQA;local value=q.snapshot:Invoke(${literal(genre)},${literal(userId)})
+if type(value)~='table' or value[${literal(head)}]==nil then
+ if table.find(${literal(SHARED_SNAPSHOTS)},${literal(head)}) then value={[${literal(head)}]=q.snapshot:Invoke(${literal(head)},${literal(userId)})}
+ elseif type(value)=='table' then for _,name in ${literal(SHARED_SNAPSHOTS)} do local shared=q.snapshot:Invoke(name,${literal(userId)});if type(shared)=='table' and shared[${literal(head)}]~=nil then value=shared;break end end end
+end`;
 export function predicateCode(predicate, genre, userId) {
+  const path=Array.isArray(predicate.field)?predicate.field:predicate.field.split('.');
   const getter=predicate.source==='snapshot'
     ? `local qa=game:GetService('ServerStorage').ForgeQA
-local function sample() local value=qa.snapshot:Invoke(${literal(genre)},${literal(userId)});for _,key in ${literal(Array.isArray(predicate.field)?predicate.field:predicate.field.split('.'))} do value=if type(value)=='table' then value[key] else nil end;return value end
+local function sample() ${snapshotRead(genre,userId,path[0])}
+ for _,key in ${literal(path)} do value=if type(value)=='table' then value[key] else nil end;return value end
 local signal=qa.StateChanged.Event`
     : `${locate(predicate.target)}
 local function sample() return ${predicate.source==='attribute'?`target:GetAttribute(${literal(predicate.field)})`:`target[${literal(predicate.field)}]`} end

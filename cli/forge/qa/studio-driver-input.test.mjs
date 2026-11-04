@@ -220,3 +220,31 @@ test('external observations bind measured run actor and action time without inve
   supplement.firstPlay.goals.g.actors=['7','7'];
   await expect(attachSupplement(run,supplement,async()=>new Uint8Array())).rejects.toThrow('actor');
 });
+
+// Camp and other extension state lives under the session's survivalExtensions slice, beside the genre
+// slice; a snapshot predicate or read must reach it. The emitted Luau is executed under Lune against a
+// ForgeQA.snapshot stub, so the read is proven by running it rather than by matching its text.
+test('snapshot reads reach the survivalExtensions slice and still prefer the genre slice', async () => {
+  const { snapshotRead } = await import('./studio-driver-input.mjs');
+  const { spawnSync } = await import('node:child_process');
+  const { writeFileSync, mkdirSync } = await import('node:fs');
+  const read = (head, path) => `${snapshotRead('survival-coop', '-1', head)}
+for _,key in {${path.map(p=>JSON.stringify(p)).join(',')}} do value=if type(value)=='table' then value[key] else nil end
+print(game:GetService('HttpService'):JSONEncode(value))`;
+  const stub = `local slices={['survival-coop']={vitals={fatigueMilli=0}},survivalExtensions={camp={completed={windbreak=1}}},survivalSettlement={warehouse={version=4}}}
+local serde=require('@lune/serde')
+game={GetService=function(_,name) if name=='HttpService' then return {JSONEncode=function(_,v) return serde.encode('json',v) end} end
+ return {ForgeQA={snapshot={Invoke=function(_,genre,id) assert(id=='-1');return slices[genre] end}}} end}
+`;
+  const { homedir } = await import('node:os');
+  const { existsSync } = await import('node:fs');
+  // rokit installs the pinned lune here; a PATH lune is used when rokit's shim dir is on PATH.
+  const rokit = homedir() + '/.rokit/bin/lune' + (process.platform === 'win32' ? '.exe' : '');
+  const lune = existsSync(rokit) ? rokit : 'lune';
+  mkdirSync('.omo/tmp', { recursive: true });
+  const run = code => { writeFileSync('.omo/tmp/snapshot-read.luau', stub + code); const r = spawnSync(lune, ['run', '.omo/tmp/snapshot-read.luau'], { encoding: 'utf8' }); expect(r.stderr).toBe(''); return JSON.parse(r.stdout); };
+  expect(run(read('survivalExtensions', ['survivalExtensions', 'camp', 'completed', 'windbreak']))).toBe(1);
+  expect(run(read('camp', ['camp', 'completed', 'windbreak']))).toBe(1);
+  expect(run(read('vitals', ['vitals', 'fatigueMilli']))).toBe(0);
+  expect(run(read('warehouse', ['warehouse', 'version']))).toBe(4);
+});

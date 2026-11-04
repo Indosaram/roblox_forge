@@ -1,7 +1,8 @@
 import { test, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { spawn } from 'node:child_process';
-import { StdioMcp, runStudio, runOwnedStudio, pathSequence, observedDiscovery } from './studio-driver.mjs';
+import { StdioMcp, runStudio, runOwnedStudio, pathSequence, observedDiscovery, armCapture, captureIntervalPolicy } from './studio-driver.mjs';
+import { createHash } from 'node:crypto';
 import { StudioLifecycle } from './studio-driver-lifecycle.mjs';
 
 test('path evidence requires ordered matching request failure consumption and outcome', () => {
@@ -412,4 +413,58 @@ test('the world path requires real key activation on a shown prompt and refuses 
   expect(evidenceRead).toBeGreaterThan(-1);
   expect(cleanup).toBeGreaterThan(-1);
   expect(evidenceRead).toBeLessThan(cleanup);
+});
+
+// B4: a first-play scenario arms the owned AV recorder through its own `capture` block, and the
+// interval policy is frozen from that committed block plus the measured step windows.
+const declared = { actor: 'first', maxGapSeconds: 0.25, maxClockErrorSeconds: 0.5, intervals: [
+  { id: 'gather-1', cue: 'gather', step: 3, op: 'activate_prompt', motion: true },
+  { id: 'ambient-1', cue: 'ambient', step: 4, op: 'walk_to', motion: true },
+] };
+const firstPlay = { ...scenario, name: 'release-first-play', capture: declared };
+
+test('a non-probe scenario capture block arms audiovisualSources for its declared actor', async () => {
+  const armed = armCapture(firstPlay, { ...config, artifactDirectory: 'build/av-unit' });
+  expect(armed.player).toBe('first');
+  expect(armed.scenario.audiovisualSources).toEqual({ 'build/av-unit/av.json': { purpose: 'first-play' } });
+  // Without a capture block nothing is armed, exactly as before.
+  expect(armCapture(scenario, { ...config, artifactDirectory: 'build/av-unit' }).scenario.audiovisualSources).toBeUndefined();
+  // The declared policy is frozen in the scenario: a caller policy, actor or another player is refused.
+  for (const capture of [{ policy: { intervals: [] } }, { actorId: '-1' }, { player: 'first' }, { mode: 'isolated-owned-session-loopback' }])
+    expect(() => armCapture(firstPlay, { ...config, artifactDirectory: 'build/av-unit', capture })).toThrow('SCENARIO_CAPTURE_CONFIG_INVALID');
+  expect(() => armCapture({ ...firstPlay, capture: { ...declared, actor: 'nobody' } }, { ...config, artifactDirectory: 'build/av-unit' })).toThrow('SCENARIO_CAPTURE_CONFIG_INVALID');
+  // The probe route stays exclusive.
+  expect(() => armCapture({ ...firstPlay, name: 'owned-av-probe' }, { ...config, artifactDirectory: 'build/av-unit', capture: { probe: true, player: 'first', mode: 'owned-process-loopback' } })).toThrow('OWNED_AV_PROBE_CONFIG_INVALID');
+});
+
+test('the frozen interval policy is the declared steps measured windows and its digest is stable', () => {
+  const steps = [
+    { index: 1, op: 'device', actor: '-1', shortcut: false, startedSeconds: 0.5, elapsedSeconds: 1.5 },
+    { index: 2, op: 'device', actor: '-2', shortcut: false, startedSeconds: 1.5, elapsedSeconds: 2.5 },
+    { index: 3, op: 'activate_prompt', actor: '-1', shortcut: false, startedSeconds: 10.25, elapsedSeconds: 13 },
+    { index: 4, op: 'walk_to', actor: '-1', shortcut: false, startedSeconds: 13, elapsedSeconds: 19.75 },
+  ];
+  const policy = captureIntervalPolicy(declared, steps, '-1');
+  expect(policy).toEqual({ maxGapSeconds: 0.25, maxClockErrorSeconds: 0.5, intervals: [
+    { id: 'gather-1', cue: 'gather', step: 3, start: 10.25, end: 13, audioRequired: true, motion: true },
+    { id: 'ambient-1', cue: 'ambient', step: 4, start: 13, end: 19.75, audioRequired: true, motion: true },
+  ] });
+  // coveragePolicySha256 hashes these exact JSON bytes: same inputs, same digest, whatever the key
+  // order of the authored YAML mapping.
+  const reordered = { intervals: declared.intervals.map(({ motion, op, step, cue, id }) => ({ motion, op, step, cue, id })), maxClockErrorSeconds: 0.5, maxGapSeconds: 0.25, actor: 'first' };
+  const digest = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
+  expect(digest(captureIntervalPolicy(reordered, steps, '-1'))).toBe(digest(policy));
+  expect(digest(policy)).toBe('ad74195b261c8b0e36c7ee7d4e550cf64e95f86832e50ce0121a782b19c19bb8');
+  // A step of the other actor, a shortcut or a different op is refused, never re-targeted.
+  expect(() => captureIntervalPolicy(declared, steps.map(s => s.index === 3 ? { ...s, actor: '-2' } : s), '-1')).toThrow('CAPTURE_INTERVAL_STEP_MISMATCH:gather-1');
+  expect(() => captureIntervalPolicy(declared, steps.map(s => s.index === 4 ? { ...s, shortcut: true } : s), '-1')).toThrow('CAPTURE_INTERVAL_STEP_MISMATCH:ambient-1');
+  expect(() => captureIntervalPolicy(declared, steps.map(s => s.index === 3 ? { ...s, op: 'click' } : s), '-1')).toThrow('CAPTURE_INTERVAL_STEP_MISMATCH:gather-1');
+  expect(() => captureIntervalPolicy(declared, steps.slice(0, 3), '-1')).toThrow('CAPTURE_INTERVAL_STEP_MISMATCH:ambient-1');
+});
+
+test('an owned run refuses a caller policy for a scenario-declared capture before allocation', async () => {
+  const lifecycle = new StudioLifecycle();
+  await expect(runOwnedStudio(firstPlay, { ...config, artifactDirectory: 'build/av-unit', capture: { policy: { intervals: [] } } }, fixture(), lifecycle)).rejects.toThrow('SCENARIO_CAPTURE_CONFIG_INVALID');
+  expect(lifecycle.receipt().resources).toEqual([]);
+  await lifecycle.close();
 });

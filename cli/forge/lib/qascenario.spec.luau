@@ -207,4 +207,69 @@ return {
 		raw.steps[13].args = { { ref = "not-bound" } }
 		assert(#schema.validate(raw) > 0, "unknown binding is rejected")
 	end,
+	["a first-play capture block is accepted only in its valid frozen shape"] = function()
+		-- bootstrap-crafting-studio: owner steps 6 walk_to, 7 activate_prompt, 9 capture (no player),
+		-- 10 walk_to, 11 command (a shortcut); guest has no input steps.
+		local function capture(): any
+			return {
+				actor = "owner",
+				maxGapSeconds = 0.25,
+				maxClockErrorSeconds = 0.5,
+				intervals = {
+					{ id = "gather", cue = "gather", step = 7, op = "activate_prompt", motion = true },
+					{ id = "craft", cue = "craft", step = 7, op = "activate_prompt", motion = false },
+					{ id = "hit", cue = "hit", step = 10, op = "walk_to", motion = true },
+					{ id = "ambient", cue = "ambient", step = 6, op = "walk_to", motion = true },
+				},
+			}
+		end
+		local raw = scenario()
+		raw.capture = capture()
+		assert(#schema.validate(raw) == 0, "valid capture block: " .. table.concat(schema.validate(raw), "; "))
+		local function refused(mutate: (any) -> (), why: string)
+			local candidate = scenario()
+			candidate.capture = capture()
+			mutate(candidate)
+			assert(#schema.validate(candidate) > 0, why)
+		end
+		refused(function(c)
+			c.kind = "native"
+		end, "native scenarios cannot arm the recorder")
+		refused(function(c)
+			c.capture.actor = "stranger"
+		end, "undeclared actor")
+		refused(function(c)
+			c.capture.policy = {}
+		end, "unknown capture field")
+		refused(function(c)
+			c.capture.maxGapSeconds = -1
+		end, "negative gap")
+		refused(function(c)
+			c.capture.intervals[1].cue = "music"
+		end, "unknown cue")
+		refused(function(c)
+			table.remove(c.capture.intervals, 3)
+		end, "every cue (gather/craft/hit/ambient) is required")
+		refused(function(c)
+			c.capture.intervals[2].id = "gather"
+		end, "duplicate interval id")
+		refused(function(c)
+			c.capture.intervals[1].op = "walk_to"
+		end, "declared op must match the step")
+		refused(function(c)
+			c.capture.intervals[1].step = 99
+		end, "step out of range")
+		refused(function(c)
+			c.capture.intervals[3] = { id = "hit", cue = "hit", step = 11, op = "command", motion = true }
+		end, "a shortcut step cannot carry an interval")
+		refused(function(c)
+			c.capture.actor = "guest"
+		end, "intervals must lie on the capture actor's steps")
+		refused(function(c)
+			c.capture.intervals[1].start = 1
+		end, "times are measured, never authored")
+		refused(function(c)
+			c.capture.intervals[1].motion = nil
+		end, "motion is explicit")
+	end,
 }
