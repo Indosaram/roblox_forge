@@ -5,6 +5,7 @@ local HUDModel = require("./SurvivalHUDModel")
 local HudShell = require("./HudShell")
 local Locale = require("./SurvivalHUDLocale")
 local PackLocale = require("./PackLocale")
+local CharacterText = require("./CharacterText")
 local IconFallback = require("../../../core/ui-kit/IconFallback")
 
 export type Context = {
@@ -1127,8 +1128,22 @@ function M.start(
 			if free and travelSeen and os.clock() < travelUntil then
 				tracker.Text = M.travelText(options.locale, string.match(travelSeen, "^[^|]+") or travelSeen)
 			elseif stageText then
-				-- Archipelago roles: the onboarding tutorial does not apply; show the stage.
-				tracker.Text = (if ko then "목표: " else "Objective: ") .. stageText
+				-- Archipelago roles: the onboarding tutorial does not apply; show the stage. The next open
+				-- guide step rides on a second line (p134 v74 #8: the first capture and the pet steps never
+				-- reached the HUD on the drift isles where their dodos roam).
+				local step = if latest.character
+					then CharacterText.guideStep(
+						options.locale,
+						options.content,
+						latest.character,
+						options.names or {},
+						options.solo == true,
+						input.TouchEnabled
+					)
+					else nil
+				tracker.Text = (if ko then "목표: " else "Objective: ")
+					.. stageText
+					.. if step then "\n" .. step else ""
 			elseif tutorial and tutorial.step == "gather" then
 				if pivot and tracker and not tracker:GetAttribute("ForgeContractsNotice") then
 					local candidates = {}

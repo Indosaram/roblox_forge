@@ -1,0 +1,89 @@
+--!strict
+-- p134 v74 phone acceptance (SM-N981N, ko-kr, touch) defects: fresh-player HUD flow.
+local Content = require("./src/shared/SurvivalContent")
+local Text = require("../../genres/survival-coop/module/CharacterText")
+local Harness = require("./PanelHarness.fixture")
+require("./PackText.fixture") -- installs the strings.csv lookup the genre text tables read
+
+local NAMES = { fiber = "고사리 섬유", creature = "동물" }
+
+-- A fresh player off the opening: the four grade-paying start guides done (grade 2, level 4), the
+-- first capture (band 0, pays no grade) still open.
+local function offOpening(): any
+	return {
+		level = 4,
+		points = 200,
+		definitions = {
+			["rw.g01.first-gather"] = true,
+			["rw.g02.first-axe"] = true,
+			["rw.g03.first-contract"] = true,
+			["rw.g04.camp-donation"] = true,
+		},
+		progress = {},
+	}
+end
+
+local function find(h: any, name: string): any
+	for _, item in h.playerGui:GetDescendants() do
+		if item.Name == name then
+			return item
+		end
+	end
+	return nil
+end
+
+return {
+	["v74 #8: at the harbor the HUD names the still-open first capture, with route 1 on the next line"] = function()
+		local ch = offOpening()
+		local ko, objective = Text.guideObjective("ko-kr", Content, ch, NAMES, true, true)
+		assert(ko, "a line")
+		local first, second = string.match(ko :: string, "^([^\n]+)\n([^\n]+)$")
+		assert(first and second, "two lines: " .. tostring(ko))
+		assert(string.find(first, Text.text("ko-kr", "guide_g31"), 1, true), "first line is the capture: " .. first)
+		assert(second == Text.text("ko-kr", "guide_route_open"), "route 1 on the second line: " .. second)
+		assert(objective and objective.action == "capture", "the line's objective is the capture step")
+		-- Once the capture is done the line moves on (route 1 or the next band), never back to it.
+		ch.definitions["rw.g31.first-capture"] = true
+		local after = Text.guideObjective("ko-kr", Content, ch, NAMES, true, true) :: string
+		assert(not string.find(after, Text.text("ko-kr", "guide_g31"), 1, true), after)
+		-- The opening order is untouched: a fresh player still reads the first gather first.
+		local fresh = Text.guideObjective("ko-kr", Content, { level = 1, points = 0 }, NAMES, true, true) :: string
+		assert(string.find(fresh, Text.text("ko-kr", "guide_g01"), 1, true), fresh)
+	end,
+	["v74 #8: on a drift isle the HUD keeps the stage objective and adds the next guide step"] = function()
+		local delayed: { any } = {}
+		local h = Harness.harness({ width = 800, height = 360, realHud = true, delayed = delayed })
+		h.workspace:SetAttribute("ForgeWorldRole", "archipelago")
+		local character = h.new("Model", "Character")
+		local root = h.new("Part", "HumanoidRootPart")
+		root.Parent = character
+		character.Parent = h.workspace
+		h.player.Character = character
+		local ch = offOpening()
+		h.publish({
+			archipelago = { status = "active", templateId = "rw.a1", stage = 1, progress = {}, completed = {} },
+			character = ch,
+		})
+		local line = assert(find(h, "ObjectiveTracker"), "HUD tracker").Text
+		assert(string.find(line, "목표: ", 1, true), "the stage objective leads: " .. line)
+		local second = string.match(line, "\n(.+)$")
+		assert(second, "a second line under the stage objective: " .. line)
+		assert(string.find(second, Text.text("ko-kr", "guide_g31"), 1, true), "the capture step: " .. second)
+		-- After the capture the second line follows the next guide (the second pet at L12).
+		ch.definitions["rw.g31.first-capture"] = true
+		ch.level = 12
+		h.publish({
+			archipelago = { status = "active", templateId = "rw.a1", stage = 1, progress = {}, completed = {} },
+			character = ch,
+		})
+		-- The 'guide complete' flash holds the tracker for a few seconds; run its expiry.
+		for _, job in table.clone(delayed) do
+			job.fn(table.unpack(job.args, 1, job.args.n))
+		end
+		h.step()
+		local later = assert(find(h, "ObjectiveTracker"), "HUD tracker").Text
+		assert(string.find(later, "\n", 1, true), "still a guide line: " .. later)
+		assert(not string.find(later, Text.text("ko-kr", "guide_g31"), 1, true), later)
+		assert(#h.errors == 0, tostring(h.errors[1]))
+	end,
+}

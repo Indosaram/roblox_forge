@@ -202,7 +202,8 @@ local function title(locale: string, guide: any, names: any): string
 	return if strings[key] then M.text(locale, key) else names[guide.id] or guide.id
 end
 
--- First open unfinished guide with a HUD action: "<guide>: <action> have/need".
+-- First open unfinished guide with a HUD action: "<guide>: <action> have/need". The third value is
+-- the guide the line names.
 local function openGuide(
 	locale: string,
 	content: any,
@@ -213,7 +214,7 @@ local function openGuide(
 	minRank: number,
 	solo: boolean?,
 	touch: boolean?
-): (string?, any?)
+): (string?, any?, any?)
 	local done, progress = ch.definitions or {}, ch.progress or {}
 	for _, g in Guide.visible(content, solo) do
 		if not done[g.id] and Guide.open(g, level, grade) and ((g.gates or {}).developmentRank or 0) >= minRank then
@@ -246,7 +247,7 @@ local function openGuide(
 						targetName(locale, o.target, names)
 					)
 				local have = math.min(progress[o.id] or 0, o.quantity)
-				return M.format(locale, "guide_next", title(locale, g, names), what, have, o.quantity), o
+				return M.format(locale, "guide_next", title(locale, g, names), what, have, o.quantity), o, g
 			end
 			if strings[go] then
 				-- p134 v73 (phone): a touch device reads the key-free row ("walk up and tap"), never "E".
@@ -276,19 +277,21 @@ local function openGuide(
 					end
 				end
 				local have = math.min(progress[o.id] or 0, o.quantity)
-				return M.format(locale, "guide_next", title(locale, g, names), what, have, o.quantity), o
+				return M.format(locale, "guide_next", title(locale, g, names), what, have, o.quantity), o, g
 			end
 		end
 	end
 	return nil
 end
 
--- HUD objective: the next open start guide; after route 1's grade, the next open waypoint guide of
--- that grade's band; with none open, route 1's gate plus the next authored step (a support region
--- opening at the harbor departure post, or the next guide's level). With `solo`, guides whose steps
--- need another player (GuideEvents.multiplayer) are skipped. With `touch`, step hints that name a
--- key (E, C, B) read their guide_go_<action>_touch row instead. The second value is the guide
--- objective the line names ({ id, action, target, quantity }), nil when the line names none.
+-- HUD objective: the next open start guide; after route 1's grade, a still-open start guide (band 0:
+-- first capture, which pays no grade) leads with route 1 on a second line, else the next open
+-- guide of the bands past that grade; with none open, route 1's gate plus the next authored step (a
+-- support region opening at the harbor departure post, or the next guide's level). With `solo`,
+-- guides whose steps need another player (GuideEvents.multiplayer) are skipped. With `touch`, step
+-- hints that name a key (E, C, B) read their guide_go_<action>_touch row instead. The second value
+-- is the guide objective the line names ({ id, action, target, quantity }), nil when the line names
+-- none. The first line alone is the guide step (a drift isle shows it under its stage objective).
 function M.guideObjective(
 	locale: string,
 	content: any,
@@ -302,7 +305,14 @@ function M.guideObjective(
 	if grade < needRank then
 		return openGuide(locale, content, ch, names, level, grade, 0, solo, touch)
 	elseif level >= needLevel then
-		-- Route open: an open guide of the bands past the route grade leads (route 1 stays on the
+		-- p134 v74 #8: a start guide (band 0) still open leads, route 1 on the next line. Only the bands
+		-- past the route grade were read here, and those open at grade 2, which the unread start guides
+		-- pay: the HUD said 'route 1 is open' for an hour and never named the first capture.
+		local start, step, guide = openGuide(locale, content, ch, names, level, grade, 0, solo, touch)
+		if start and ((guide.gates or {}).developmentRank or 0) == 0 then
+			return start .. "\n" .. M.text(locale, "guide_route_open"), step
+		end
+		-- Otherwise an open guide of the bands past the route grade leads (route 1 stays on the
 		-- Routes card); only with none open does the line point at the route.
 		local line, objective = openGuide(locale, content, ch, names, level, grade, needRank + 1, solo, touch)
 		return line or M.text(locale, "guide_route_open"), objective
@@ -346,6 +356,21 @@ function M.guideObjective(
 		return M.format(locale, "guide_then_guide", gate, title(locale, nextGuide, names), guideAt)
 	end
 	return gate
+end
+
+--- The next open guide step in unlock order (level, grade, id), any band, with the objective it
+--- names: the second line under a drift isle's stage objective (p134 v74 #8).
+function M.guideStep(
+	locale: string,
+	content: any,
+	ch: any,
+	names: any,
+	solo: boolean?,
+	touch: boolean?
+): (string?, any?)
+	local line, objective =
+		openGuide(locale, content, ch, names, ch.level or 1, math.floor((ch.points or 0) / 100), 0, solo, touch)
+	return line, objective
 end
 
 -- "Guide complete" line for guides finished since the previous snapshot.

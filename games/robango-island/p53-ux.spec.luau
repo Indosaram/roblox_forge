@@ -54,10 +54,15 @@ return {
 			local ko = Text.guideObjective("ko-kr", Content, step[1], FIBER)
 			assert(ko and string.find(ko, "메뉴", 1, true) or string.find(ko :: string, "E", 1, true), tostring(ko))
 		end
-		-- Route p134: route 1 opens at level 2, so a graded level 5 player is told it is open.
-		local graded = Text.guideObjective("ko-kr", Content, { level = 5, points = 200 }, FIBER)
-		assert(graded == Text.text("ko-kr", "guide_route_open"), tostring(graded))
-		local open = Text.guideObjective("en-us", Content, { level = 2, points = 200 }, FIBER)
+		-- Route p134: route 1 opens at level 2, so a graded level 5 player is told it is open; a start
+		-- guide still open leads on the line above it (v74 #8), and with band 0 done the route alone.
+		local graded = Text.guideObjective("ko-kr", Content, { level = 5, points = 200 }, FIBER) :: string
+		assert(string.match(graded, "\n(.+)$") == Text.text("ko-kr", "guide_route_open"), tostring(graded))
+		local band0 = {}
+		for _, guide in Content.guides do
+			band0[guide.id] = (guide.gates.developmentRank or 0) == 0
+		end
+		local open = Text.guideObjective("en-us", Content, { level = 2, points = 200, definitions = band0 }, FIBER)
 		assert(open == Text.text("en-us", "guide_route_open"), tostring(open))
 		-- The first steps keep their own hints (gather tracker, pinned axe).
 		local early = Contracts.model(

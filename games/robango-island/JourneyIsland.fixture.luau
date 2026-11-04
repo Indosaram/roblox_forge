@@ -7,6 +7,7 @@
 local Content: any = require("./src/shared/SurvivalContent")
 local Kit = require("./JourneyKit.fixture")
 local GuideEvents = require("../../genres/survival-coop/module/GuideEvents")
+local CharacterText = require("../../genres/survival-coop/module/CharacterText")
 
 local M = {}
 M.unload = nil :: (() -> ())?
@@ -874,14 +875,37 @@ function M.run(host: any, p: any, options: any?): any
 		end
 		if role == "archipelago" then
 			local captureGuide, objective = guideTarget()
-			if objective and objective.action == "capture" then
+			-- Only a step the HUD shows (the guide line under the stage objective, v74 #8): the guide
+			-- list itself is behind Menu > Guides, which a player following the HUD never opens.
+			local shownStep = captureGuide ~= nil
+				and string.find(
+						text,
+						CharacterText.text("ko-kr", "guide_" .. string.sub(captureGuide.id, 4, 6)),
+						1,
+						true
+					)
+					~= nil
+			if not shownStep and captureGuide and objective then
+				p.stall(
+					"friction",
+					"guide step " .. captureGuide.id .. " is open but not on the HUD in " .. tostring(host.layoutId),
+					owner("genres/survival-coop/module/ExtensionPanels.luau", "CharacterText.guideStep("),
+					"the drift-isle tracker must show the next guide step under the stage objective"
+				)
+			end
+			if shownStep and objective and objective.action == "capture" then
 				if captureHere(if objective.target ~= "creature" then objective.target else nil) then
 					p.milestone("captured:" .. captureGuide.id)
 					if (extensions().character.definitions or {})[captureGuide.id] then
 						p.milestone("completed:" .. captureGuide.id)
 					end
 				end
-			elseif objective and objective.action == "feed" and captureGuide.id == "rw.g41.second-pet" then
+			elseif
+				shownStep
+				and objective
+				and objective.action == "feed"
+				and captureGuide.id == "rw.g41.second-pet"
+			then
 				feedCaptured()
 				if (extensions().character.definitions or {})[captureGuide.id] then
 					p.milestone("completed:" .. captureGuide.id)
