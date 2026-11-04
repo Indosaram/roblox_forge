@@ -87,26 +87,41 @@ end
 
 -- A walk keeps going waypoint to waypoint and re-paths from where it stands whenever a route runs
 -- out or a MoveTo times out short of the goal (p134 v68: the opening's 'show the way' stopped after
--- 23 studs and needed a second press). Bounded: at most WALK_LEGS paths, and two legs in a row that
--- gain less than WALK_STALL studs end it (blocked).
-M.WALK_LEGS, M.WALK_STALL = 8, 2
+-- 23 studs and needed a second press). Staging (SM-N981N): a press still walked 3-22 m and stopped
+-- beside a turtle, five presses to arrive. The creature blocked the route the pathfinder planned
+-- (or the start, FailStartNotEmpty, so the straight-line fallback ran into it) and two legs without
+-- progress ended the walk; long walks also ran out of the 8-leg budget. A stalled leg now steps
+-- WALK_SIDESTEP studs aside (alternating sides) and re-paths; only WALK_STALLS stalled legs in a row
+-- end the walk (no path), and WALK_LEGS is a runaway guard, not a distance budget.
+M.WALK_LEGS, M.WALK_STALL, M.WALK_STALLS, M.WALK_SIDESTEP = 64, 2, 4, 6
 local function flat(a: any, b: any): number
 	return math.sqrt((a.X - b.X) ^ 2 + (a.Z - b.Z) ^ 2)
 end
 --- Drives one walk to `goal`, done within `within` studs (flat). `io.position()` is the root
---- position, `io.path(from, goal)` returns a path status name and its waypoints ({ position, jump }),
---- `io.step(waypoint)` walks to one waypoint and returns true (reached), false (MoveTo timed out or
---- blocked) or nil (the walk was cancelled), `io.live()` is false once a newer walk or a stop took
---- over. Returns whether the walk arrived.
-function M.walk(io: any, goal: any, within: number): boolean
+--- position, `io.point(x, y, z)` builds a position, `io.path(from, goal)` returns a path status name
+--- and its waypoints ({ position, jump }), `io.step(waypoint)` walks to one waypoint and returns true
+--- (reached), false (MoveTo timed out or blocked) or nil (the walk was cancelled), `io.live()` is
+--- false once a newer walk or a stop took over. Returns true on arrival, else false and why:
+--- "cancelled" or "nopath" (blocked for WALK_STALLS legs in a row).
+function M.walk(io: any, goal: any, within: number): (boolean, string?)
 	local stalls = 0
 	for _ = 1, M.WALK_LEGS do
 		if not io.live() then
-			return false
+			return false, "cancelled"
 		end
 		local before = flat(io.position(), goal)
 		if before <= within then
 			return true
+		end
+		if stalls > 0 then
+			-- Blocked (a creature, a rock the navmesh missed): step aside, then re-path from there.
+			local here = io.position()
+			local dx, dz = goal.X - here.X, goal.Z - here.Z
+			local side = (if stalls % 2 == 1 then 1 else -1) * M.WALK_SIDESTEP / math.max(before, 1e-6)
+			local aside = { position = io.point(here.X - dz * side, here.Y, here.Z + dx * side), jump = true }
+			if io.step(aside) == nil then
+				return false, "cancelled"
+			end
 		end
 		local status, points = io.path(io.position(), goal)
 		for _, step in M.route(status, points, goal) do
@@ -115,7 +130,7 @@ function M.walk(io: any, goal: any, within: number): boolean
 			end
 			local reached = io.step(step)
 			if reached == nil then
-				return false
+				return false, "cancelled"
 			end
 			if reached == false then
 				break -- re-path from here
@@ -127,14 +142,17 @@ function M.walk(io: any, goal: any, within: number): boolean
 		end
 		if before - after < M.WALK_STALL then
 			stalls += 1
-			if stalls >= 2 then
-				return false
+			if stalls >= M.WALK_STALLS then
+				return false, if io.live() then "nopath" else "cancelled"
 			end
 		else
 			stalls = 0
 		end
 	end
-	return io.live() and flat(io.position(), goal) <= within
+	if not io.live() then
+		return false, "cancelled"
+	end
+	return flat(io.position(), goal) <= within, "nopath"
 end
 
 -- Shore stop: walk the straight line from `from` toward `goal` in `step`-stud samples and return
@@ -240,15 +258,19 @@ function M.gesture(live: ((any) -> boolean)?, clock: (() -> number)?)
 			end
 		end
 	end
-	function g.began(id: any, x: number, y: number, overUi: boolean)
+	function g.began(id: any, x: number, y: number, overUi: boolean): string?
 		prune()
 		active[id] = now()
 		local first = next(active)
 		if next(active, first) == nil then
 			session = { id = id, x = x, y = y, ui = overUi, dragging = false, multi = false }
 		elseif session then
+			-- A second finger turns a drag that already started steering into a camera pinch.
+			local pinch = session.dragging and not session.multi
 			session.multi = true
+			return if pinch then "pinch" else nil
 		end
+		return nil
 	end
 	function g.moved(id: any, x: number, y: number): string?
 		if active[id] then
@@ -338,6 +360,9 @@ function M.start(options: { player: Player, blocked: () -> boolean, eligible: ((
 		table.insert(connections, signal:Connect(fn))
 	end
 	local serial = 0
+	-- The walk a drag cancelled; a second finger (a camera pinch, not a steer) resumes it.
+	local dragged: { goal: Vector3, arrive: number?, onArrive: (() -> ())?, onFail: ((string) -> ())? }? = nil
+	local walking: typeof(dragged) = nil
 	local steer: Vector3? = nil
 	local marker = Instance.new("Part")
 	marker.Name, marker.Shape = "ForgeTapMarker", Enum.PartType.Cylinder
@@ -360,6 +385,7 @@ function M.start(options: { player: Player, blocked: () -> boolean, eligible: ((
 	end
 	local function stop()
 		serial += 1
+		walking = nil
 		marker.Parent = nil
 		local humanoid, root = body()
 		if humanoid and root then
@@ -387,10 +413,11 @@ function M.start(options: { player: Player, blocked: () -> boolean, eligible: ((
 		local hit = world:Raycast(Vector3.new(x, 400, z), Vector3.new(0, -800, 0), landParams)
 		return hit ~= nil and not (hit.Instance == world.Terrain and hit.Material == Enum.Material.Water)
 	end
-	local function moveTo(goal: Vector3, arrive: number?, onArrive: (() -> ())?)
+	local function moveTo(goal: Vector3, arrive: number?, onArrive: (() -> ())?, onFail: ((string) -> ())?)
 		serial += 1
 		marker.Color = Color3.fromRGB(110, 196, 178)
 		local mine = serial
+		walking = { goal = goal, arrive = arrive, onArrive = onArrive, onFail = onFail }
 		marker.CFrame = CFrame.new(goal + Vector3.new(0, 0.15, 0)) * CFrame.Angles(0, 0, math.rad(90))
 		marker.Parent = world
 		task.spawn(function()
@@ -405,13 +432,14 @@ function M.start(options: { player: Player, blocked: () -> boolean, eligible: ((
 				Costs = { Water = math.huge },
 			})
 			local within = arrive or 1
-			M.walk({
+			local arrived, why = M.walk({
 				live = function(): boolean
 					return mine == serial and root.Parent ~= nil and humanoid.Health > 0
 				end,
 				position = function(): Vector3
 					return root.Position
 				end,
+				point = Vector3.new,
 				path = function(from: Vector3, to: Vector3): (string, { any })
 					local ok = pcall(function()
 						path:ComputeAsync(from, to)
@@ -449,9 +477,13 @@ function M.start(options: { player: Player, blocked: () -> boolean, eligible: ((
 			if mine ~= serial then
 				return
 			end
+			walking = nil
 			marker.Parent = nil
 			if flatDistance(root.Position, goal) <= within then
 				humanoid:MoveTo(root.Position)
+			end
+			if not arrived and why == "nopath" and onFail then
+				onFail(why)
 			end
 			if onArrive then
 				onArrive()
@@ -619,7 +651,7 @@ function M.start(options: { player: Player, blocked: () -> boolean, eligible: ((
 	end)
 
 	local function release()
-		steer = nil
+		steer, dragged = nil, nil
 		local humanoid = body()
 		if humanoid then
 			humanoid:Move(Vector3.zero, false)
@@ -627,7 +659,15 @@ function M.start(options: { player: Player, blocked: () -> boolean, eligible: ((
 	end
 	on(UserInputService.InputBegan, function(input: InputObject, processed: boolean)
 		if input.UserInputType == Enum.UserInputType.Touch then
-			gesture.began(input, input.Position.X, input.Position.Y, overUi(input.Position.X, input.Position.Y))
+			local x, y = input.Position.X, input.Position.Y
+			if gesture.began(input, x, y, overUi(x, y)) == "pinch" then
+				-- The first finger's drag was a pinch starting: stop steering, resume the cancelled walk.
+				local resume = dragged
+				release()
+				if resume then
+					moveTo(resume.goal, resume.arrive, resume.onArrive, resume.onFail)
+				end
+			end
 		elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
 			gesture.began(
 				"mouse",
@@ -659,6 +699,7 @@ function M.start(options: { player: Player, blocked: () -> boolean, eligible: ((
 			return
 		end
 		if not wasSteering then
+			dragged = walking
 			stop()
 		end
 		local right, look = camera.CFrame.RightVector, camera.CFrame.LookVector

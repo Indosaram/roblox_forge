@@ -456,6 +456,9 @@ return {
 			function io.position()
 				return at
 			end
+			function io.point(x, y, z)
+				return { X = x, Y = y, Z = z }
+			end
 			function io.path(from, goal)
 				paths += 1
 				-- Each computed path only reaches ~23 studs toward the goal (then a MoveTo timeout).
@@ -492,20 +495,103 @@ return {
 		local paths, _, at = stats()
 		assert(math.abs(at.Z - goal.Z) <= 6, "inside the arrival radius: " .. at.Z)
 		assert(paths > 1 and paths <= TapRouter.WALK_LEGS, "re-pathed, bounded: " .. paths)
-		-- A wall at Z 30: two legs without progress end the walk instead of looping.
+		-- A wall at Z 30: WALK_STALLS legs without progress end the walk (no path) instead of looping.
 		local blocked, blockedStats = world(30)
-		assert(not TapRouter.walk(blocked, goal, 6), "blocked walk gives up")
+		local arrived, why = TapRouter.walk(blocked, goal, 6)
+		assert(not arrived and why == "nopath", "blocked walk gives up: " .. tostring(why))
 		local blockedPaths = blockedStats()
-		assert(blockedPaths <= 3, "gives up within two stalled legs: " .. blockedPaths)
+		assert(blockedPaths <= TapRouter.WALK_STALLS + 1, "gives up within the stalled legs: " .. blockedPaths)
 		-- A newer walk (or a stop) cancels it at once.
 		local cancelled = world(nil)
 		cancelled.live = function()
 			return false
 		end
-		assert(not TapRouter.walk(cancelled, goal, 6), "cancelled walk stops")
+		local stopped, reason = TapRouter.walk(cancelled, goal, 6)
+		assert(not stopped and reason == "cancelled", "cancelled walk stops without a no-path notice")
 		-- moveTo drives the walk through the bounded re-path loop.
 		local source = fs.readFile("games/robango-island/src/client/TapRouter.luau")
 		local body = assert(string.find(source, "local function moveTo(", 1, true), "moveTo")
 		assert(string.find(source, "M.walk({", body, true), "moveTo walks via M.walk")
+	end,
+	-- Staging (SM-N981N, ko-kr): one 'show the way' press walked 3-22 m and stopped beside a turtle;
+	-- five presses to arrive. The pathfinder plans through the creature (or fails to start beside it
+	-- and the straight-line fallback runs into it), every MoveTo times out on its shell, and two
+	-- stalled legs ended the walk; a long walk also ran out of the 8-leg budget.
+	["one press walks around a creature in the way and on to a far target"] = function()
+		local function world(turtle: boolean, reach: number): any
+			local at = { X = 0, Y = 0, Z = 72 }
+			local paths = 0
+			local io: any = {}
+			function io.live()
+				return true
+			end
+			function io.position()
+				return at
+			end
+			function io.point(x, y, z)
+				return { X = x, Y = y, Z = z }
+			end
+			function io.path(from, goal)
+				paths += 1
+				-- A straight route that ends `reach` studs on (the navmesh does not see the creature).
+				local dx, dz = goal.X - from.X, goal.Z - from.Z
+				local length = math.sqrt(dx * dx + dz * dz)
+				local t = math.min(1, reach / length)
+				return "Success",
+					{
+						{ position = from, jump = false },
+						{ position = { X = from.X + dx * t, Y = 0, Z = from.Z + dz * t }, jump = false },
+					}
+			end
+			function io.step(point)
+				local to = point.position
+				-- The turtle sits at (0, 50) with a 3-stud shell: a leg that would pass inside it stops
+				-- against the shell (MoveTo timeout), short of the waypoint.
+				local dx, dz = to.X - at.X, to.Z - at.Z
+				local samples = math.max(1, math.ceil(math.sqrt(dx * dx + dz * dz) / 0.5))
+				for index = 1, samples do
+					local x, z = at.X + dx * index / samples, at.Z + dz * index / samples
+					if turtle and x * x + (z - 50) ^ 2 < 9 then
+						local back = (index - 1) / samples
+						at = { X = at.X + dx * back, Y = 0, Z = at.Z + dz * back }
+						return false
+					end
+				end
+				at = { X = to.X, Y = 0, Z = to.Z }
+				return true
+			end
+			return io, function()
+				return paths, at
+			end
+		end
+		local goal = { X = 0, Y = 0, Z = -48 }
+		local io, stats = world(true, 40)
+		local arrived, why = TapRouter.walk(io, goal, 6)
+		local _, at = stats()
+		assert(arrived, string.format("stopped at the turtle (%g, %g): %s", at.X, at.Z, tostring(why)))
+		-- A far target on short partial routes (10 studs each, 12+ legs) still arrives on one press.
+		local far, farStats = world(false, 10)
+		assert(TapRouter.walk(far, goal, 6), "a long walk is not cut by the leg budget")
+		assert((farStats()) > 8, "more than the old 8 legs")
+		-- The runtime: a drag or pinch that starts a camera gesture resumes the walk it cancelled, and
+		-- a truly blocked guide walk says so (cli.way.nopath) instead of stopping silently.
+		local g = TapRouter.gesture()
+		g.began(1, 100, 100, false)
+		assert(g.moved(1, 140, 100) == "steer", "first finger drags")
+		assert(g.began(2, 300, 300, false) == "pinch", "a second finger turns the drag into a pinch")
+		assert(not g.steering(), "the pinch no longer steers")
+		assert(g.ended(2, 300, 300) == nil and g.ended(1, 140, 100) == "release", "the pinch is no tap")
+		local source = fs.readFile("games/robango-island/src/client/TapRouter.luau")
+		assert(string.find(source, '== "pinch" then', 1, true), "InputBegan resumes on a pinch")
+		assert(string.find(source, "moveTo(resume.goal", 1, true), "the cancelled walk is resumed")
+		assert(string.find(source, "onFail(why)", 1, true), "moveTo reports no path")
+		local client = fs.readFile("games/robango-island/src/client/RobangoIslandClient.client.luau")
+		assert(string.find(client, '"cli.way.nopath"', 1, true), "the guide walk toasts no path")
+		assert(select(2, string.gsub(client, "scoped.walkTo = guideWalk", "")) == 2, "opening and chart use it")
+		local Fixture = require("../../PackText.fixture")
+		for _, locale in { "en-us", "ko-kr" } do
+			local line = Fixture.packText(locale, "cli.way.nopath")
+			assert(line and line ~= "cli.way.nopath", locale .. " cli.way.nopath")
+		end
 	end,
 }

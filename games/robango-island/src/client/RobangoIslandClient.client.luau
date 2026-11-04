@@ -171,7 +171,18 @@ local GatheringClient = require(Forge.genres["survival-coop"].module.GatheringCl
 -- node opens the shell fan of its offered outputs; the fan sends the picked output.
 local gatherPicker: any = nil
 -- The tap router's walk, set once TapRouter starts below; the gather picker walks into reach with it.
-local walkTo: ((Vector3, number, () -> ()) -> ())? = nil
+local walkTo: ((Vector3, number, () -> (), ((string) -> ())?) -> ())? = nil
+-- 'Show the way' walks (quest card, HUD guide step, sea chart dock): one press keeps walking to the
+-- target; when the walk is truly blocked (TapRouter.walk "nopath") a toast says so.
+local function guideWalk(goal: Vector3, arrive: number)
+	if walkTo then
+		walkTo(goal, arrive, function() end, function()
+			if gatherPicker then
+				gatherPicker.toast(clientText(locale, "cli.way.nopath") or "cli.way.nopath")
+			end
+		end)
+	end
+end
 local gathering = GatheringClient.start({
 	locale = locale,
 	names = names,
@@ -1213,11 +1224,7 @@ table.insert(panelFactories, function(ctx)
 		return titleHeld() or pickerShown()
 	end
 	-- The opening waypoint's 'show the way' reuses the tap router's pathfinding walk.
-	scoped.walkTo = function(goal: Vector3, arrive: number)
-		if walkTo then
-			walkTo(goal, arrive, function() end)
-		end
-	end
+	scoped.walkTo = guideWalk
 	return require(Shared.OpeningClient).factory(scoped)
 end)
 -- Social / home / trade sheets (ui.home-permissions, ui.home-move, ui.siege-*, ui.transaction,
@@ -1290,11 +1297,7 @@ table.insert(panelFactories, function(ctx)
 		return clientText(locale, "cli.chart.biome_" .. id) or id
 	end
 	-- 'Show the dock' walks to the nearest sail spot with the tap router's pathfinding walk.
-	scoped.walkTo = function(goal: Vector3, arrive: number)
-		if walkTo then
-			walkTo(goal, arrive, function() end)
-		end
-	end
+	scoped.walkTo = guideWalk
 	return require(Shared.SeaChart).panel(scoped)
 end)
 -- Recovered spec screens (tracker, score library, clan treasury/research, territory, build manage,

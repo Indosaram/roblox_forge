@@ -3314,3 +3314,4 @@ guide_go_craft_touch,original,agent:hephaestus/v73,2026-11-04
 guide_go_place_touch,original,agent:hephaestus/v73,2026-11-04
 hud.FOOD_SPOILED,original,agent:hephaestus/v73,2026-11-04
 hud.freshness_spoiled,original,agent:hephaestus/v73,2026-11-04
+cli.way.nopath,original,agent:hephaestus/pf2,2026-11-04
