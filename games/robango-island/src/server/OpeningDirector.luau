@@ -13,6 +13,7 @@ local Scene = require(Forge.games["robango-island"].src.shared.OpeningScene)
 local M = {}
 
 M.SET_PIECE_TAG = "ForgeSetPiece"
+M.CAMERA_OCCLUDER_TAG = "ForgeCameraOccluder" -- QuarterView's default occluderTag
 -- Player attribute "<REASON>#<n>": the latest refused opening prompt (the client toasts it).
 M.REFUSAL_ATTRIBUTE = "ForgeOpeningRefusal"
 M.NEAR_FORD, M.NEAR_MARIT = 30, 20
@@ -108,6 +109,10 @@ function M.new(layout: any, root: Instance, nowMillis: () -> number): any
 		model:SetAttribute("ForgeSetPieceId", id)
 		model.Parent = folder
 		game:GetService("CollectionService"):AddTag(model, M.SET_PIECE_TAG)
+		-- p134 v74 #12 (phone): the play camera's collision cast hit the tower's legs, deck and basket
+		-- (hidden but solid once the mesh row loads) and snapped into an extreme close-up. QuarterView
+		-- ignores occluder-tagged parts for collision and fades them when they hide the player.
+		game:GetService("CollectionService"):AddTag(model, M.CAMERA_OCCLUDER_TAG)
 		return model
 	end
 

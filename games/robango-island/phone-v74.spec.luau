@@ -237,5 +237,28 @@ return {
 				)
 			end
 		end
+	end,	-- #12: near the beacon tower the play camera snapped into an extreme close-up: its collision cast
+	-- (QuarterView) shortens the arm on any untagged solid hit, and the tower's legs, deck and basket
+	-- were untagged. Tagged ForgeCameraOccluder, the camera ignores them for collision and fades them.
+	["v74 #12: the beacon tower (and every opening set piece) is a camera occluder, not a camera wall"] = function()
+		local engine, world = onboarding()
+		local tags = engine.game:GetService("CollectionService")
+		for _, model in { world.opening.beacon, world.opening.boat } do
+			assert(tags:HasTag(model, "ForgeCameraOccluder"), model.Name .. " tagged ForgeCameraOccluder")
+		end
+		-- QuarterView: a hit on a part inside the tagged tower keeps the full arm.
+		local Fixture = require("../../core/infra/camera/QuarterView.fixture")
+		local f = Fixture.new()
+		local tower = { Parent = f.world }
+		local leg = f.part(0, tower)
+		f.tags[tower] = "ForgeCameraOccluder"
+		local api = f.module.start()
+		f.hit = { Distance = 2, Instance = leg }
+		f.step(0)
+		local camera = f.world.CurrentCamera
+		local arm = (camera.CFrame.Position - camera.Focus.Position).Magnitude
+		assert(arm > 80, string.format("the arm keeps its length through the tower: %.2f", arm))
+		api.stop()
+		world.destroy()
 	end,
 }
