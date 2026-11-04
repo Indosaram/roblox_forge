@@ -116,7 +116,6 @@ local function module(name: string): any
 	return luau.load(fs.readFile(PACK .. "/src/server/" .. name .. ".luau"), { environment = environment })()
 end
 local GuideEvents = require("../../genres/survival-coop/module/GuideEvents")
-local Companion = require("../../genres/survival-coop/module/CombatCompanion")
 local Provision = module("SurvivalProvision")
 local Factory = module("SurvivalFactory")
 local STUBBED = {
@@ -702,26 +701,24 @@ local DRIVE: { [string]: (any, any) -> () } = {
 	["rw.g13.lab.1"] = function(server)
 		act(server, "inspect", "laboratory")
 	end,
+	-- g14 teaches the second bola species from the capture (it repeated g41's dodo, and its first
+	-- step named no capture): a compsognathus from Route 1's first drift isle.
 	["rw.g14.taming.1"] = function(server)
-		-- The guide supplies one owned, captured dodo (quests spec g14).
-		server.session.personalTransaction(ACTOR, function(raw)
-			local rules = content.progressionPolicy.companion
-			local state = assert(Companion.capture(Companion.new({}, 0), "guide-dodo", "dodo", rules :: any))
-			raw.envelope.genres["survival-coop"].data.companions = state
-			return raw
-		end)
-		give(server, "guide-feed", "herbivore-feed", 3)
-		send(server, "companion-action", { "place", "guide-dodo" })
+		captureDodo(server, "rw.a1.s1.compsognathus.01.1", "compsognathus")
 	end,
 	["rw.g14.taming.2"] = function(server)
-		send(server, "companion-action", { "train", "guide-dodo" })
+		send(server, "companion-action", { "place", "rw.a1.s1.compsognathus.01.1" })
+	end,
+	["rw.g14.taming.3"] = function(server)
+		stock(server, { ["herbivore-feed"] = 3 })
+		send(server, "companion-action", { "train", "rw.a1.s1.compsognathus.01.1" })
 		for _ = 1, 3 do
-			send(server, "companion-action", { "feed", "guide-dodo" })
+			send(server, "companion-action", { "feed", "rw.a1.s1.compsognathus.01.1" })
 		end
 	end,
-	["rw.g14.taming.3"] = function(server, at)
+	["rw.g14.taming.4"] = function(server, at)
 		wait(server, at, 301)
-		send(server, "companion-action", { "claim", "guide-dodo" })
+		send(server, "companion-action", { "claim", "rw.a1.s1.compsognathus.01.1" })
 	end,
 	-- p103: the clan steps read and write the real clan record.
 	["rw.g15.clan.1"] = function(server)
@@ -1072,10 +1069,15 @@ local ROLE: { [string]: string } = {
 	["rw.g39.copper"] = "rw.explore20",
 	["rw.g41.second-pet"] = "rw.onboarding",
 	["rw.g47.first-ride"] = "rw.onboarding",
+	["rw.g14.taming"] = "rw.a1.s1",
 }
 -- The captures need the onboarding island's real wildlife and taming wiring.
-local WILDS: { [string]: boolean } =
-	{ ["rw.g31.first-capture"] = true, ["rw.g41.second-pet"] = true, ["rw.g47.first-ride"] = true }
+local WILDS: { [string]: boolean } = {
+	["rw.g31.first-capture"] = true,
+	["rw.g41.second-pet"] = true,
+	["rw.g47.first-ride"] = true,
+	["rw.g14.taming"] = true,
+}
 
 local function fresh(guide: any): (any, any)
 	local at = { value = 1000 }

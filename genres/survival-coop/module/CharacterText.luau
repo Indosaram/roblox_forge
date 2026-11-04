@@ -4,6 +4,7 @@
 local Party = require("../../../core/domain/island/Party")
 local Guide = require("./GuideEvents")
 local SkillTraining = require("./SkillTraining")
+local WildlifeNames = require("./WildlifeNames")
 local M = {}
 
 local PackLocale = require("./PackLocale")
@@ -185,7 +186,7 @@ local function targetName(locale: string, target: string, names: any): string
 	elseif strings["skills." .. target] then
 		return M.text(locale, "skills." .. target)
 	end
-	return names[target] or target
+	return names[target] or WildlifeNames.name(locale, target)
 end
 
 --- Chart name of the place a guide-sheet step is performed (GuideEvents.where: the harbor for the
@@ -225,7 +226,8 @@ local function openGuide(
 					break
 				end
 			end
-			local go = "guide_go_" .. o.action
+			-- Row keys use underscores (guide_go_place_training): a hyphenated action never matched its row.
+			local go = "guide_go_" .. (string.gsub(o.action, "%-", "_"))
 			local verb = "guide_act_" .. string.gsub(o.action, "%-", "_")
 			if not strings[go] and strings[verb] and strings.guide_go_sheet then
 				-- Steps without a HUD verb row read as "<Verb> <target> (Menu > Guides)": the guide

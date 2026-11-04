@@ -728,16 +728,34 @@ function M.run(host: any, p: any, options: any?): any
 	-- the sheet shows: place -> train -> feed during training -> claim -> deploy -> saddle -> ride.
 	local function tend(action: string, species: string): boolean
 		local rules = Content.progressionPolicy.companion
+		-- A pet in training (Captured, PenPlaced, Taming) first: one already tamed in an earlier guide
+		-- (Stored, Deployed) cannot go back into the pen.
+		local training = { Captured = true, PenPlaced = true, Taming = true }
 		local function pet(): (string?, any)
 			local pets = (extensions().taming.companions or {}).pets or {}
-			local ids = {}
+			local ids, busy = {}, {}
 			for id, row in pets do
 				if species == "creature" or row.species == species then
 					table.insert(ids, id)
+					if training[row.phase] then
+						table.insert(busy, id)
+					end
 				end
 			end
 			table.sort(ids)
-			return ids[1], ids[1] and pets[ids[1]]
+			table.sort(busy)
+			local id = busy[1] or ids[1]
+			return id, id and pets[id]
+		end
+		if action == "place-training" then
+			local _, row = pet()
+			if not row or not training[row.phase] then
+				-- Nothing to put in the pen: the taming sheet's next step is to catch one here.
+				p.event("tend", { action = action, species = species, pet = "none-in-training" })
+				if not captureHere(if species ~= "creature" then species else nil) then
+					return false
+				end
+			end
 		end
 		local function press(verb: string, id: string): boolean
 			p.closeSheets()

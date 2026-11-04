@@ -33018,9 +33018,11 @@ guides:
     provenance:
       classification: "RECONSTRUCTED"
   -
+    # journey6h: after g44 (L37-38) no guide opened until L40; the player re-ran Route 1 for 17 min.
+    # The rank-6 band (g13 laboratory, g14 taming, g15 clan, g16 refrigeration) now opens at L38.
     id: "rw.g13.lab"
     gates:
-      characterLevel: 40
+      characterLevel: 38
       developmentRank: 6
     objectives:
       -
@@ -33042,25 +33044,33 @@ guides:
     provenance:
       classification: "RECONSTRUCTED"
   -
+    # journey6h 102.7 min: g14 retaught g41's dodo loop and its first step (place-training dodo)
+    # named no capture, so a player whose only dodo was tamed in g41 had nothing to put in the pen.
+    # It now teaches the second bola species (compsognathus, Route 1 drift isle 1) from the capture.
     id: "rw.g14.taming"
     gates:
-      characterLevel: 40
+      characterLevel: 38
       developmentRank: 6
     objectives:
       -
         id: "rw.g14.taming.1"
-        action: "place-training"
-        target: "dodo"
+        action: "capture"
+        target: "compsognathus"
         quantity: 1
       -
         id: "rw.g14.taming.2"
+        action: "place-training"
+        target: "compsognathus"
+        quantity: 1
+      -
+        id: "rw.g14.taming.3"
         action: "feed"
         target: "herbivore-feed"
         quantity: 3
       -
-        id: "rw.g14.taming.3"
+        id: "rw.g14.taming.4"
         action: "tame"
-        target: "dodo"
+        target: "compsognathus"
         quantity: 1
     rewards:
       xp: 900
@@ -33075,7 +33085,7 @@ guides:
   -
     id: "rw.g15.clan"
     gates:
-      characterLevel: 40
+      characterLevel: 38
       developmentRank: 6
     objectives:
       -
@@ -33109,7 +33119,7 @@ guides:
   -
     id: "rw.g16.refrigeration"
     gates:
-      characterLevel: 40
+      characterLevel: 38
       developmentRank: 6
     objectives:
       -

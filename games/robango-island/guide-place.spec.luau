@@ -161,4 +161,36 @@ return {
 		assert(math.abs(p.X - lab.x) < 0.01 and math.abs(p.Z - lab.z) < 0.01, "beam on the laboratory")
 		assert(#h.errors == 0, tostring(h.errors[1]))
 	end,
+	-- journey6h 102.7 min: g14's first HUD step read 'place-training dodo' to a player whose only dodo
+	-- was tamed in g41 (nothing to put in the pen, and the line fell back to '(Menu > Guides)': the
+	-- hyphenated action never matched its guide_go_place_training row). g14 now starts with the
+	-- capture, names the species and where it roams, then the pen step reads its own row.
+	["g14 taming names the capture first, the species by name and the pen step's own sheet"] = function()
+		local g14 = guide("rw.g14.taming")
+		assert(g14.objectives[1].action == "capture", "g14 starts with the capture")
+		local species = g14.objectives[1].target
+		assert(g14.objectives[2].action == "place-training" and g14.objectives[2].target == species, "same species")
+		for _, case in
+			{
+				{ "ko-kr", "콤프소그나투스", "항로 1", "메뉴 > 길들이기" },
+				{ "en-us", "Compsognathus", "Route 1", "Menu > Taming" },
+			}
+		do
+			local line = Text.guideObjective(case[1], Content, at("rw.g14.taming"), NAMES(case[1]), true)
+			assert(
+				line and string.find(line, case[2], 1, true),
+				"the capture line names the species: " .. tostring(line)
+			)
+			assert(string.find(line, case[3], 1, true), "the capture line names where it roams: " .. line)
+			local pen = Text.guideObjective(
+				case[1],
+				Content,
+				at("rw.g14.taming", { [g14.objectives[1].id] = 1 }),
+				NAMES(case[1]),
+				true
+			)
+			assert(pen and string.find(pen, case[2], 1, true), "the pen line names the species: " .. tostring(pen))
+			assert(string.find(pen, case[4], 1, true), "the pen line opens the taming sheet: " .. pen)
+		end
+	end,
 }

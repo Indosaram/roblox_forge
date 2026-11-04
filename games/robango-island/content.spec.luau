@@ -423,9 +423,10 @@ return {
 	["the solo guide list has no gap above 6 levels between level 10 and 46 (fails on the old data)"] = function()
 		local gap, at = soloGap(load(), 10, 46)
 		assert(gap <= 6, "solo guide gap of " .. gap .. " levels after L" .. tostring(at))
-		-- Without the P9 guides the solo list jumps from L40 to L50 (g08/g12/g15/g17/g19 are hidden).
+		-- Without the P9 guides the solo list jumps from the rank-6 band (L38, g13-g16) to L50
+		-- (g08/g12/g15/g17/g19 are hidden).
 		local old, oldAt = soloGap(withoutP9(load()), 10, 46)
-		assert(old > 6 and oldAt == 40, "old data gap " .. old .. " after L" .. tostring(oldAt))
+		assert(old > 6 and oldAt == 38, "old data gap " .. old .. " after L" .. tostring(oldAt))
 	end,
 
 	["every P9 guide has en and ko offer, complete and title rows with provenance"] = function()

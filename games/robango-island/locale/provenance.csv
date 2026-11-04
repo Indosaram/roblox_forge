@@ -1015,8 +1015,8 @@ rw.g12.route-share.offer,original,agent:omo/robango-pack-recovery,2026-10-21
 rw.g12.route-share.complete,original,agent:omo/robango-pack-recovery,2026-10-21
 rw.g13.lab.offer,original,agent:omo/robango-pack-recovery,2026-10-21
 rw.g13.lab.complete,original,agent:omo/robango-pack-recovery,2026-10-21
-rw.g14.taming.offer,original,agent:omo/robango-pack-recovery,2026-10-21
-rw.g14.taming.complete,original,agent:omo/robango-pack-recovery,2026-10-21
+rw.g14.taming.offer,original,agent:hephaestus/g14-taming,2026-11-04
+rw.g14.taming.complete,original,agent:hephaestus/g14-taming,2026-11-04
 rw.g15.clan.offer,original,agent:omo/robango-pack-recovery,2026-10-21
 rw.g15.clan.complete,original,agent:omo/robango-pack-recovery,2026-10-21
 rw.g16.refrigeration.offer,original,agent:omo/robango-pack-recovery,2026-10-21
