@@ -11217,8 +11217,10 @@ recipeDetails:
       - "dried-wood"
     auxiliaryInputs:
       - "dried-fiber"
+    # Fun-first (owner 2026-11-03): a storage chest needs construction_1; practicing construction means placing
+    # structures, which the first storage chest itself is supposed to teach.
     skillNodes:
-      - "construction_2"
+      - "construction_1"
     seconds: 15
     stationTier: 1
     provenance:
