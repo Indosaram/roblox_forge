@@ -230,7 +230,10 @@ end
 -- of Luau source (device budget binds on memory: v67 PSS 783 of 900 MB).
 -- 2026-11-04: fileBytes 2.0 -> 2.1 MB with the fun-first guide flow, first-ride guide, hunt hints and
 -- curves (2.003 MB built); the device budget above stays the binding one.
-local PERF_BUDGET = { instances = 420, scripts = 350, sourceBytes = 4250000, fileBytes = 2100000 }
+-- 2026-11-04 v74 phone fixes (guide places, craft order, show-the-way, opening taps, B4 capture hooks):
+-- 4.24 MB with fully published assets, so the Luau source proxy 4.25 -> 4.30 MB; v74 phone PSS 780 MiB
+-- steady / 871 MiB peak of the binding 900 MB device budget.
+local PERF_BUDGET = { instances = 420, scripts = 350, sourceBytes = 4300000, fileBytes = 2100000 }
 
 type Measure = { instances: number, scripts: number, sourceBytes: number, fileBytes: number }
 
