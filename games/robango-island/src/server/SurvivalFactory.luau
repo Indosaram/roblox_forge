@@ -632,9 +632,16 @@ return function(content: any, source, world, backend, clock, options, provision,
 		local envelope = if port then port.profile().data.envelope else nil
 		local data = envelope and envelope.genres["survival-coop"].data
 		local development = if document then document.development else nil
+		-- p134 v74 #6b: a read that met the document held (DOCUMENT_BUSY) has no document. The route
+		-- card then said 'island grade 0/1 · Locked' while the HUD (world.development, the last read)
+		-- said route 1 is open; both now use that last read.
+		local grade = developmentFacts(document).grade
+		if not document and world.development then
+			grade = developmentFacts({ development = world.development(actor) }).grade
+		end
 		return {
 			level = if data and data.progression then data.progression.level else 1,
-			developmentRank = developmentFacts(document).grade,
+			developmentRank = grade,
 			instabilityAccess = if development then development.instabilityAccess else 1,
 		}
 	end

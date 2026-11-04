@@ -1581,6 +1581,7 @@ guide_go_deliver,original,agent:hephaestus/p53,2026-10-23
 guide_go_donate,original,agent:hephaestus/p53,2026-10-23
 guide_route_level,original,agent:hephaestus/p53,2026-10-23
 guide_route_open,original,agent:hephaestus/p53,2026-10-23
+guide_route_grade,original,agent:hephaestus/v74,2026-11-04
 hud_make,original,agent:hephaestus/p53,2026-10-23
 rw.g21.daily-board.offer,original,agent:hephaestus/p59,2026-10-23
 rw.g21.daily-board.complete,original,agent:hephaestus/p59,2026-10-23

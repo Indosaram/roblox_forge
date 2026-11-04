@@ -1319,6 +1319,47 @@ cases["v74 #6a: a guide event waits for an expedition document another writer ho
 	assert(server.session.close(ACTOR).ok and server.factory.close().ok, "release")
 end
 
+cases["v74 #6b: the route card reads the same island grade as the HUD while the document is held"] = function()
+	local at = { value = 1000 }
+	local server = boot(Memory.new(), "job:route-card", at)
+	server.at = at
+	assert(server.session.join(ACTOR).ok, "join")
+	assert(server.session.dispatch(ACTOR, "survival-coop:vitals-wake", {}).ok, "Start")
+	assert(
+		server.session.personalTransaction(ACTOR, function(raw)
+			raw.envelope.genres["survival-coop"].data.progression.level = 4
+			return raw
+		end),
+		"level"
+	)
+	assert(
+		server.factory.expeditionStore.transaction(ACTOR, function(document)
+			document.development = { points = 200, definitions = {}, progress = {}, events = {}, instabilityAccess = 1 }
+			return { ok = true }
+		end).ok,
+		"grade 2"
+	)
+	local expedition: any = nil
+	for _, extension in server.factory.services.survivalExtensions do
+		expedition = if extension.id == "expedition" then extension else expedition
+	end
+	-- The HUD's read (world.development, CharacterExtension) sees grade 2.
+	assert(server.world.development(ACTOR, true).points == 200, "HUD read")
+	-- A concurrent writer holds the document while the route card is built (live heartbeat).
+	local card: any = nil
+	server.factory.expeditionStore.transaction(ACTOR, function(_document)
+		card = expedition.snapshot(ACTOR)
+		return { ok = true }
+	end)
+	assert(card and card.routes and card.routes[1], "route cards")
+	assert(card.facts.developmentRank == 2, "route card grade: " .. tostring(card.facts.developmentRank))
+	assert(
+		card.routes[1].reason ~= "development_gate",
+		"route 1 is not grade-locked: " .. tostring(card.routes[1].reason)
+	)
+	assert(server.session.close(ACTOR).ok and server.factory.close().ok, "release")
+end
+
 cases["p103 camp equipment loans escrow the item and refuse out-of-turn takes, returns and recalls"] = function()
 	local guide: any = nil
 	for _, row in content.guides do

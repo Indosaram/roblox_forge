@@ -343,4 +343,15 @@ return {
 		assert(string.find(line.Text, PackText.packText("ko-kr", "operation_done"), 1, true), line.Text)
 		assert(#h.errors == 0, tostring(h.errors[1]))
 	end,
+	["v74 #6b: when the island grade blocks route 1 the HUD names that gate and the guide that raises it"] = function()
+		-- Level 4 (route 1 opens at 2) but grade 0: the Routes card shows 'island grade 0/1 · Locked'.
+		local ch = { level = 4, points = 0, definitions = {}, progress = {} }
+		local ko = assert(Text.guideObjective("ko-kr", Content, ch, NAMES, true, true), "a line")
+		assert(string.find(ko, "섬 개발 등급 1", 1, true), "names the grade gate: " .. ko)
+		assert(string.find(ko, Text.text("ko-kr", "guide_g01"), 1, true), "and the guide that raises it: " .. ko)
+		assert(ko ~= Text.text("ko-kr", "guide_route_open"), ko)
+		-- Below the route level the opening line is unchanged (no gate text).
+		local early = assert(Text.guideObjective("ko-kr", Content, { level = 1, points = 0 }, NAMES, true, true))
+		assert(not string.find(early, "섬 개발 등급", 1, true), early)
+	end,
 }

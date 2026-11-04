@@ -303,7 +303,13 @@ function M.guideObjective(
 	local level, grade, done = ch.level or 1, math.floor((ch.points or 0) / 100), ch.definitions or {}
 	local needLevel, needRank = Party.gates(content, 1)
 	if grade < needRank then
-		return openGuide(locale, content, ch, names, level, grade, 0, solo, touch)
+		local line, objective = openGuide(locale, content, ch, names, level, grade, 0, solo, touch)
+		if line and level >= needLevel then
+			-- p134 v74 #6b: the level already opens route 1, so the Routes card's lock is the island
+			-- grade; the line names that gate and how to raise it (the next start guide).
+			return M.format(locale, "guide_route_grade", needRank, grade, line), objective
+		end
+		return line, objective
 	elseif level >= needLevel then
 		-- p134 v74 #8: a start guide (band 0) still open leads, route 1 on the next line. Only the bands
 		-- past the route grade were read here, and those open at grade 2, which the unread start guides
