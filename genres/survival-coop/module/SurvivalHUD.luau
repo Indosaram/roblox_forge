@@ -967,6 +967,7 @@ function M.start(options: Options)
 		return nil
 	end
 	local placementReason: string? = nil
+	local hungerOnly = false
 	-- p134 C1 dead end 3: placement drew only the footprint, so on the phone nothing showed where the
 	-- camp grid was. The whole grid is outlined while placing (thin lines on the ground).
 	local gridLines = Instance.new("Folder")
@@ -1474,6 +1475,8 @@ function M.start(options: Options)
 		if contextual then
 			status.Visible = model.status == "conflict" or model.status == "pending" or model.notice ~= nil or hungry
 		end
+		-- Only the hunger tip: it waits while a sheet is open (p134 v74 #11: it sat over sheet title bars).
+		hungerOnly = hungry and model.status ~= "conflict" and model.status ~= "pending" and model.notice == nil
 		local scrollPosition = sheet.scroll.CanvasPosition
 		controls.begin(section)
 		noteUsed = 0
@@ -3348,6 +3351,13 @@ function M.start(options: Options)
 				end
 			end
 		end
+		for _, pill in tags:GetTagged(HudShell.HUD_PILL_TAG) do
+			local owner = if pill:IsA("GuiObject") then pill:FindFirstAncestorWhichIsA("ScreenGui") else nil
+			if pill.Visible and owner and owner.Enabled then
+				local at = pill.AbsolutePosition - origin
+				table.insert(avoid, { x = at.X, y = at.Y, width = pill.AbsoluteSize.X, height = pill.AbsoluteSize.Y })
+			end
+		end
 		local combat = player.PlayerGui:FindFirstChild("ForgeCombatHUD")
 		local bar = combat and combat:FindFirstChild("TargetBar")
 		if bar and bar:IsA("GuiObject") and bar.Visible then
@@ -3594,6 +3604,9 @@ function M.start(options: Options)
 					end
 				end
 				player:SetAttribute("ForgeSurvivalSheetOpen", sheet.frame.Visible)
+				if hungerOnly then
+					status.Visible = not modal
+				end
 				placeNotices()
 				local gatherGui = player.PlayerGui:FindFirstChild("ForgeGatherTouch")
 				promptService.Enabled = not modal

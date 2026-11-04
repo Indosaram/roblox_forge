@@ -545,6 +545,8 @@ function M.panel(ctx: any): any
 	sailCorner.CornerRadius, sailCorner.Parent = UDim.new(0, 10), sail
 	local timer = label(hud, "DriftTimer", 14, { 237, 230, 214 })
 	timer.BackgroundTransparency, timer.BackgroundColor3, timer.Visible = 0.2, rgb(LILAC), false
+	-- The HUD's contextual banner (hunger tip) steers around the pill (HudShell.HUD_PILL_TAG).
+	timer:AddTag("ForgeHudPill")
 	local timerCorner = Instance.new("UICorner")
 	timerCorner.CornerRadius, timerCorner.Parent = UDim.new(0.5, 0), timer
 	-- The round HUD minimap (HudShell overlays) opens the chart: a transparent button fills it.

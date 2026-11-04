@@ -1235,15 +1235,15 @@ return {
 				assert(footer >= Sheet.MIN_ROW, tag .. ": a footer strip for the pinned rows")
 				assert(Sheet.HEADER + footer <= h, tag .. ": header and footer fit the sheet")
 				assert(y >= 0 and y + h <= screen.height, tag .. ": sheet inside the screen")
-				-- The unpinned copy rows alone would push a last row under the fold on the phone: that
-				-- is why Continue may not be a scrolled row.
+				-- p134 v74 #11: the copy rows fit the scroller above the pinned footer (the 4th line used to
+				-- sit under Continue on the landscape phone).
 				local scrolled = 2 * 8
 				for _, row in rows do
-					scrolled += Sheet.rowHeight(row.text, Sheet.contentWidth(w)) + 6
+					if not row.pin then
+						scrolled += Sheet.rowHeight(row.text, Sheet.contentWidth(w)) + 6
+					end
 				end
-				if screen.width == 800 then
-					assert(scrolled > h - Sheet.HEADER, tag .. ": all rows do not fit, the footer is needed")
-				end
+				assert(scrolled - 6 <= h - Sheet.HEADER - footer, tag .. ": the copy fits above the footer")
 			end
 		end
 	end,

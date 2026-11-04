@@ -74,6 +74,7 @@ local function mountPanel(role: string, snapshot: any, clock: (() -> number)?, o
 		function item:IsA(kind)
 			return kind == self.ClassName
 		end
+		function item:AddTag() end
 		function item:IsDescendantOf(parent)
 			local at = self.Parent
 			while at do

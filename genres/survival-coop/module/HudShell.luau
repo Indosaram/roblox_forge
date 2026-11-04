@@ -1980,6 +1980,9 @@ export type OverlayOptions = {
 -- CollectionService tag on world name tags the contextual banner must never cover (player tags,
 -- pet labels, a pack's companion plate): SurvivalHUD steers the banner around their screen rects.
 M.NAME_TAG = "ForgeNameTag"
+-- CollectionService tag on a pack's HUD pill (the drift-isle timer): the banner steers around it too
+-- (p134 v74 #11: the hunger line sat under the '표류섬 남은 시간' pill).
+M.HUD_PILL_TAG = "ForgeHudPill"
 -- Player name plate (D2 R16): ink plate transparency behind the name, the name's ink stroke
 -- transparency and the plate's side padding in px.
 M.NAME_PLATE = table.freeze({ plate = 0.35, stroke = 0, pad = 6 })

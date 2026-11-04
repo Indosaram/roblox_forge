@@ -599,13 +599,17 @@ function M.arrivalRows(locale: string, state: any, act: any): { any }
 		canSkip = tutorial.complete ~= true and tutorial.step == "arrive",
 	}
 	local rows: { any } = {
-		{ text = L.text(locale, "scr.arrival.premise") },
-		{ text = L.text(locale, "scr.arrival.together") },
+		-- One two-line row (p134 v74 #11: four 48 px rows overflowed the landscape phone sheet).
+		{ text = L.text(locale, "scr.arrival.premise") .. "\n" .. L.text(locale, "scr.arrival.together") },
 		{ text = L.text(locale, if state.touch then "scr.arrival.goal_touch" else "scr.arrival.goal", view.objective) },
-		{ text = L.text(locale, "scr.arrival.skip_note") },
-		-- D2c R03: Continue (and Skip) are pinned under the copy so they stay on screen at 800x360.
-		{ text = L.text(locale, "scr.arrival.continue"), onClick = act.close, pin = true },
 	}
+	-- The skip note explains the Skip button; without it (p134 v74 #11) it was a fourth line that
+	-- the landscape phone sheet clipped under Continue.
+	if view.canSkip then
+		table.insert(rows, { text = L.text(locale, "scr.arrival.skip_note") })
+	end
+	-- D2c R03: Continue (and Skip) are pinned under the copy so they stay on screen at 800x360.
+	table.insert(rows, { text = L.text(locale, "scr.arrival.continue"), onClick = act.close, pin = true })
 	if view.canSkip then
 		table.insert(rows, { text = L.text(locale, "scr.arrival.skip"), onClick = act.skip, pin = true })
 	end

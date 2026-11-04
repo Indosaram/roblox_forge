@@ -8,7 +8,7 @@ local Scene = require("./src/shared/OpeningScene")
 local Harness = require("./PanelHarness.fixture")
 local PackText = require("./PackText.fixture")
 local roblox: any = require("@lune/roblox")
-local Vector3 = roblox.Vector3
+local Vector3, UDim2 = roblox.Vector3, roblox.UDim2
 
 -- The live onboarding role (RoleWorld + OpeningDirector) on the headless engine.
 local function onboarding(): (any, any)
@@ -164,6 +164,78 @@ return {
 			local limit = assert(Client.questLimit(r.quest.height, r), "a cap")
 			assert(limit >= need, string.format("%dx%d: %d rows need %d px, cap %d", screen[1], screen[2], rows, need, limit))
 			assert(r.quest.y + limit <= r.cluster.y, "the card stays above the action cluster")
+		end
+	end,	-- #11: the hunger tip sat under the drift-isle timer pill and over sheet title bars; the landscape
+	-- welcome sheet's 4th copy line was clipped by its pinned Continue.
+	["v74 #11: the hunger tip clears the drift-isle timer and waits under sheets"] = function()
+		local h = Harness.harness({ width = 914, height = 411, inset = 58, realHud = true })
+		local hud = assert(h.playerGui:FindFirstChild("ForgeSurvivalHUD"), "survival hud gui")
+		-- The drift-isle timer pill (SeaChart: top-centre, tagged ForgeHudPill), on its own gui.
+		local pillGui = h.new("ScreenGui", "ForgeSeaChartHud")
+		pillGui.Parent = h.playerGui
+		local pill = h.new("TextLabel", "DriftTimer")
+		local HudShell = h.load("genres/survival-coop/module/HudShell")
+		local regions = HudShell.regions(914, 411, 0, true)
+		local lane = regions.banner
+		pill.Size = UDim2.fromOffset(200, 30)
+		pill.Position = UDim2.fromOffset(lane.x + lane.width / 2 - 100, lane.y)
+		pill.Parent = pillGui
+		local tagged = { ForgeHudPill = { pill } } -- HudShell.HUD_PILL_TAG
+		h.game:GetService("CollectionService").GetTagged = function(_, tag)
+			return tagged[tag] or {}
+		end
+		h.packet({
+			revision = 1,
+			durable = { actions = { "survival-coop:food" }, epochs = {} },
+			snapshots = {
+				["survival-coop"] = {
+					vitals = { healthMilli = 90000, hungerMilli = 10000, fatigueMilli = 0 },
+					progression = { level = 2, sp = 0, xp = 0, paid = {}, version = 1 },
+					inventory = {},
+				},
+				survivalExtensions = {},
+			},
+		})
+		h.step()
+		local status = assert(hud:FindFirstChild("Status"), "status line")
+		assert(status.Visible and string.find(status.Text, "배가 고파요", 1, true), "hunger tip: " .. status.Text)
+		local a, b = h.rect(status), h.rect(pill)
+		local hit = a.x < b.x + b.width and b.x < a.x + a.width and a.y < b.y + b.height and b.y < a.y + a.height
+		assert(not hit, string.format("hunger tip (%d,%d %dx%d) under the timer pill", a.x, a.y, a.width, a.height))
+		-- A sheet open: the tip waits (it drew over sheet title bars).
+		h.hud.open("craft")
+		h.step()
+		assert(not status.Visible, "the hunger tip is hidden under an open sheet")
+		h.hud.close()
+		h.step()
+		assert(status.Visible, "and comes back when it closes")
+		assert(#h.errors == 0, tostring(h.errors[1]))
+	end,
+	["v74 #11: every copy line of the landscape welcome sheet shows above Continue"] = function()
+		local Screens = require("../../genres/survival-coop/module/RecoveredScreens")
+		local Sheet = require("../../genres/survival-coop/module/SocialSheet")
+		local Panels = require("../../genres/survival-coop/module/ExtensionPanels")
+		local Theme = require("../../core/ui-kit/Theme")
+		require("../../genres/survival-coop/module/ScreenText").use(PackText.screenText)
+		local S = Theme.sheet.space
+		-- A fresh account on the phone: the opening runs past the arrival step (no Skip).
+		for _, tutorial in { { step = "gather" }, { step = "arrive" } } do
+			local rows = Screens.arrivalRows("ko-kr", { tutorial = tutorial, objective = "x", touch = true }, {})
+			for _, screen in { { 914, 353 } } do -- SM-N981N landscape under the 58 px top bar
+				local _, _, w, h = Panels.shellSheet(screen[1], screen[2], true)
+				local room = h - Sheet.HEADER - Sheet.footerHeight(rows)
+				local used = 2 * S.pad
+				for _, row in rows do
+					if not row.pin then
+						local width = Sheet.contentWidth(w) - (S.marker + 3 * S.gap)
+						used += Sheet.rowHeight(row.text, width) + S.gap
+					end
+				end
+				assert(
+					used - S.gap <= room,
+					string.format("%s %dx%d: copy %d px in a %d px scroller", tutorial.step, screen[1], screen[2], used, room)
+				)
+			end
 		end
 	end,
 }
