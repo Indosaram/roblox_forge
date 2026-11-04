@@ -1300,66 +1300,65 @@ function M.run(host: any, p: any, options: any?): any
 					end
 					p.closeSheets()
 				end
-			elseif o.action == "practice" or o.action == "visit" then
-				local facility = if o.action == "visit" then "visitor-portal" else o.target
-				local at = anchor(facility)
+			elseif o.action == "visit" then
+				local at = anchor("visitor-portal")
 				if not at and host.role ~= "harbor" then
 					if sail("harbor") then
 						continue
 					end
 				elseif at then
 					p.walk(at, 2)
-					if o.action == "visit" then
-						-- The guide's Visit row is the acknowledgement; it is range-gated at this portal.
-						p.openTile("guides")
-						clickNamed("Objective-" .. o.id)
-						p.closeSheets()
-						for _, prompt in p.prompts() do
-							if
-								prompt.Parent
-								and prompt.Parent:GetAttribute("ForgeHarborFacility") == "visitor-portal"
-							then
-								p.trigger(prompt)
-								settleTravel()
-								break
-							end
+					-- The guide's Visit row is the acknowledgement; it is range-gated at this portal.
+					p.openTile("guides")
+					clickNamed("Objective-" .. o.id)
+					p.closeSheets()
+					for _, prompt in p.prompts() do
+						if prompt.Parent and prompt.Parent:GetAttribute("ForgeHarborFacility") == "visitor-portal" then
+							p.trigger(prompt)
+							settleTravel()
+							break
 						end
-					else
-						for _, operation in Content.operations do
-							if operation.id == o.target then
-								for _, input in operation.inputs do
-									p.obtain(input.item, input.quantity, 300)
-								end
-							end
-						end
-						p.walk(at, 2)
-						local triggered = false
-						for _, prompt in p.prompts() do
-							if prompt:GetAttribute("ForgeOperation") == o.target then
-								p.trigger(prompt)
-								triggered = true
-								break
-							end
-						end
-						p.closeSheets()
-						-- The HUD line names Menu > Operations: its Make button runs the drill anywhere.
-						local last = p.lastCommand()
-						if not triggered or not (last and last.ok) then
-							p.openTile("operations")
-							p.render()
-							clickNamed("Make-" .. o.target)
-							p.closeSheets()
-							last = p.lastCommand()
-						end
-						p.event("practice-stand", {
-							operation = o.target,
-							prompt = triggered,
-							command = last and last.action,
-							ok = last and last.ok,
-							reason = last and last.reason,
-						})
 					end
 				end
+			elseif o.action == "practice" then
+				for _, operation in Content.operations do
+					if operation.id == o.target then
+						for _, input in operation.inputs do
+							p.obtain(input.item, input.quantity, 300)
+						end
+					end
+				end
+				-- A harbor practice stand runs the drill when one stands in this world.
+				local at = anchor(o.target)
+				local triggered = false
+				if at then
+					p.walk(at, 2)
+					for _, prompt in p.prompts() do
+						if prompt:GetAttribute("ForgeOperation") == o.target then
+							p.trigger(prompt)
+							triggered = true
+							break
+						end
+					end
+					p.closeSheets()
+				end
+				-- The HUD line names Menu > Practice and instruments > Make: it runs the drill anywhere.
+				local last = p.lastCommand()
+				if not triggered or not (last and last.ok) then
+					p.openTile("operations")
+					p.render()
+					clickNamed("Make-" .. o.target)
+					p.closeSheets()
+					last = p.lastCommand()
+				end
+				p.event("practice-stand", {
+					operation = o.target,
+					stand = at ~= nil,
+					prompt = triggered,
+					command = last and last.action,
+					ok = last and last.ok,
+					reason = last and last.reason,
+				})
 			elseif o.action == "preview-refund" or o.action == "cancel-preview" then
 				p.openTile("character")
 				clickNamed("OpenReset")
