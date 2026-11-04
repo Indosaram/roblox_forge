@@ -929,6 +929,26 @@ function M.run(host: any, p: any, options: any?): any
 							p.obtain(input.item, input.quantity, 120)
 						end
 					end
+					-- Where the animals for a processed input live (hide for leather), hunt every rawInput the
+					-- recipe still needs before leaving, as a player fills the bag before the trip back.
+					for _, input in recipe.inputs do
+						local short = input.quantity - count(p.bag().items, input.item)
+						if short > 0 and not dropIsle(input.item) then
+							for _, source in Content.recipes do
+								local rawInput = source.outputs[1]
+									and source.outputs[1].item == input.item
+									and source.inputs[1]
+								if rawInput and not p.nodeFor(rawInput.item) then
+									p.obtain(
+										rawInput.item,
+										count(p.bag().items, rawInput.item) + short * rawInput.quantity,
+										600
+									)
+									break
+								end
+							end
+						end
+					end
 					-- A creature drop (hide for leather) no creature here gives: sail to a chart isle whose
 					-- wildlife carries it, as the player hunts where the animals are.
 					local huntIsle = nil
