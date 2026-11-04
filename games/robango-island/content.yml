@@ -32882,9 +32882,10 @@ guides:
     provenance:
       classification: "RECONSTRUCTED"
   -
+    # Fun-first (owner 2026-11-03): the farming/clothing/reclaim/route-share guides open at L33 (was 35) so the storage chest hands straight to farming instead of ~18 min of route-1 reruns for 2 levels.
     id: "rw.g09.farming"
     gates:
-      characterLevel: 35
+      characterLevel: 33
       developmentRank: 4
     objectives:
       -
@@ -32926,7 +32927,7 @@ guides:
   -
     id: "rw.g10.clothing"
     gates:
-      characterLevel: 35
+      characterLevel: 33
       developmentRank: 4
     objectives:
       -
@@ -32960,7 +32961,7 @@ guides:
   -
     id: "rw.g11.skill-reclaim"
     gates:
-      characterLevel: 35
+      characterLevel: 33
       developmentRank: 4
     objectives:
       -
@@ -32989,7 +32990,7 @@ guides:
   -
     id: "rw.g12.route-share"
     gates:
-      characterLevel: 35
+      characterLevel: 33
       developmentRank: 4
     objectives:
       -
