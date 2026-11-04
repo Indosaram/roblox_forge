@@ -196,7 +196,7 @@ return {
 		cfg.inventory.content.survival_content = 2
 		local errors = CraftingAdapter.validateConfig(cfg)
 		assert(#errors == 0, table.concat(errors, "; "))
-		cfg.inventory.content.limits.slots = 31
+		cfg.inventory.content.limits.slots = 41
 		assert(#CraftingAdapter.validateConfig(cfg) > 0, "v2 bag maximum remains bounded")
 		cfg.inventory.content.limits.slots = 30
 		cfg.inventory.content.limits.tribeMaxMembers = 51

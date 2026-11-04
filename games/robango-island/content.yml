@@ -1730,7 +1730,7 @@ limits:
   hardWeightMilli: 90000
   qualityMilliMax: 5000
   qualityMilliMin: 1
-  slots: 30
+  slots: 40
   softWeightMilli: 60000
   tribeMaxMembers: 50
 nodes:
