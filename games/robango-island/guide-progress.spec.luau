@@ -844,12 +844,15 @@ local DRIVE: { [string]: (any, any) -> () } = {
 		end
 	end,
 	-- audit6h P9 guides (hours 1.5-6, grade 2).
-	["rw.g32.tanning-frame.1"] = function(server, at)
+	["rw.g32.tanning-frame.1"] = function(server)
+		learn(server, { "construction_1" })
+	end,
+	["rw.g32.tanning-frame.2"] = function(server, at)
 		learn(server, { "construction_1" })
 		stock(server, { branch = 8, stone = 2 })
 		craft(server, at, "tanning-frame-kit", "station.workbench.t1")
 	end,
-	["rw.g32.tanning-frame.2"] = function(server)
+	["rw.g32.tanning-frame.3"] = function(server)
 		place(server, "tanning-frame-kit", "tanning-frame", -12)
 	end,
 	["rw.g33.first-leather.1"] = function(server)
@@ -861,12 +864,15 @@ local DRIVE: { [string]: (any, any) -> () } = {
 			craft(server, at, "tan-hide", "station.tanning-frame.t1")
 		end
 	end,
-	["rw.g34.hunting-bow.1"] = function(server, at)
+	["rw.g34.hunting-bow.1"] = function(server)
+		learn(server, { "weapon_tool_1" })
+	end,
+	["rw.g34.hunting-bow.2"] = function(server, at)
 		learn(server, { "weapon_tool_1" })
 		stock(server, { ["dried-wood"] = 4, ["dried-fiber"] = 4 })
 		craft(server, at, "bow-t1", "station.workbench.t1")
 	end,
-	["rw.g34.hunting-bow.2"] = function(server)
+	["rw.g34.hunting-bow.3"] = function(server)
 		send(server, "gear-equip", { bagItem(server, "bow-t1") })
 	end,
 	["rw.g35.first-polish.1"] = function(server)
@@ -927,28 +933,34 @@ local DRIVE: { [string]: (any, any) -> () } = {
 			craft(server, at, "smelt-copper", "station.kiln.t1")
 		end
 	end,
-	["rw.g40.temperate-set.1"] = function(server, at)
+	["rw.g40.temperate-set.1"] = function(server)
+		learn(server, { "tailoring_1" })
+	end,
+	["rw.g40.temperate-set.2"] = function(server, at)
 		learn(server, { "tailoring_1" })
 		stock(server, { leather = 8, ["dried-fiber"] = 3 })
 		craft(server, at, "temperate-top", "station.workbench.t1")
 	end,
-	["rw.g40.temperate-set.2"] = function(server, at)
+	["rw.g40.temperate-set.3"] = function(server, at)
 		craft(server, at, "temperate-shoes", "station.workbench.t1")
 	end,
 	["rw.g41.second-pet.1"] = function(server)
-		captureDodo(server)
+		learn(server, { "cooking_1" })
 	end,
 	["rw.g41.second-pet.2"] = function(server)
+		captureDodo(server)
+	end,
+	["rw.g41.second-pet.3"] = function(server)
 		send(server, "companion-action", { "place", "rw.onboarding.dodo.01.1" })
 		send(server, "companion-action", { "train", "rw.onboarding.dodo.01.1" })
 	end,
-	["rw.g41.second-pet.3"] = function(server)
+	["rw.g41.second-pet.4"] = function(server)
 		stock(server, { ["herbivore-feed"] = 3 })
 		for _ = 1, 3 do
 			send(server, "companion-action", { "feed", "rw.onboarding.dodo.01.1" })
 		end
 	end,
-	["rw.g41.second-pet.4"] = function(server, at)
+	["rw.g41.second-pet.5"] = function(server, at)
 		wait(server, at, 301)
 		send(server, "companion-action", { "claim", "rw.onboarding.dodo.01.1" })
 	end,

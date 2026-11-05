@@ -158,10 +158,14 @@ local P9: { [string]: { level: number, xp: number, objectives: { string } } } = 
 	["rw.g32.tanning-frame"] = {
 		level = 11,
 		xp = 150,
-		objectives = { "craft tanning-frame-kit", "place tanning-frame" },
+		objectives = { "purchase construction_1", "craft tanning-frame-kit", "place tanning-frame" },
 	},
 	["rw.g33.first-leather"] = { level = 12, xp = 150, objectives = { "purchase processing_2", "craft tan-hide" } },
-	["rw.g34.hunting-bow"] = { level = 13, xp = 200, objectives = { "craft bow-t1", "equip bow-t1" } },
+	["rw.g34.hunting-bow"] = {
+		level = 13,
+		xp = 200,
+		objectives = { "purchase weapon_tool_1", "craft bow-t1", "equip bow-t1" },
+	},
 	["rw.g35.first-polish"] = { level = 15, xp = 200, objectives = { "purchase processing_3", "craft polish-flint" } },
 	["rw.g36.flint-pick"] = { level = 16, xp = 200, objectives = { "craft pickaxe-t1" } },
 	["rw.g37.first-crop"] = {
@@ -174,12 +178,18 @@ local P9: { [string]: { level: number, xp: number, objectives: { string } } } = 
 	["rw.g40.temperate-set"] = {
 		level = 26,
 		xp = 250,
-		objectives = { "craft temperate-top", "craft temperate-shoes" },
+		objectives = { "purchase tailoring_1", "craft temperate-top", "craft temperate-shoes" },
 	},
 	["rw.g41.second-pet"] = {
 		level = 12,
 		xp = 250,
-		objectives = { "capture creature", "place-training creature", "feed herbivore-feed", "tame creature" },
+		objectives = {
+			"purchase cooking_1",
+			"capture creature",
+			"place-training creature",
+			"feed herbivore-feed",
+			"tame creature",
+		},
 	},
 	["rw.g42.storage"] = { level = 31, xp = 250, objectives = { "craft storage-kit", "place storage" } },
 	["rw.g43.t1-weapon"] = { level = 35, xp = 300, objectives = { "craft club-t1", "equip club-t1" } },

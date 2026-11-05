@@ -13523,6 +13523,22 @@ layouts:
         yield: 3
         respawnSeconds: 120
       -
+        # j9/j10 flint wall: the stone-axe guide needs 2 flint but every flint node before the first
+        # workbench lives on the onboarding isle (bone-knife) or behind the starter-pickaxe; a fresh
+        # arrival on the first drift isle held exactly 1 flint and no source. Hand-flint with the
+        # opening's bone-knife, away from the other nodes on the arrival trail.
+        id: "rw.a1.s1.flint"
+        item: "flint"
+        position:
+          x: -36
+          y: 4
+          z: 96
+        stock: 12
+        level: 1
+        yield: 2
+        respawnSeconds: 120
+        tool: "bone-knife"
+      -
         id: "rw.a1.s1.berry"
         item: "berry"
         # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
@@ -33542,13 +33558,20 @@ guides:
       characterLevel: 11
       developmentRank: 2
     objectives:
+      # audit6h P9 follow-up (j9/j10): the kit craft refused with 잠김: 건축 1 기술 필요 because no
+      # guide ever taught construction_1; the tanning-frame never placed and g33/g40 dead-ended.
       -
         id: "rw.g32.tanning-frame.1"
+        action: "purchase"
+        target: "construction_1"
+        quantity: 1
+      -
+        id: "rw.g32.tanning-frame.2"
         action: "craft"
         target: "tanning-frame-kit"
         quantity: 1
       -
-        id: "rw.g32.tanning-frame.2"
+        id: "rw.g32.tanning-frame.3"
         action: "place"
         target: "tanning-frame"
         quantity: 1
@@ -33602,23 +33625,30 @@ guides:
       characterLevel: 12
       developmentRank: 2
     objectives:
+      # j9: the herbivore-feed craft for the feed step refused with 잠김: 요리 1 기술 필요; teach
+      # cooking_1 before the capture chain.
       -
         id: "rw.g41.second-pet.1"
+        action: "purchase"
+        target: "cooking_1"
+        quantity: 1
+      -
+        id: "rw.g41.second-pet.2"
         action: "capture"
         target: "creature"
         quantity: 1
       -
-        id: "rw.g41.second-pet.2"
+        id: "rw.g41.second-pet.3"
         action: "place-training"
         target: "creature"
         quantity: 1
       -
-        id: "rw.g41.second-pet.3"
+        id: "rw.g41.second-pet.4"
         action: "feed"
         target: "herbivore-feed"
         quantity: 3
       -
-        id: "rw.g41.second-pet.4"
+        id: "rw.g41.second-pet.5"
         action: "tame"
         target: "creature"
         quantity: 1
@@ -33641,13 +33671,20 @@ guides:
       characterLevel: 13
       developmentRank: 2
     objectives:
+      # j10: the bow craft refused with 잠김: 무기·도구 1 기술 필요; weapon_tool_3 (g45) comes far
+      # too late, so teach the rank-1 skill here.
       -
         id: "rw.g34.hunting-bow.1"
+        action: "purchase"
+        target: "weapon_tool_1"
+        quantity: 1
+      -
+        id: "rw.g34.hunting-bow.2"
         action: "craft"
         target: "bow-t1"
         quantity: 1
       -
-        id: "rw.g34.hunting-bow.2"
+        id: "rw.g34.hunting-bow.3"
         action: "equip"
         target: "bow-t1"
         quantity: 1
@@ -33807,13 +33844,20 @@ guides:
       characterLevel: 26
       developmentRank: 2
     objectives:
+      # j10: temperate-top refused with 잠김: 재봉 1 기술 필요; g10.clothing (L33) opens far too
+      # late, so teach tailoring_1 here before the set crafts.
       -
         id: "rw.g40.temperate-set.1"
+        action: "purchase"
+        target: "tailoring_1"
+        quantity: 1
+      -
+        id: "rw.g40.temperate-set.2"
         action: "craft"
         target: "temperate-top"
         quantity: 1
       -
-        id: "rw.g40.temperate-set.2"
+        id: "rw.g40.temperate-set.3"
         action: "craft"
         target: "temperate-shoes"
         quantity: 1
