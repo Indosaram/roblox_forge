@@ -87,6 +87,16 @@ return {
 		assert(GuideEvents.where(Content, "inspect-rate", "refrigerator") == nil, "the fridge rate: anywhere")
 		assert(GuideEvents.where(Content, "deposit", "berry") == "rw.home", "home storage")
 	end,
+	["the g45 polish-bone line names the isle that has bone, not the unreturnable onboarding heap"] = function()
+		-- journey6h @131.7 on 12df9def: 'needs bone but no node on rw.explore10 gives it; the HUD
+		-- line names no island'. The onboarding bone heaps counted as a level-1 source, so no hint.
+		local ch = at("rw.g45.bone-work", { ["rw.g45.bone-work.1"] = 1 })
+		local ko, objective = Text.guideObjective("ko-kr", Content, ch, NAMES("ko-kr"), true)
+		assert(objective and objective.id == "rw.g45.bone-work.2", tostring(ko))
+		assert(ko and string.find(ko, "햇살 여울", 1, true), "ko HUD names Sunscar Shoals: " .. tostring(ko))
+		local en = Text.guideObjective("en-us", Content, ch, NAMES("en-us"), true)
+		assert(en and string.find(en, "Sunscar Shoals", 1, true), "en HUD names Sunscar Shoals: " .. tostring(en))
+	end,
 	["the g16 storage rows run the home transfer and g20's assembly opens the Practice sheet"] = function()
 		local home = {
 			homeId = "home:1",

@@ -28584,6 +28584,21 @@ layouts:
         level: 30
         yield: 2
         respawnSeconds: 120
+      -
+        # journey6h @131.7 on 12df9def: g45 polish-bone (primary bone level 30) had no bone node on any
+        # isle a player sails back to (only the onboarding heaps, level 10); the guide pinned the HUD
+        # for two hours. A bone pile on the level-30 band, bare-handed, beside the resources cluster
+        # (yield 2: the picker's sinew/hide alternatives stay Coin-bounded, C2h).
+        id: "rw.frontier30.bone"
+        item: "bone"
+        position:
+          x: 160
+          y: 8
+          z: 96
+        stock: 20
+        level: 30
+        yield: 2
+        respawnSeconds: 120
     spawns:
       -
         id: "rw.frontier30.stegosaurus.01"

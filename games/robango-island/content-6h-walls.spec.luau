@@ -50,7 +50,13 @@ local function byId(rows: { any }): { [string]: any }
 end
 
 -- Items, best material level, the stations built and the recipes craftable at character `level`.
-local function world(document: any, level: number): any
+-- With `routed`, raw items are supplied per layout the way the HUD and the player route them
+-- (CharacterText whereIsle / craftInputs): an item that has a resource node anywhere is only
+-- found at a live node on a layout the player can sail back to (never the onboarding island,
+-- which no role sails to; Topology), and its wildlife drops do not stand in for that node.
+-- journey6h @131.7 on 12df9def: g45 asked for level-30 bone while the only live bone nodes sat
+-- on rw.onboarding; the global pool counted those and level-30 dinosaur drops instead.
+local function world(document: any, level: number, routed: boolean?): any
 	local nodes = byId(document.skillNodes)
 	local function skilled(ids: { string }?): boolean
 		for _, id in ids or {} do
@@ -66,6 +72,19 @@ local function world(document: any, level: number): any
 		for _, row in document[section] do
 			if row.gates.characterLevel <= level then
 				open[row.layout] = true
+			end
+		end
+	end
+	local noded: { [string]: boolean } = {}
+	if routed then
+		for _, region in document.supportRegions do
+			if region.role == "onboarding" then
+				open[region.layout] = nil
+			end
+		end
+		for _, layout in document.layouts do
+			for _, node in layout.resourceNodes or {} do
+				noded[node.item] = true
 			end
 		end
 	end
@@ -107,7 +126,7 @@ local function world(document: any, level: number): any
 				end
 				for _, spawn in layout.spawns do
 					for _, drop in (species[spawn.speciesId] or {}).dropReservoirs or {} do
-						if skilled(if drop.skillNode then { drop.skillNode } else nil) then
+						if not noded[drop.item] and skilled(if drop.skillNode then { drop.skillNode } else nil) then
 							changed = supply(drop.item, spawn.level) or changed
 						end
 					end
@@ -197,7 +216,7 @@ local NEEDS: { [string]: (any) -> string? } = {
 }
 
 -- Every blocked step on the first-6-hours path, as text.
-local function walls(document: any): { string }
+local function walls(document: any, routed: boolean?): { string }
 	local out = {}
 	local cache: { [number]: any } = {}
 	local families = byId(document.toolPolicy.families)
@@ -206,7 +225,7 @@ local function walls(document: any): { string }
 		if level > WINDOW then
 			return
 		end
-		cache[level] = cache[level] or world(document, level)
+		cache[level] = cache[level] or world(document, level, routed)
 		local w = cache[level]
 		for _, objective in owner.objectives do
 			local need = NEEDS[objective.action]
@@ -245,6 +264,10 @@ return {
 	["every first-6-hours guide and chapter step is doable from what the world spawns"] = function()
 		local bad = walls(load())
 		assert(#bad == 0, "walled steps: " .. table.concat(bad, "; "))
+	end,
+	["every first-6-hours guide and chapter step is doable from nodes on islands the player can sail back to"] = function()
+		local bad = walls(load(), true)
+		assert(#bad == 0, "walled steps (per layout): " .. table.concat(bad, "; "))
 	end,
 	["tier-1 recipes accept the material levels the home island mints"] = function()
 		local document = load()

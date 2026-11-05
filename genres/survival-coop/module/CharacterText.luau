@@ -34,7 +34,8 @@ end
 
 -- Lowest character gate of a support region whose layout is the only source of `item`
 -- (no ungated region has a node for it), or nil when the item is gathered at level 1. The second
--- value is that region's role (the sea chart isle to sail to).
+-- value is that region's role (the sea chart isle to sail to). The onboarding island is never a
+-- source: no role sails back to it (Topology), so its bone heaps must not hide the isle hint.
 local function regionLevel(content: any, item: string): (number?, string?)
 	local nodes = {}
 	for _, layout in content.layouts or {} do
@@ -46,7 +47,7 @@ local function regionLevel(content: any, item: string): (number?, string?)
 	end
 	local best: number?, role: string? = nil, nil
 	for _, region in content.supportRegions or {} do
-		if nodes[region.layout] then
+		if nodes[region.layout] and region.role ~= "onboarding" then
 			local gate = (region.gates or {}).characterLevel or 1
 			if gate <= 1 then
 				return nil, nil
