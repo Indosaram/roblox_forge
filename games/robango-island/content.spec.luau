@@ -181,17 +181,17 @@ local P9: { [string]: { level: number, xp: number, objectives: { string } } } = 
 		xp = 250,
 		objectives = { "capture creature", "place-training creature", "feed herbivore-feed", "tame creature" },
 	},
-	["rw.g42.storage"] = { level = 33, xp = 250, objectives = { "craft storage-kit", "place storage" } },
-	["rw.g43.t1-weapon"] = { level = 36, xp = 300, objectives = { "craft club-t1", "equip club-t1" } },
-	["rw.g44.second-route"] = { level = 37, xp = 300, objectives = { "deliver contract" } },
+	["rw.g42.storage"] = { level = 31, xp = 250, objectives = { "craft storage-kit", "place storage" } },
+	["rw.g43.t1-weapon"] = { level = 35, xp = 300, objectives = { "craft club-t1", "equip club-t1" } },
+	["rw.g44.second-route"] = { level = 36, xp = 300, objectives = { "deliver contract" } },
 	["rw.g45.bone-work"] = {
-		level = 42,
+		level = 38,
 		xp = 350,
 		objectives = { "purchase weapon_tool_3", "craft polish-bone", "craft tan-thick-hide" },
 	},
-	["rw.g46.t2-tool"] = { level = 45, xp = 400, objectives = { "craft pickaxe-t2" } },
+	["rw.g46.t2-tool"] = { level = 40, xp = 400, objectives = { "craft pickaxe-t2" } },
 	["rw.g47.first-ride"] = {
-		level = 43,
+		level = 39,
 		xp = 500,
 		objectives = {
 			"purchase melee_2",
@@ -424,8 +424,16 @@ return {
 		local gap, at = soloGap(load(), 10, 46)
 		assert(gap <= 6, "solo guide gap of " .. gap .. " levels after L" .. tostring(at))
 		-- Without the P9 guides the solo list jumps from the rank-6 band (L38, g13-g16) to L50
-		-- (g08/g12/g15/g17/g19 are hidden).
-		local old, oldAt = soloGap(withoutP9(load()), 10, 46)
+		-- (g08/g12/g15/g17/g19 are hidden). The pacing pass moved those bands to L37 and L41, so the
+		-- old data restores the pre-pacing band gates as well.
+		local before = withoutP9(load())
+		for _, guide in before.guides do
+			local band = tonumber(string.match(guide.id, "^rw%.g(%d+)%."))
+			if band and band >= 13 and band <= 20 then
+				guide.gates.characterLevel = if band <= 16 then 38 else 50
+			end
+		end
+		local old, oldAt = soloGap(before, 10, 46)
 		assert(old > 6 and oldAt == 38, "old data gap " .. old .. " after L" .. tostring(oldAt))
 	end,
 

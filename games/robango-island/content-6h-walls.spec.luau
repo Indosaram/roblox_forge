@@ -14,6 +14,13 @@ local Farming = require("../../core/domain/home/Farming")
 local SkillTree = require("../../core/domain/progression/SkillTree")
 
 local WINDOW = 50 -- highest guide/chapter level gate on the first-6-hours path (audit6h §2)
+-- Guide pacing (fun-first, owner): a new solo guide opens at most GAP_BUDGET sim minutes after the
+-- previous one. journey6h on 12df9def measured the mid-game income between guides at 87-101 XP/min
+-- (L38->L41 101, L45->L50 87) and about 1.5 min per guide objective; the model replays that.
+local GAP_BUDGET = 10
+local PACE_XP_PER_MINUTE = 90
+local PACE_MINUTES_PER_OBJECTIVE = 1.5
+local PACE_HORIZON = 360
 local SKILL_BUDGET = 50 -- category actions a player spends on one skill line inside 6 hours (fun-first: no grind)
 local RANK3_BUDGET = 20 -- category actions to the rank-3 node of every category
 
@@ -186,6 +193,100 @@ local function world(document: any, level: number, routed: boolean?): any
 	return { have = have, craftable = craftable, skilled = skilled, open = open }
 end
 
+-- Sim minute each solo guide opens at, from the authored gates: background XP at
+-- PACE_XP_PER_MINUTE, the HUD works open guides one at a time in unlock order (each objective
+-- PACE_MINUTES_PER_OBJECTIVE, the guide's XP and development paid on completion), and route 1's
+-- missions pay their first clear when the route gate opens. Later routes' missions are left out
+-- (journey6h never left route 1), so the model is conservative. Returns { id, minute, level } rows.
+local function guideOpens(document: any): { any }
+	local tree = document.progressionPolicy.tree
+	local route = math.huge
+	for _, stage in document.stages do
+		route = math.min(route, stage.gates.characterLevel)
+	end
+	local level, xp, points, minute = 1, 0, 0, 0
+	local function add(amount: number)
+		xp += amount
+		while level < tree.maxLevel and xp >= SkillTree.characterRequired(tree, level) do
+			xp -= SkillTree.characterRequired(tree, level)
+			level += 1
+		end
+	end
+	local guides = GuideEvents.visible(document, true)
+	local opened: { [string]: boolean } = {}
+	local queue, out = {}, {}
+	local current: any, left, routePaid = nil, 0, false
+	local STEP = 0.05
+	while minute < PACE_HORIZON and #out < #guides do
+		if not routePaid and level >= route then
+			routePaid = true
+			for _, mission in document.missions do
+				if mission.gates.characterLevel == route then
+					add(mission.rewards.xp)
+					points += mission.rewards.development or 0
+				end
+			end
+		end
+		for _, guide in guides do
+			if not opened[guide.id] and GuideEvents.open(guide, level, math.clamp(points // 100, 0, 10)) then
+				opened[guide.id] = true
+				table.insert(queue, guide)
+				table.insert(out, { id = guide.id, minute = minute, level = level })
+			end
+		end
+		if not current and #queue > 0 then
+			current = table.remove(queue, 1)
+			left = PACE_MINUTES_PER_OBJECTIVE * #current.objectives
+		end
+		minute += STEP
+		add(PACE_XP_PER_MINUTE * STEP)
+		if current then
+			left -= STEP
+			if left <= 0 then
+				add(current.rewards.xp)
+				points += current.rewards.development or 0
+				current = nil
+			end
+		end
+	end
+	return out
+end
+
+-- Consecutive guide opens further apart than GAP_BUDGET, and solo guides that never open within
+-- PACE_HORIZON, as text.
+local function paceGaps(document: any): { string }
+	local opens = guideOpens(document)
+	local out = {}
+	for i = 2, #opens do
+		local gap = opens[i].minute - opens[i - 1].minute
+		if gap > GAP_BUDGET then
+			table.insert(
+				out,
+				string.format(
+					"%s (L%d, %.1f min) -> %s (L%d, %.1f min): %.1f min",
+					opens[i - 1].id,
+					opens[i - 1].level,
+					opens[i - 1].minute,
+					opens[i].id,
+					opens[i].level,
+					opens[i].minute,
+					gap
+				)
+			)
+		end
+	end
+	local seen: { [string]: boolean } = {}
+	for _, row in opens do
+		seen[row.id] = true
+	end
+	for _, guide in GuideEvents.visible(document, true) do
+		if not seen[guide.id] then
+			table.insert(out, guide.id .. " does not open within " .. PACE_HORIZON .. " min")
+		end
+	end
+	return out
+end
+
 -- The item an objective needs in hand (nil when the step needs no item).
 local NEEDS: { [string]: (any) -> string? } = {
 	gather = function(o)
@@ -261,6 +362,10 @@ local function walls(document: any, routed: boolean?): { string }
 end
 
 return {
+	["a new solo guide opens within the gap budget across the first six hours"] = function()
+		local bad = paceGaps(load())
+		assert(#bad == 0, "guide pacing gaps over " .. GAP_BUDGET .. " min: " .. table.concat(bad, "; "))
+	end,
 	["every first-6-hours guide and chapter step is doable from what the world spawns"] = function()
 		local bad = walls(load())
 		assert(#bad == 0, "walled steps: " .. table.concat(bad, "; "))

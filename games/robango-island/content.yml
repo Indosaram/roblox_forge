@@ -33034,10 +33034,13 @@ guides:
       classification: "RECONSTRUCTED"
   -
     # journey6h: after g44 (L37-38) no guide opened until L40; the player re-ran Route 1 for 17 min.
-    # The rank-6 band (g13 laboratory, g14 taming, g15 clan, g16 refrigeration) now opens at L38.
+    # The rank-6 band (g13 laboratory, g14 taming, g15 clan, g16 refrigeration) now opens at L37.
+    # Pacing (journey6h 12df9def: 41 min with no new guide after g14 at L38, 109 min after g46 at L45):
+    # g42-g46 open at L31/35/36/38/40, g47 at L39 and the rank-8 band (g17-g20) at L41 (was L50),
+    # so a new guide opens every few levels to L41 (content-6h-walls pacing case, 10 min budget).
     id: "rw.g13.lab"
     gates:
-      characterLevel: 38
+      characterLevel: 37
       developmentRank: 6
     objectives:
       -
@@ -33064,7 +33067,7 @@ guides:
     # It now teaches the second bola species (compsognathus, Route 1 drift isle 1) from the capture.
     id: "rw.g14.taming"
     gates:
-      characterLevel: 38
+      characterLevel: 37
       developmentRank: 6
     objectives:
       -
@@ -33100,7 +33103,7 @@ guides:
   -
     id: "rw.g15.clan"
     gates:
-      characterLevel: 38
+      characterLevel: 37
       developmentRank: 6
     objectives:
       -
@@ -33134,7 +33137,7 @@ guides:
   -
     id: "rw.g16.refrigeration"
     gates:
-      characterLevel: 38
+      characterLevel: 37
       developmentRank: 6
     objectives:
       -
@@ -33168,7 +33171,7 @@ guides:
   -
     id: "rw.g17.snow-preparation"
     gates:
-      characterLevel: 50
+      characterLevel: 41
       developmentRank: 8
     objectives:
       -
@@ -33202,7 +33205,7 @@ guides:
   -
     id: "rw.g18.technical-support"
     gates:
-      characterLevel: 50
+      characterLevel: 41
       developmentRank: 8
     objectives:
       -
@@ -33231,7 +33234,7 @@ guides:
   -
     id: "rw.g19.volcano-preparation"
     gates:
-      characterLevel: 50
+      characterLevel: 41
       developmentRank: 8
     objectives:
       -
@@ -33265,7 +33268,7 @@ guides:
   -
     id: "rw.g20.rescue-preparation"
     gates:
-      characterLevel: 50
+      characterLevel: 41
       developmentRank: 8
     objectives:
       -
@@ -33486,7 +33489,7 @@ guides:
   -
     id: "rw.g29.deep-wilds-haul"
     gates:
-      characterLevel: 25
+      characterLevel: 24
       developmentRank: 2
     objectives:
       -
@@ -33830,7 +33833,7 @@ guides:
   -
     id: "rw.g42.storage"
     gates:
-      characterLevel: 33
+      characterLevel: 31
       developmentRank: 2
     objectives:
       -
@@ -33855,7 +33858,7 @@ guides:
   -
     id: "rw.g43.t1-weapon"
     gates:
-      characterLevel: 36
+      characterLevel: 35
       developmentRank: 2
     objectives:
       -
@@ -33880,7 +33883,7 @@ guides:
   -
     id: "rw.g44.second-route"
     gates:
-      characterLevel: 37
+      characterLevel: 36
       developmentRank: 2
     objectives:
       -
@@ -33900,7 +33903,7 @@ guides:
   -
     id: "rw.g45.bone-work"
     gates:
-      characterLevel: 42
+      characterLevel: 38
       developmentRank: 2
     objectives:
       -
@@ -33930,7 +33933,7 @@ guides:
   -
     id: "rw.g46.t2-tool"
     gates:
-      characterLevel: 45
+      characterLevel: 40
       developmentRank: 2
     objectives:
       -
@@ -33952,7 +33955,7 @@ guides:
   -
     id: "rw.g47.first-ride"
     gates:
-      characterLevel: 43
+      characterLevel: 39
       developmentRank: 2
     objectives:
       -
