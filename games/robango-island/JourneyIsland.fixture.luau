@@ -1139,7 +1139,7 @@ function M.run(host: any, p: any, options: any?): any
 					if not here then
 						continue
 					end
-					local station = stationAnchor(host.layout, recipe)
+					local station = stationAnchor(p.layout(), recipe)
 					if station then
 						p.walk(station, 3)
 					elseif recipe.station and recipeTier(recipe) > 1 and host.role ~= "home" then
