@@ -1132,7 +1132,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 					else 2
 				position.y = hit.Position.Y + height / 2 + 0.25
 			end
-			local catalogId = string.gsub(node.id, "[._]", "-")
+			-- SettlementRuntime canonicalizes this catalog: the id must be ^[a-z][a-z0-9%-]*$.
+			local catalogId = string.gsub(string.lower(node.id), "[._]", "-")
 			table.insert(runtimeContent.nodes, {
 				id = catalogId,
 				harvest = { { item = node.item, quantity = node.yield } },

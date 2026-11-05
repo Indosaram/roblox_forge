@@ -290,6 +290,28 @@ return {
 		assert(#errors == 0, table.concat(errors, "; "))
 	end,
 
+	["every layout node id becomes a valid catalog id after the runtime transform"] = function()
+		-- RoleWorld registers each layout node as catalog id gsub(lower(id), "[._]", "-") and the
+		-- tribe SettlementRuntime canonicalizes that catalog (p134 j9: frontier N1..N6 crashed it).
+		local seen = {}
+		for _, layout in load().layouts or {} do
+			for _, node in layout.resourceNodes or {} do
+				if
+					not string.find(node.id, ".cargo.", 1, true)
+					and not string.find(node.id, ".chapter.", 1, true)
+				then
+					local kind = string.gsub(string.lower(node.id), "[._]", "-")
+					assert(
+						#kind <= 64 and string.match(kind, "^[a-z][a-z0-9%-]*$") ~= nil,
+						(layout.id or "?") .. " node " .. node.id .. " -> catalog id " .. kind
+					)
+					assert(seen[kind] == nil, "duplicate catalog id " .. kind)
+					seen[kind] = true
+				end
+			end
+		end
+	end,
+
 	["an unsupported wildlife behaviour is rejected by the same schema"] = function()
 		local raw = load()
 		table.insert(raw.wildlife, { id = "bad-flag", behavior = "aggressive" })

@@ -1031,9 +1031,18 @@ function M.run(host: any, p: any, options: any?): any
 					local sailedForInput = false
 					for _, input in recipe.inputs do
 						if count(p.bag().items, input.item) < input.quantity then
-							-- The HUD names the chart isle a gatherable input grows on (p134 v77: bone from
-							-- 햇살 여울 on the g45 line); sail there as the line says instead of failing here.
-							if not seek(input.item, "guide " .. g.id .. " (" .. recipe.id .. " input)") then
+							-- A raw input's node may live on another isle, and the HUD names that isle (p134
+							-- v77: bone from 햇살 여울 on the g45 line), so sail there as the line says. An
+							-- input a station makes (dried fiber at the campfire) is crafted, not gathered:
+							-- seeking a node for it would report a missing island that no chart has.
+							local processed = false
+							for _, source in Content.recipes do
+								processed = processed or source.outputs[1].item == input.item
+							end
+							if
+								not processed
+								and not seek(input.item, "guide " .. g.id .. " (" .. recipe.id .. " input)")
+							then
 								sailedForInput = true
 								break
 							end

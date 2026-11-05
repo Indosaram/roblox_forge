@@ -243,13 +243,13 @@ local function populationCounts(): { [string]: number }?
 	return population
 end
 local nodeItems: { [string]: string }? = nil
--- Catalog node kind (RoleWorld: node id with "."/"_" -> "-") -> its item id, built once.
+-- Catalog node kind (RoleWorld: node id lowercased with "."/"_" -> "-") -> its item id, built once.
 local function nodeItemByKind(): { [string]: string }
 	if not nodeItems then
 		local map = {}
 		for _, layout in (content :: any).layouts or {} do
 			for _, node in layout.resourceNodes or {} do
-				map[(string.gsub(node.id, "[._]", "-"))] = node.item
+				map[(string.gsub(string.lower(node.id), "[._]", "-"))] = node.item
 			end
 		end
 		nodeItems = map

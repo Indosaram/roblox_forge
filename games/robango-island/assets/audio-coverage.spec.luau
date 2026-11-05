@@ -120,7 +120,7 @@ return {
 		for _, layout in doc.layouts do
 			for _, node in layout.resourceNodes or {} do
 				if not string.find(node.id, ".cargo.", 1, true) and not string.find(node.id, ".chapter.", 1, true) then
-					local kind = string.gsub(node.id, "[._]", "-")
+					local kind = string.gsub(string.lower(node.id), "[._]", "-")
 					local got = Audio.commandEvent(Catalog, req("gather"), confirmed, kind, node.item)
 					assert(got and Catalog.events[got], node.id .. " (" .. node.item .. ") has no gather cue")
 					checked += 1
