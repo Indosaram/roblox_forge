@@ -39,6 +39,23 @@ function M.creature(instance: any): boolean
 	return false
 end
 
+-- Attribute on a client-only world folder (scripted presentation rigs such as the opening's
+-- companion): the build ghost probe skips it, because the server's placement check never sees it
+-- (p134 v75 C3: Tumble follows 4 studs behind the player, the ghost starts under the player, and
+-- every campfire ghost read 'rock, tree or building in the way' in red while the server placed it).
+M.LOCAL_ONLY_ATTRIBUTE = "ForgeLocalOnly"
+
+--- The direct children of `world` flagged LOCAL_ONLY_ATTRIBUTE (excluded from the ghost probe).
+function M.localOnly(world: any): { any }
+	local out = {}
+	for _, child in world:GetChildren() do
+		if child:GetAttribute(M.LOCAL_ONLY_ATTRIBUTE) == true then
+			table.insert(out, child)
+		end
+	end
+	return out
+end
+
 -- Mirror of SurvivalWorld settlementPorts.verify after its reach check (server and HUD share it).
 -- probe(cell) returns the support ray hit (or nil) and the parts in the cell box. Without
 -- requireSupport (client: terrain may not be streamed in) a missing hit is unknown, not a refusal.

@@ -1180,6 +1180,22 @@ function M.picker(ctx: any): any
 		local folder = replicated:FindFirstChild(M.RIG_FOLDER)
 		return if folder then folder:FindFirstChild(id) :: any else nil
 	end
+	-- p134 v74 #14 / v75 C4: the cards were empty squares on the phone. The portraits cloned a rig
+	-- template the moment its Model replicated (ChildAdded), before its mesh pieces arrived, kept that
+	-- empty clone for good and showed nothing else. A template counts only once its body piece is
+	-- there; until then the card shows the survivor icon.
+	local function ready(source: Model?): boolean
+		if not source then
+			return false
+		end
+		for _, piece in source:GetChildren() do
+			local _, slot = M.piece(piece.Name)
+			if slot == "body" and piece:IsA("BasePart") then
+				return true
+			end
+		end
+		return false
+	end
 	local function render()
 		local current = if view then view.preset else nil
 		for id, card in cards do
@@ -1198,8 +1214,8 @@ function M.picker(ctx: any): any
 			shown = nil
 		end
 		local source = template(id)
-		if source then
-			local model = source:Clone()
+		if ready(source) then
+			local model = (source :: Model):Clone()
 			model:PivotTo(CFrame.new())
 			model.Parent = stage
 			shown = model
@@ -1212,11 +1228,12 @@ function M.picker(ctx: any): any
 				continue
 			end
 			local source = template(id)
-			if source then
-				local model = source:Clone()
+			if ready(source) then
+				local model = (source :: Model):Clone()
 				model:PivotTo(CFrame.new())
 				model.Parent = card.art
 				card.figure = model
+				card.fallback.Visible = false
 			end
 		end
 		if focus and not shown then
@@ -1239,10 +1256,17 @@ function M.picker(ctx: any): any
 		lens.FieldOfView = 30
 		lens.CFrame = CFrame.lookAt(Vector3.new(0.9, 1.95, -2.7), Vector3.new(0, 1.62, 0))
 		lens.Parent, art.CurrentCamera = art, lens
+		-- Until the rig is in: the survivor icon (ui.icon.member), never an empty square.
+		local fallback = box("ImageLabel", "PortraitFallback", art) :: ImageLabel
+		fallback.AnchorPoint, fallback.Position = Vector2.new(0.5, 0.5), UDim2.fromScale(0.5, 0.5)
+		fallback.Size, fallback.ScaleType = UDim2.fromScale(0.7, 0.7), Enum.ScaleType.Fit
+		local icon = if ctx.icons then ctx.icons.ui("member") else nil
+		fallback.Image = if icon and icon.image then icon.image else ""
 		local name = text("Name", frame, CREAM)
 		local note = text("Note", frame, Color3.fromRGB(206, 192, 166))
 		note.Text, note.Font, note.TextYAlignment = ctx.text(id .. "_note"), Enum.Font.Gotham, Enum.TextYAlignment.Top
-		cards[id] = { frame = frame, stroke = stroke, art = art, name = name, note = note, order = index }
+		cards[id] =
+			{ frame = frame, stroke = stroke, art = art, fallback = fallback, name = name, note = note, order = index }
 		table.insert(
 			connections,
 			frame.Activated:Connect(function()
@@ -1284,7 +1308,8 @@ function M.picker(ctx: any): any
 	table.insert(connections, guiService:GetPropertyChangedSignal("TopbarInset"):Connect(layout))
 	-- The rig templates replicate after the server loads the package: fill the art when they arrive.
 	local function watch(folder: Instance)
-		table.insert(connections, folder.ChildAdded:Connect(portraits))
+		-- Pieces stream in after their Model: every arriving descendant retries the empty cards.
+		table.insert(connections, folder.DescendantAdded:Connect(portraits))
 		task.defer(portraits)
 	end
 	table.insert(

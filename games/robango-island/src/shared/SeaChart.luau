@@ -438,6 +438,14 @@ function M.panel(ctx: any): any
 	local run = game:GetService("RunService")
 	local guiService = game:GetService("GuiService")
 	local player = players.LocalPlayer
+	local Waypoint = require("./Waypoint")
+	-- p134 v75 C1: the drift-isle timer pill sat on every sheet's title bar (연습과 악기, 안내, 길들인 동물).
+	-- Like the hunger tip and the waypoint arrow it yields while a sheet covers the screen.
+	local function covered(): boolean
+		return Waypoint.covered(player:FindFirstChild("PlayerGui"), function(name: string): any
+			return player:GetAttribute(name)
+		end)
+	end
 	local function rgb(value: { number }): Color3
 		return Color3.fromRGB(value[1], value[2], value[3])
 	end
@@ -697,7 +705,7 @@ function M.panel(ctx: any): any
 			and trip ~= nil
 			and trip.status == "active"
 			and type(trip.expiresAt) == "number"
-		timer.Visible = drifting and not gui.Enabled
+		timer.Visible = drifting and not gui.Enabled and not covered()
 		if timer.Visible then
 			put(timer, layout.timer)
 			timer.TextSize = sizes.name
@@ -754,7 +762,6 @@ function M.panel(ctx: any): any
 	-- nearest sail spot (TapRouter pathfinding via ctx.walkTo) and pins the Waypoint marker (arrow,
 	-- minimap pin, beam) on it; the opening's own step marker yields while it is pinned. Opening the
 	-- chart away from a dock arms the marker for DOCK_MARK_SECONDS after it closes, pressed or not.
-	local Waypoint = require("./Waypoint")
 	local dockWay: any = nil
 	local dockTarget: Vector3? = nil
 	local dockUntil: number? = nil -- presentation clock; nil while pinned by the button
@@ -909,8 +916,16 @@ function M.panel(ctx: any): any
 		render()
 	end)
 	local elapsed = 0
+	local wasCovered = false
 	local beat = run.Heartbeat:Connect(function(dt)
 		stepDock()
+		-- A sheet opening or closing re-renders at once, so the pill never sits on a sheet title for
+		-- up to half a second and comes straight back after.
+		local under = covered()
+		if under ~= wasCovered then
+			wasCovered = under
+			render()
+		end
 		elapsed += dt
 		if elapsed >= 0.5 then
 			elapsed = 0

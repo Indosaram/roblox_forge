@@ -1024,6 +1024,9 @@ function M.start(options: Options)
 		local placement, reason = Model.preview(model.snapshot, model.actor, definition, x, z, rotation)
 		if placement and not reason then
 			local excluded: { Instance } = { ghost }
+			for _, item in BuildPlacement.localOnly(world) do
+				table.insert(excluded, item)
+			end
 			for _, other in players:GetPlayers() do
 				if other.Character then
 					table.insert(excluded, other.Character)

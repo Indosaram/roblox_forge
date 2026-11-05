@@ -315,6 +315,9 @@ function M.factory(ctx: any): any
 	-- Beat 1: scripted boar (client-only rig, never a wildlife entity) and Tumble.
 	local stage = Instance.new("Folder")
 	stage.Name, stage.Parent = "ForgeOpeningLocal", workspace
+	-- Client-only scenery: the build ghost probe skips it (BuildPlacement.LOCAL_ONLY_ATTRIBUTE; p134
+	-- v75 C3: Tumble standing in the campfire footprint turned every ghost red).
+	stage:SetAttribute("ForgeLocalOnly", true)
 	local boar: Model? = nil
 	local tumble: Model? = nil
 	local mark: Highlight? = nil
