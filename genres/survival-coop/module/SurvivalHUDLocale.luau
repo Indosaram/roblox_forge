@@ -48,6 +48,10 @@ function M.refusal(locale: string, reason: string, skill: string?): string
 		key = "stale"
 	elseif string.find(reason, "INGREDIENT") or string.find(reason, "RESERVED") or string.find(reason, "QUANTITY") then
 		key = "materials"
+	elseif string.find(reason, "STATION_TIER") then
+		-- The tier-2/3 recipe was reserved at a station one tier too low: say it is the station's rank,
+		-- never the generic 'refresh your supplies' (p134 v77: g46 pickaxe-t2 at a tier-1 bench).
+		key = "STATION_TIER"
 	end
 	return M.text(locale, if strings[key] then key else "unknown")
 end

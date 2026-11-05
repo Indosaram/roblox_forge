@@ -4,6 +4,9 @@
 local fs = require("@lune/fs")
 local serde = require("@lune/serde")
 local Rules = require("../../core/domain/survival/Content")
+local Text = require("../../genres/survival-coop/module/CharacterText")
+local HudLocale = require("../../genres/survival-coop/module/SurvivalHUDLocale")
+local NAMES = require("./PackText.fixture").names -- also installs the strings.csv lookup the genre text tables read
 local Workshop = require("../../genres/survival-coop/module/Workshop")
 local Job = require("../../core/domain/crafting/Job")
 local Inventory = require("../../core/domain/inventory/Inventory")
@@ -65,6 +68,38 @@ return {
 			end
 		end
 		assert(checked >= 35, "expected the catalog's tier-2/3 recipes, got " .. checked)
+	end,
+	-- p134 v77 (journey6h @126m): g46 asked for pickaxe-t2 and the HUD line never said the bench must be
+	-- tier 2, so the craft was refused STATION_TIER at the home bench with no way to learn why.
+	["the guide line for a tier-2 recipe names the tier the station must have"] = function()
+		local ch = { level = 40, points = 800, definitions = {}, progress = {} }
+		for _, guide in Content.guides do
+			ch.definitions[guide.id] = guide.id ~= "rw.g46.t2-tool"
+		end
+		local ko = assert(Text.guideObjective("ko-kr", Content, ch, NAMES("ko-kr"), true, true), "a line")
+		assert(string.find(ko, "2단계 작업대", 1, true), "korean names the tier-2 bench: " .. ko)
+		local en = assert(Text.guideObjective("en-us", Content, ch, NAMES("en-us"), true, true), "a line")
+		assert(string.find(en, "Needs a tier-2", 1, true), "english names the tier: " .. en)
+		assert(string.find(en, NAMES("en-us").workbench, 1, true), "english names the bench: " .. en)
+		-- A base-tier recipe keeps the plain inputs line (no tier sentence).
+		local plain = assert(
+			Text.guideObjective(
+				"en-us",
+				Content,
+				{ level = 16, points = 400, definitions = {} },
+				NAMES("en-us"),
+				true,
+				true
+			)
+		)
+		assert(not string.find(plain, "tier-", 1, true), "tier-free step stays tier-free: " .. plain)
+	end,
+	["STATION_TIER reads as a station rank refusal, never the generic supplies line"] = function()
+		local ko = HudLocale.refusal("ko-kr", "STATION_TIER")
+		assert(string.find(ko, "시설", 1, true) and ko ~= HudLocale.text("ko-kr", "unknown"), ko)
+		local en = HudLocale.refusal("en-us", "STATION_TIER")
+		assert(string.find(en, "upgraded station", 1, true), en)
+		assert(en ~= HudLocale.text("en-us", "unknown"), "not the generic refusal")
 	end,
 	["tier-2/3 kiln and tier-3 workbench are placeable stations on the upgrade path"] = function()
 		local structures, recipes = {}, {}

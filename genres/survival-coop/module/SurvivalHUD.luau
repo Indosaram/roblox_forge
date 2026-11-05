@@ -767,7 +767,32 @@ function M.start(options: Options)
 	local function command(verb: string, args: { any })
 		send(model.begin(verb, args))
 	end
-	local function nearest(kind: string?): BasePart?
+	-- Station tier a placed part provides: a tiered anchor id ("station.workbench.t2") declares it,
+	-- otherwise the structure kind's authored tier (home benches are registered as home:<hash>).
+	local function stationTier(part: BasePart): number
+		local id = part:GetAttribute("ForgeStationId")
+		local tier = if type(id) == "string" then tonumber(string.match(id, "%.t(%d+)$")) else nil
+		if tier then
+			return tier
+		end
+		local kind = part:GetAttribute("ForgeStationKind")
+		for _, structure in content.structures or {} do
+			if structure.id == kind then
+				return structure.tier or 1
+			end
+		end
+		return 1
+	end
+	-- The station tier a recipe's craft-reserve demands (recipeDetails.stationTier, else 1).
+	local function recipeTier(recipe: any): number
+		for _, detail in content.recipeDetails or {} do
+			if recipe and detail.id == recipe.id then
+				return detail.stationTier or 1
+			end
+		end
+		return 1
+	end
+	local function nearest(kind: string?, minTier: number?): BasePart?
 		local character = player.Character
 		local pivot = if character then character:FindFirstChild("HumanoidRootPart") else nil
 		if not pivot or not pivot:IsA("BasePart") then
@@ -780,6 +805,7 @@ function M.start(options: Options)
 				part:IsA("BasePart")
 				and part:IsDescendantOf(world)
 				and (not kind or part:GetAttribute("ForgeStationKind") == kind)
+				and (not minTier or stationTier(part) >= minTier)
 			then
 				local d = (part.Position - pivot.Position).Magnitude
 				if d < distance then
@@ -1932,8 +1958,8 @@ function M.start(options: Options)
 			local orderedRecipes = Model.recipeOrder(
 				bag,
 				options.content.recipes,
-				function(station)
-					return nearest(station) ~= nil
+				function(station, recipe)
+					return nearest(station, recipeTier(recipe)) ~= nil
 				end,
 				options.content.items,
 				{
@@ -2092,7 +2118,9 @@ function M.start(options: Options)
 						if not suppliesAvailable(Model.bag(model.snapshot), recipe.inputs) then
 							return
 						end
-						local station = if recipe.station then nearest(recipe.station) else nil
+						-- A tier-N recipe needs a tier-N bench of that kind: a base bench in reach is not
+						-- enough (the server refuses STATION_TIER, p134 v77).
+						local station = if recipe.station then nearest(recipe.station, recipeTier(recipe)) else nil
 						if recipe.station and not station then
 							model.status, model.reason = "conflict", "STATION_UNAVAILABLE"
 							render()

@@ -35,15 +35,20 @@ local function find(h: any, name: string): any
 end
 
 -- journey6h @80.4: L38, the rank-6 band open (g13 laboratory at the harbor, g14 taming whose
--- capture happens on the Route 1 drift isles); every earlier guide done.
-local function rankSix(): any
+-- capture happens on the Route 1 drift isles); every guide that unlocks before that band is done.
+-- Fun-first retune (v77h): the lab and taming rows open at L37 and g45 bone work at L38, so "the
+-- band" is authored by level, not by the old 38/42 numbers.
+local function beforeBand(level: number): any
 	local definitions = {}
 	for _, g in GuideEvents.visible(Content, true) do
-		if ((g.gates or {}).characterLevel or 1) < 38 then
+		if ((g.gates or {}).characterLevel or 1) < level then
 			definitions[g.id] = true
 		end
 	end
-	return { level = 38, points = 650, definitions = definitions, progress = {} }
+	return definitions
+end
+local function rankSix(): any
+	return { level = 38, points = 650, definitions = beforeBand(37), progress = {} }
 end
 
 return {
@@ -180,14 +185,11 @@ return {
 		assert(#h.errors == 0, tostring(h.errors[1]))
 	end,
 	["journey6h @253.3: a guide unlocked after the pinned one is named on the HUD, not hidden behind it"] = function()
-		-- L50 grade 8: g45 bone work (L42, polish bone 5/6) still open and leading; g47 first ride (L43),
-		-- g18 technical support and g20 rescue preparation (L50) are open too. Only g45 reached the HUD.
-		local definitions = {}
-		for _, g in GuideEvents.visible(Content, true) do
-			if ((g.gates or {}).characterLevel or 1) < 42 or g.id == "rw.g46.t2-tool" then
-				definitions[g.id] = true
-			end
-		end
+		-- L50: g45 bone work (L38, polish bone 5/6) still open and leading; g47 first ride (L39),
+		-- g46 the tier-2 tool (L40), g18 technical support and g20 rescue preparation (L41) are open too.
+		-- Only g45 reached the HUD. g46 is done so the also-open list stays at the cap's short list.
+		local definitions = beforeBand(38)
+		definitions["rw.g46.t2-tool"] = true
 		local ch = {
 			level = 50,
 			points = 800,
@@ -223,9 +225,16 @@ return {
 		for _, key in later do
 			assert(string.find(line, Text.text("ko-kr", key), 1, true), key .. " on the drift isle: " .. line)
 		end
-		-- Guides sharing the leader's unlock level stay a sequence (v74: g13 then g14), never listed.
+		-- Guides sharing the leader's unlock level stay a sequence (v74: g13 then g14, g16), never listed
+		-- as "also open"; a guide that unlocks after the leader (g45 at L38) gets its own also-open line.
 		local six = Text.guideStep("ko-kr", Content, rankSix(), NAMES, true, true) :: string
-		assert(not string.find(six, "\n", 1, true), six)
+		assert(not string.find(six, Text.text("ko-kr", "guide_g14"), 1, true), six)
+		assert(not string.find(six, Text.text("ko-kr", "guide_g16"), 1, true), six)
+		local second = string.match(six, "\n(.+)$")
+		if second then
+			local alsoPrefix = string.match(Text.text("ko-kr", "guide_also_open"), "^[^%%]+") :: string
+			assert(string.sub(second, 1, #alsoPrefix) == alsoPrefix, "only the also-open row follows: " .. six)
+		end
 		assert(#h.errors == 0, tostring(h.errors[1]))
 	end,
 	["v74 #6b: when the island grade blocks route 1 the HUD names that gate and the guide that raises it"] = function()

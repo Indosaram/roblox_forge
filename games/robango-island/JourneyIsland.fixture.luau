@@ -5,6 +5,7 @@
 -- the affordance the line names and performs it through the surface the client shows; when the
 -- line names nothing the player can do here, the turn records a stall with the owning file:line.
 local Content: any = require("./src/shared/SurvivalContent")
+
 local Kit = require("./JourneyKit.fixture")
 local GuideEvents = require("../../genres/survival-coop/module/GuideEvents")
 local CharacterText = require("../../genres/survival-coop/module/CharacterText")
@@ -12,6 +13,24 @@ local CharacterText = require("../../genres/survival-coop/module/CharacterText")
 local M = {}
 M.unload = nil :: (() -> ())?
 local count, anchorOf, owner = Kit.count, Kit.anchorOf, Kit.owner
+-- The station tier a recipe's craft-reserve demands (recipeDetails.stationTier, else 1).
+local function recipeTier(recipe: any): number
+	for _, detail in Content.recipeDetails or {} do
+		if detail.id == recipe.id then
+			return detail.stationTier or 1
+		end
+	end
+	return 1
+end
+-- The anchor of the station a recipe needs, at the tier its detail demands. Nil when this layout has no
+-- such tier: home carries both a base and a tier-2 bench (p134 v77 g46 asked for pickaxe-t2 at a base
+-- bench and the craft was refused STATION_TIER), so the caller sails there.
+local function stationAnchor(layout: any, recipe: any): any
+	if not recipe.station then
+		return nil
+	end
+	return anchorOf(layout, "station." .. recipe.station .. ".t" .. recipeTier(recipe))
+end
 
 -- First `n` characters of a shown text (UTF-8 safe: JSON rejects a cut code point).
 local function cut(value: any, n: number): string
@@ -328,11 +347,11 @@ function M.run(host: any, p: any, options: any?): any
 						for _, input in recipe.inputs do
 							p.gatherItem(input.item, input.quantity, 600)
 						end
-						if recipe.station then
-							local station = anchor("station." .. recipe.station .. ".t1")
-							if station then
-								p.walk(station, 3)
-							end
+						-- Only a tier-N bench crafts it; the stage layouts ship exactly the tier the stage
+						-- authored, so a missing anchor is a layout gap, not a sailing decision.
+						local station = stationAnchor(p.layout(), recipe)
+						if station then
+							p.walk(station, 3)
 						end
 						local ok, why = p.craft(recipe.id)
 						if not ok then
@@ -1009,10 +1028,20 @@ function M.run(host: any, p: any, options: any?): any
 				if recipe then
 					-- Make here whatever inputs this island's stations can make before sailing for a
 					-- station: the chain otherwise ping-pongs between two islands that each lack one.
+					local sailedForInput = false
 					for _, input in recipe.inputs do
 						if count(p.bag().items, input.item) < input.quantity then
+							-- The HUD names the chart isle a gatherable input grows on (p134 v77: bone from
+							-- 햇살 여울 on the g45 line); sail there as the line says instead of failing here.
+							if not seek(input.item, "guide " .. g.id .. " (" .. recipe.id .. " input)") then
+								sailedForInput = true
+								break
+							end
 							p.obtain(input.item, input.quantity, 120)
 						end
+					end
+					if sailedForInput then
+						continue
 					end
 					-- Where the animals for a processed input live (hide for leather), hunt every rawInput the
 					-- recipe still needs before leaving, as a player fills the bag before the trip back.
@@ -1110,10 +1139,14 @@ function M.run(host: any, p: any, options: any?): any
 					if not here then
 						continue
 					end
-					if recipe.station then
-						local station = anchor("station." .. recipe.station .. ".t1")
-						if station then
-							p.walk(station, 3)
+					local station = stationAnchor(host.layout, recipe)
+					if station then
+						p.walk(station, 3)
+					elseif recipe.station and recipeTier(recipe) > 1 and host.role ~= "home" then
+						-- Only a higher-tier bench crafts it and no chart isle carries one: the upgrade path
+						-- is the home build sheet (p134 v77 g46).
+						if sail("home") then
+							continue
 						end
 					end
 					local crafted, why = p.craft(recipe.id)

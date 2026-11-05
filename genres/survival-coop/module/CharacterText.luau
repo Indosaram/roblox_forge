@@ -154,6 +154,31 @@ local function craftInputs(locale: string, content: any, target: string, names: 
 	return if #parts > 0 then table.concat(parts, ", ") else nil
 end
 
+-- "<what>. Needs a tier-N <station>: craft it at one you have built (Menu > Build)" when the recipe's
+-- stationTier is above the base station. p134 v77 (journey6h @126m): g46 asked for pickaxe-t2 and the
+-- line never said the bench must be tier 2, so the craft was refused STATION_TIER at the home bench.
+local function stationTierHint(locale: string, content: any, target: string, names: any, what: string): string
+	if not strings.guide_station_tier then
+		return what
+	end
+	local recipe = recipeOf(content, target)
+	if not recipe or not recipe.station then
+		return what
+	end
+	for _, detail in content.recipeDetails or {} do
+		if detail.id == recipe.id and (detail.stationTier or 1) > 1 then
+			return M.format(
+				locale,
+				"guide_station_tier",
+				what,
+				detail.stationTier,
+				names[recipe.station] or recipe.station
+			)
+		end
+	end
+	return what
+end
+
 -- "<what>. Practice N more times: <entry action>" when the step needs a skill node whose category
 -- proficiency the player has not reached (the server refuses PROFICIENCY_GATE until then).
 local function practiceFirst(locale: string, content: any, ch: any, names: any, what: string, node: string): string
@@ -277,6 +302,7 @@ local function openGuide(
 				if o.action == "purchase" then
 					what = practiceFirst(locale, content, ch, names, what, o.target)
 				elseif o.action == "craft" then
+					what = stationTierHint(locale, content, o.target, names, what)
 					for _, detail in content.recipeDetails or {} do
 						if detail.id == o.target then
 							for _, node in detail.skillNodes or {} do

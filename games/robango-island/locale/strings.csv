@@ -1972,6 +1972,7 @@ hud.PLACEMENT_BLOCKED,"Something is in the way (rock, tree or building). Move or
 hud.ITEM_RESERVED,That item is held by a reserved job. Cancel the job first.,genre text hud,That item is held by a reserved job. Cancel the job first.,예약한 작업이 쓰고 있는 물건이에요. 먼저 그 작업을 취소하세요.
 hud.UNKNOWN_RECIPE,That recipe is not available here.,genre text hud,That recipe is not available here.,여기서는 만들 수 없는 레시피예요.
 hud.STATION_UNAVAILABLE,"Move closer to the required station, then reserve again.",genre text hud,"Move closer to the required station, then reserve again.",필요한 제작 시설(모닥불·작업대 등) 가까이 이동한 뒤 다시 예약하세요.
+hud.STATION_TIER,"This recipe needs an upgraded station. Build the next tier at your home isle (Menu > Build), then craft beside it.",genre text hud,"This recipe needs an upgraded station. Build the next tier at your home isle (Menu > Build), then craft beside it.","이 제작법은 더 높은 단계의 시설이 필요해요. 홈 섬에서 다음 단계 시설을 지은 뒤(메뉴 > 건설) 그 옆에서 제작하세요."
 hud.WAREHOUSE_UNREACHABLE,Walk to the camp warehouse (the storage crate) to store or take items.,genre text hud,Walk to the camp warehouse (the storage crate) to store or take items.,공용 창고(보관 상자) 가까이 가서 보관하거나 꺼내세요.
 hud.TRANSFER_UNAVAILABLE,"Camp storage is not connected yet. Wait a moment, then try again.",genre text hud,"Camp storage is not connected yet. Wait a moment, then try again.",공용 창고가 아직 연결되지 않았어요. 잠시 뒤 다시 시도하세요.
 hud.CAMPFIRE_UNREACHABLE,Move closer to a campfire to rest.,genre text hud,Move closer to a campfire to rest.,모닥불 가까이 이동하면 쉴 수 있어요.
@@ -3295,6 +3296,7 @@ guide_go_feed,feed %s to your pet (Menu > Taming),HUD objective guide action,fee
 guide_go_eat,eat %s (Bag > Eat one),HUD objective guide action,eat %s (Bag > Eat one),%s 먹기 (가방 > 하나 먹기)
 guide_where_isle,"%s (Sea chart > %s, level %d+)",HUD objective next step,"%s (Sea chart > %s, level %d+)","%s (해도 > %s, 레벨 %d+)"
 guide_inputs,%s. First make: %s,HUD objective craft inputs,%s. First make: %s,%s. 먼저 준비: %s
+guide_station_tier,"%s. Needs a tier-%d %s: build one first (Menu > Build)",HUD objective craft station tier gate,"%s. Needs a tier-%d %s: build one first (Menu > Build)","%s. %d단계 %s 필요: 먼저 지으세요 (메뉴 > 건설)"
 guide_input_station,%s at the %s,HUD objective craft input station,%s at the %s,%s (%s에서 제작)
 guide_practice,"%s. Practice %d more times first: %s",HUD objective proficiency gate practice,"%s. Practice %d more times first: %s","%s. 먼저 %d회 더 연습: %s"
 guide_where_capture,%s: dodos roam the Route 1 drift isles,HUD objective capture place,%s: dodos roam the Route 1 drift isles,%s: 도도는 항로 1 표류섬에 있어요

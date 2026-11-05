@@ -620,13 +620,15 @@ end
 function M.recipeOrder(
 	bag: any,
 	recipes: { any },
-	stationAvailable: (string) -> boolean,
+	stationAvailable: (string, any?) -> boolean,
 	items: { any }?,
 	filter: any?
 ): { any }
 	local rows = {}
 	for _, recipe in recipes do
-		local stationReady = recipe.station == nil or stationAvailable(recipe.station)
+		-- The predicate sees the recipe too: a tier-2 recipe is not ready at a tier-1 bench of the
+		-- same kind (p134 v77: g46 pickaxe-t2 listed as ready beside the base workbench).
+		local stationReady = recipe.station == nil or stationAvailable(recipe.station, recipe)
 		local ready, complete, held = stationReady, true, false
 		for _, ingredient in M.ingredients(bag, recipe) do
 			complete = complete and ingredient.available >= ingredient.needed
