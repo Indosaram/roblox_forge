@@ -583,6 +583,8 @@ function M.new(
 		if string.sub(action, 1, 6) == "craft-" then
 			local candidate: Workshop.Candidate? = nil
 			local err: string? = nil
+			-- A FULL_SLOTS collect retried against one spare slot per output (see craft-complete below).
+			local full: Workshop.Candidate?, spare: Workshop.Candidate? = nil, nil
 			if not context or context.actorId ~= id or context.nowMillis == nil then
 				err = "DURABLE_COMMAND_REQUIRED"
 			elseif not content or not inventoryConfig or not player.workshop then
@@ -646,6 +648,19 @@ function M.new(
 				else
 					candidate, err =
 						Workshop.transition(jobs, bag, context, args[1], string.sub(action, 7), context.nowMillis)
+					-- A full bag still takes a collect whose outputs fold into stacks it already holds
+					-- (journey6h @136.7m: the rw.a1.s2 dry-twig collect was refused FULL_SLOTS with a
+					-- dried-wood stack in the bag, so the stage craft never finished). Complete against one
+					-- spare slot per output; below, after stackOutputs, it is kept only if the bag fits.
+					if candidate and candidate.reason == "FULL_SLOTS" and action == "craft-complete" then
+						local roomy = Inventory.snapshot(bag)
+						roomy.limits.slots += #candidate.jobs.entries[candidate.jobId].job.outputs
+						local retried =
+							Workshop.transition(jobs, roomy, context, args[1], "complete", context.nowMillis)
+						if retried and not retried.reason then
+							full, spare, candidate = candidate, retried, retried
+						end
+					end
 				end
 				if
 					candidate
@@ -687,6 +702,17 @@ function M.new(
 				then
 					local job = candidate.jobs.entries[candidate.jobId].job
 					candidate.inventory = Workshop.stackOutputs(job, candidate.inventory, looseStack)
+				end
+				if spare and candidate == spare then
+					local slots = 0
+					for _ in spare.inventory.items do
+						slots += 1
+					end
+					if slots > bag.limits.slots then
+						candidate = full
+					else
+						spare.inventory.limits = table.clone(bag.limits)
+					end
 				end
 			end
 			-- A refused start (death between the hand chain's reserve and start, a downed player) never

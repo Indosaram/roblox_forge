@@ -779,8 +779,21 @@ function M.run(Journey: any, options: any): any
 			before += 1
 		end
 		local smallest, quantity = nil, math.huge
+		local reserved: { [string]: number } = {}
+		for _, amounts in bag().reservations or {} do
+			for itemId, amount in amounts do
+				reserved[itemId] = (reserved[itemId] or 0) + amount
+			end
+		end
 		for itemId, stack in bag().items do
-			if stack.catalogId ~= keep and (stack.durabilityMilli or 0) == 0 and stack.quantity < quantity then
+			-- A stack the craft itself holds (its reserved input) has nothing to drop: the sheet shows no
+			-- confirm for it, so the drop never freed a slot (journey6h @136.7m, rw.a1.s2 dry-twig).
+			if
+				stack.catalogId ~= keep
+				and (stack.durabilityMilli or 0) == 0
+				and (reserved[itemId] or 0) == 0
+				and stack.quantity < quantity
+			then
 				smallest, quantity = itemId, stack.quantity
 			end
 		end
