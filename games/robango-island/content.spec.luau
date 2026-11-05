@@ -296,10 +296,7 @@ return {
 		local seen = {}
 		for _, layout in load().layouts or {} do
 			for _, node in layout.resourceNodes or {} do
-				if
-					not string.find(node.id, ".cargo.", 1, true)
-					and not string.find(node.id, ".chapter.", 1, true)
-				then
+				if not string.find(node.id, ".cargo.", 1, true) and not string.find(node.id, ".chapter.", 1, true) then
 					local kind = string.gsub(string.lower(node.id), "[._]", "-")
 					assert(
 						#kind <= 64 and string.match(kind, "^[a-z][a-z0-9%-]*$") ~= nil,
