@@ -1089,17 +1089,15 @@ function M.run(host: any, p: any, options: any?): any
 					local missing = Kit.missingStation(Content.recipes, recipe, function(item: string): number
 						return count(p.bag().items, item)
 					end, function(kind: string): boolean
-						for _, part in
-							host.engine.game:GetService("CollectionService"):GetTagged("ForgeSurvivalStation")
-						do
-							if
-								part:IsDescendantOf(host.engine.game:GetService("Workspace"))
-								and part:GetAttribute("ForgeStationKind") == kind
-							then
+						-- Only the live world's stations count: the engine's tag registry keeps dead
+						-- worlds' tagged parts after a travel, and crafting at one queued a job no
+						-- station could collect (journey6h @133.9 frontier polish-bone).
+						for _, part in pairs(host.world.tieredStations or {}) do
+							if part:GetAttribute("ForgeStationKind") == kind then
 								return true
 							end
 						end
-						return false
+						return Kit.anchorOf(p.layout(), "station." .. kind .. ".t1") ~= nil
 					end)
 					p.event("guide-craft-route", { recipe = recipe.id, missing = missing, layout = host.layoutId })
 					local routeKey = g.id .. "|" .. tostring(host.layoutId) .. "|" .. tostring(missing)
