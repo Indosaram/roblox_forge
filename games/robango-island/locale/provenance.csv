@@ -3311,6 +3311,9 @@ hud.skill_train,original,agent:maho/journey6h,2026-11-03
 hud.skill_train_processing,original,agent:maho/journey6h,2026-11-03
 chr.guide_target_melee_2,original,agent:maho/funfirst,2026-11-03
 chr.guide_target_survival_3,original,agent:maho/funfirst,2026-11-03
+chr.guide_target_construction_1,original,agent:maho/purchase-walls,2026-11-06
+chr.guide_target_weapon_tool_1,original,agent:maho/purchase-walls,2026-11-06
+chr.guide_target_cooking_1,original,agent:maho/purchase-walls,2026-11-06
 guide_input_hunt,original,agent:maho/funfirst,2026-11-04
 guide_go_practice,original,agent:maho/funfirst,2026-11-04
 guide_go_gather_touch,original,agent:hephaestus/v73,2026-11-04
