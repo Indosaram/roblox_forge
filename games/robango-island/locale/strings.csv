@@ -3313,6 +3313,9 @@ guide_go_ride,"ride %s (Menu > Taming: Deploy, then Ride)",HUD objective guide a
 guide_where_species,%s: it roams the Route 1 drift isles,HUD objective capture place,%s: it roams the Route 1 drift isles,%s: 항로 1 표류섬에 있어요
 chr.guide_target_melee_2,Melee 2 (club stun),genre text chr,Melee 2 (club stun),근접 2 (곤봉 기절)
 chr.guide_target_survival_3,Survival 3 (capture),genre text chr,Survival 3 (capture),생존 3 (포획)
+chr.guide_target_construction_1,Construction 1 (tier-1 kits),genre text chr,Construction 1 (tier-1 kits),건축 1 (1단계 키트)
+chr.guide_target_weapon_tool_1,Weapon Tool 1 (tier-1 recipes),genre text chr,Weapon Tool 1 (tier-1 recipes),무기·도구 1 (1단계 제작법)
+chr.guide_target_cooking_1,Cooking 1 (basic cooking),genre text chr,Cooking 1 (basic cooking),요리 1 (기본 요리)
 guide_input_hunt,"%s (%s: hunt %s)",HUD objective craft input raw from hunting,"%s (%s: hunt %s)","%s (%s: %s 사냥)"
 guide_go_practice,"%s: tap Make in the Practice tile (Menu)",HUD objective guide action,"%s: tap Make in the Practice tile (Menu)","%s: 메뉴 > 연습과 악기 > 만들기"
 guide_go_gather_touch,"gather %s (walk up, tap its button)",HUD objective guide action on touch devices (no key hint),"gather %s (walk up, tap its button)",%s 채집 (다가가서 버튼 누르기)

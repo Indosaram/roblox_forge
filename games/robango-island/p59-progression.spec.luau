@@ -144,7 +144,14 @@ return {
 		for _, other in Content.guides do
 			done[other.id] = other.id ~= "rw.g34.hunting-bow"
 		end
-		local bow = Text.guideObjective("en-us", Content, { level = 13, points = 200, definitions = done }, names, true)
+		-- The purchase step reads first; with it done the craft line names the campfire for the
+		-- dried inputs (p134 j10: the authored purchase objective precedes the bow craft).
+		local bow = Text.guideObjective("en-us", Content, {
+			level = 13,
+			points = 200,
+			definitions = done,
+			progress = { ["rw.g34.hunting-bow.1"] = 1 },
+		}, names, true)
 		assert(
 			bow and string.find(bow, "Campfire", 1, true),
 			"bow names the campfire for dried inputs: " .. tostring(bow)

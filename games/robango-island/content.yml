@@ -13530,9 +13530,9 @@ layouts:
         id: "rw.a1.s1.flint"
         item: "flint"
         position:
-          x: -36
+          x: -52
           y: 4
-          z: 96
+          z: 104
         stock: 12
         level: 1
         yield: 2
