@@ -691,7 +691,10 @@ function M.run(host: any, p: any, options: any?): any
 		end
 		local at = model:FindFirstChild("HumanoidRootPart").Position
 		p.walk({ x = at.X + 2, y = at.Y, z = at.Z }, 0)
-		p.equipFor("bone-knife")
+		-- Weaken with the strongest club in the bag: a fresh bone knife never drops a level-30
+		-- protoceratops inside 40 ticks, and the guide capture chain then grinds travels forever
+		-- (journey6h j11/j12 g47).
+		p.equipFor(count(p.bag().items, "club-t1") > 0 and "club-t1" or "bone-knife")
 		local combat = h.load("genres/survival-coop/module/CombatHud").start({
 			content = Content,
 			locale = "ko-kr",
@@ -714,7 +717,7 @@ function M.run(host: any, p: any, options: any?): any
 			spare = h.petRing.spare,
 		})
 		combat.engage(model)
-		for _ = 1, 40 do
+		for _ = 1, 120 do
 			if h.petRing.capturable() then
 				break
 			end
