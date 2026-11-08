@@ -66,8 +66,7 @@ local function topAt(engine: any, roblox: any): (number, number) -> number
 end
 
 -- Worst single step between neighbouring samples and worst rise over 8 studs, along every path.
-local function measure(engine: any, layout: any, roblox: any): (number, string, number, string)
-	local top = topAt(engine, roblox)
+local function measure(layout: any, top: (number, number) -> number): (number, string, number, string)
 	local low, high = layout.bounds.min, layout.bounds.max
 	local step, stepAt, slope, slopeAt = 0, "", 0, ""
 	for _, path in layout.paths do
@@ -114,8 +113,7 @@ end
 -- Flood-fills the walk surface on a SPACING grid from the entry dock: a move between 4-neighbours
 -- is allowed when both are dry and the step is at most MAX_STEP. Returns authored points that no
 -- reached sample within REACH studs (and within MAX_STEP of the point's height) supports.
-local function unreachable(engine: any, layout: any, roblox: any): { string }
-	local top = topAt(engine, roblox)
+local function unreachable(layout: any, top: (number, number) -> number): { string }
 	local low, high = layout.bounds.min, layout.bounds.max
 	local heights: { [number]: number } = {}
 	local function key(i: number, j: number): number
@@ -186,7 +184,31 @@ local function unreachable(engine: any, layout: any, roblox: any): { string }
 	return missing
 end
 
-return {
+-- One layout per test so the gate's shard partitioner can spread the 25 worlds
+-- across workers; as a single test this file cost ~925 s of a ~960 s gate.
+local function walkLayout(layout: any)
+	local roblox = require("@lune/roblox")
+	local engine = Engine.new(nil, true)
+	local world = engine.role.build(Content, Source, Policy, function()
+		return 0
+	end, layout.id, 1776)
+	local top = topAt(engine, roblox)
+	local step, stepAt, slope, slopeAt = measure(layout, top)
+	local failures = {}
+	if step > MAX_STEP then
+		table.insert(failures, string.format("%s step %.2f at %s", layout.id, step, stepAt))
+	end
+	if slope > MAX_SLOPE then
+		table.insert(failures, string.format("%s slope %.2f at %s", layout.id, slope, slopeAt))
+	end
+	for _, missing in unreachable(layout, top) do
+		table.insert(failures, string.format("%s unreachable %s", layout.id, missing))
+	end
+	world.destroy()
+	assert(#failures == 0, table.concat(failures, "\n"))
+end
+
+local tests = {
 	["paths are painted into the terrain: no Part ribbon remains"] = function()
 		local engine = Engine.new(nil, true)
 		local world = engine.role.build(Content, Source, Policy, function()
@@ -205,31 +227,23 @@ return {
 		assert(slabs > 0, "harbor paths painted as Ground slabs")
 		world.destroy()
 	end,
-	["every path on harbor, stage and frontier islands is walkable without jumping"] = function()
-		local roblox = require("@lune/roblox")
-		local checked, failures = 0, {}
-		for _, layout in Content.layouts do
-			if not Terrain.graded(layout) then
-				continue
-			end
-			local engine = Engine.new(nil, true)
-			local world = engine.role.build(Content, Source, Policy, function()
-				return 0
-			end, layout.id, 1776)
-			local step, stepAt, slope, slopeAt = measure(engine, layout, roblox)
-			if step > MAX_STEP then
-				table.insert(failures, string.format("%s step %.2f at %s", layout.id, step, stepAt))
-			end
-			if slope > MAX_SLOPE then
-				table.insert(failures, string.format("%s slope %.2f at %s", layout.id, slope, slopeAt))
-			end
-			for _, missing in unreachable(engine, layout, roblox) do
-				table.insert(failures, string.format("%s unreachable %s", layout.id, missing))
-			end
-			checked += 1
-			world.destroy()
-		end
-		assert(#failures == 0, table.concat(failures, "\n"))
-		assert(checked >= 25, "harbor, stage and frontier layouts measured: " .. checked)
-	end,
 }
+
+local graded = 0
+for _, layout in Content.layouts do
+	if not Terrain.graded(layout) then
+		continue
+	end
+	graded += 1
+	-- Fresh local per iteration so each test closes over its own layout.
+	local current = layout
+	tests[string.format("walkable %s: every path is walkable without jumping", current.id)] = function()
+		walkLayout(current)
+	end
+end
+
+tests["harbor, stage and frontier layouts measured"] = function()
+	assert(graded >= 25, "harbor, stage and frontier layouts measured: " .. graded)
+end
+
+return tests
