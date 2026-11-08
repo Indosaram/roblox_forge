@@ -675,16 +675,47 @@ function M.run(host: any, p: any, options: any?): any
 		local h = p.h()
 		local pets = (extensions().taming.companions or {}).pets or {}
 		local ids = {}
-		for id, model in h.creatures or {} do
-			if
-				model:GetAttribute("ForgeWildlifeKind") == (want or "dodo")
-				and not pets[id]
-				and (model:GetAttribute("ForgeWildlifeHealthMilli") or 0) > 0
-			then
-				table.insert(ids, id)
+		local kind = want or "dodo"
+		local scan = function()
+			table.clear(ids)
+			for id, model in h.creatures or {} do
+				if
+					model:GetAttribute("ForgeWildlifeKind") == kind
+					and not pets[id]
+					and (model:GetAttribute("ForgeWildlifeHealthMilli") or 0) > 0
+				then
+					table.insert(ids, id)
+				end
+			end
+			table.sort(ids)
+		end
+		scan()
+		-- No live target here: walk the authored spawn points of this species on this island so
+		-- parked herds enter the sim's active set, then rescan (journey6h g47 protoceratops).
+		if #ids == 0 and want then
+			for _, layout in Content.layouts do
+				if layout.id == host.layoutId then
+					for _, spawn in layout.spawns or {} do
+						if spawn.speciesId == want then
+							p.walk({ x = spawn.position.x, y = spawn.position.y, z = spawn.position.z }, 6)
+							scan()
+							break
+						end
+					end
+				end
 			end
 		end
-		table.sort(ids)
+		print(
+			string.format(
+				"CAPTURE-PROBE %.1fmin %s want=%s live=%d pets=%d worldModels=%s",
+				p.minutes(),
+				host.layoutId,
+				kind,
+				#ids,
+				next(pets) ~= nil and 1 or 0,
+				h.creatures and #h.creatures or 0
+			)
+		)
 		local model = h.creatures and h.creatures[ids[1]]
 		if not model then
 			return false
