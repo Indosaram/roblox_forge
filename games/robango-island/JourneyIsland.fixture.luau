@@ -745,6 +745,19 @@ function M.run(host: any, p: any, options: any?): any
 		end
 		return ((extensions().taming.companions or {}).pets or {})[ids[1]] ~= nil
 	end
+	-- A species' spawn isle from the authored content: protoceratops roams rw.a1.s2, dodos the
+	-- onboarding isle. The capture route used to follow the HUD direction forever and ground
+	-- through a hundred travel minutes without ever reaching the isle (journey6h g47).
+	local function speciesIsle(species: string): string?
+		for _, layout in Content.layouts do
+			for _, spawn in layout.spawns or {} do
+				if spawn.speciesId == species then
+					return layout.id
+				end
+			end
+		end
+		return nil
+	end
 	local function feedCaptured()
 		p.openTile("taming")
 		for _, verb in { "place-", "train-", "feed-" } do
@@ -1007,7 +1020,19 @@ function M.run(host: any, p: any, options: any?): any
 			local had = ((extensions().character or {}).progress or {})[o.id] or 0
 			if o.action == "capture" then
 				-- Ashore, follow the HUD's Route 1 direction through the Routes flow below.
-				captureHere(if o.target ~= "creature" then o.target else nil)
+				local captured = captureHere(if o.target ~= "creature" then o.target else nil)
+				if not captured and o.target ~= "creature" then
+					-- Sail straight to a isle that spawns the species instead of following the HUD
+					-- direction forever (journey6h j13 g47 protoceratops grinded 100+ travel minutes).
+					local isle = speciesIsle(o.target)
+					if isle and isle ~= host.layoutId and sail(isle) then
+						local found = captureHere(o.target)
+						if found then
+							p.milestone("captured:" .. g.id)
+							continue
+						end
+					end
+				end
 			elseif o.action == "feed" and g.id == "rw.g41.second-pet" then
 				feedCaptured()
 				if (extensions().character.definitions or {})[g.id] then
