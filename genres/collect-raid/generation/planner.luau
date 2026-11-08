@@ -1342,10 +1342,17 @@ function M.renderCatalogSpec(): string
 		"\tend,",
 		"",
 		'\t["kaiju products name a fixed kaiju id"] = function()',
+		'\t\tlocal EconConfig = require("./EconConfig")',
 		"\t\tfor _, entry in Catalog.products do",
 		'\t\t\tif entry.grant.kind == "kaiju" then',
 		"\t\t\t\tlocal kaijuId = entry.grant.kaijuId",
 		'\t\t\t\tassert(type(kaijuId) == "string" and kaijuId ~= "", "fixed kaijuId required: " .. entry.key)',
+		"\t\t\t\t-- A typo here passes the string check but makes the grant a no-op, so the",
+		"\t\t\t\t-- receipt loop would retry forever without delivering anything.",
+		"\t\t\t\tassert(",
+		"\t\t\t\t\tEconConfig.kaiju[kaijuId] ~= nil,",
+		'\t\t\t\t\t"kaijuId " .. tostring(kaijuId) .. " is not an EconConfig.kaiju entry: " .. entry.key',
+		"\t\t\t\t)",
 		"\t\t\tend",
 		"\t\tend",
 		"\tend,",
@@ -1610,6 +1617,20 @@ function M.renderAudioConfig(title: string, teams: { string }): string
 		"\t\tplaybackSpeed = 1.7,",
 		"\t\tlooped = true,",
 		'\t\tgroup = "SFX",',
+		"\t},",
+		"\t-- musicTracks below names these two cues; SoundBank breaks the playlist",
+		"\t-- on a cue that is absent or has an empty soundId, so both must exist.",
+		"\tmusicExplore = {",
+		"\t\tsoundId = Assets.musicExplore,",
+		"\t\tvolume = 0.35,",
+		"\t\tlooped = true,",
+		'\t\tgroup = "Music",',
+		"\t},",
+		"\tmusicSiege = {",
+		"\t\tsoundId = Assets.musicSiege,",
+		"\t\tvolume = 0.4,",
+		"\t\tlooped = true,",
+		'\t\tgroup = "Music",',
 		"\t},",
 		"}",
 		"",
@@ -2002,10 +2023,16 @@ function M.renderWorldLayout(
 	add(lines, "\tlocal rowRadius = math.sqrt(36 + ((math.max(frontCount, backCount) - 1) / 2 * 10.5) ^ 2)")
 	add(lines, "\tlocal half = math.max(28, rowRadius + 4.5 + 2)")
 	add(lines, "")
+	add(lines, "\t-- Parade pads sit on a ring just inside the platform edge. A single")
+	add(lines, "\t-- row at outward 16 put three of six pads past the 56-stud platform, so")
+	add(lines, "\t-- they floated over the ground. A 30 degree phase moves the first pad off")
+	add(lines, "\t-- the spawn axis; every pad stays clear of the spawn, the vault and the shop.")
+	add(lines, "\tlocal paradeRadius = math.min(half - 4.5, 24)")
 	add(lines, "\tlocal positions: { Vec } = {}")
 	add(lines, "\tfor k = 1, PARADE_SLOTS do")
-	add(lines, "\t\tlocal t = -16 + (k - 1) * 16")
-	add(lines, "\t\tlocal offsetX, offsetZ = outwardX * 16 + sideX * t, outwardZ * 16 + sideZ * t")
+	add(lines, "\t\tlocal padAngle = math.rad(30 + (k - 1) * (360 / PARADE_SLOTS))")
+	add(lines, "\t\tlocal out, side = math.cos(padAngle) * paradeRadius, math.sin(padAngle) * paradeRadius")
+	add(lines, "\t\tlocal offsetX, offsetZ = outwardX * out + sideX * side, outwardZ * out + sideZ * side")
 	add(lines, "\t\ttable.insert(positions, vec(cx + offsetX, 1, cz + offsetZ))")
 	add(lines, "\tend")
 	add(lines, "")

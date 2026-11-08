@@ -29,29 +29,41 @@ export type Catalog = {
 local Catalog = {}
 
 Catalog.gamepasses = {
-	{ id = 0, key = "coins2x", name = "2x Coins", price = 699, grant = { kind = "multiplier", value = 2 } },
-	{ id = 0, key = "vipSlots", name = "VIP Slots +4", price = 699, grant = { kind = "slots", value = 4 } },
-	{ id = 0, key = "autoLock", name = "Auto Lock", price = 199, grant = { kind = "flag", flag = "autoLock" } },
+	{ id = 2074629611, key = "coins2x", name = "2x Coins", price = 699, grant = { kind = "multiplier", value = 2 } },
+	{ id = 2075673646, key = "vipSlots", name = "VIP Slots +4", price = 699, grant = { kind = "slots", value = 4 } },
+	{
+		id = 2075529604,
+		key = "autoLock",
+		name = "Auto Lock",
+		price = 199,
+		grant = { kind = "flag", flag = "autoLock" },
+	},
 } :: { Entry }
 
 Catalog.products = {
 	{
-		id = 0,
+		id = 3729357243,
 		key = "creaturePack",
 		name = "Guaranteed Rare Creature Pack",
 		price = 99,
 		grant = { kind = "kaiju", kaijuId = "island-serpent" },
 	},
 	{
-		id = 0,
+		id = 3729357250,
 		key = "hatchSpeedup",
 		name = "Hatch Speed-Up",
 		price = 699,
 		grant = { kind = "speedup", seconds = 3600 },
 	},
-	{ id = 0, key = "siegeShield", name = "Siege Shield", price = 99, grant = { kind = "shield", seconds = 600 } },
 	{
-		id = 0,
+		id = 3729357255,
+		key = "siegeShield",
+		name = "Siege Shield",
+		price = 99,
+		grant = { kind = "shield", seconds = 600 },
+	},
+	{
+		id = 3729357262,
 		key = "luckBoost",
 		name = "Server Luck Boost 15m",
 		price = 199,

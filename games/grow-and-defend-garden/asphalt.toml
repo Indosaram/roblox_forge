@@ -7,3 +7,19 @@ id = 0
 
 [codegen]
 style = "flat"
+
+[inputs.grow-harvest-buy]
+path = "assets/audio/grow-harvest-buy.wav"
+output_path = "games/grow-and-defend-garden/src/shared"
+
+[inputs.grow-harvest-harvest]
+path = "assets/audio/grow-harvest-harvest.wav"
+output_path = "games/grow-and-defend-garden/src/shared"
+
+[inputs.grow-harvest-plant]
+path = "assets/audio/grow-harvest-plant.wav"
+output_path = "games/grow-and-defend-garden/src/shared"
+
+[inputs.grow-harvest-sell]
+path = "assets/audio/grow-harvest-sell.wav"
+output_path = "games/grow-and-defend-garden/src/shared"

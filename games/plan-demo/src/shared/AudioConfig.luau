@@ -39,6 +39,20 @@ local cues: { [string]: SoundBank.Cue } = {
 		looped = true,
 		group = "SFX",
 	},
+	-- musicTracks below names these two cues; SoundBank breaks the playlist
+	-- on a cue that is absent or has an empty soundId, so both must exist.
+	musicExplore = {
+		soundId = Assets.musicExplore,
+		volume = 0.35,
+		looped = true,
+		group = "Music",
+	},
+	musicSiege = {
+		soundId = Assets.musicSiege,
+		volume = 0.4,
+		looped = true,
+		group = "Music",
+	},
 }
 
 local notifyClassifiers: Audio.NotifyClassifiers = {
@@ -68,8 +82,8 @@ local AudioConfig = {
 	promptClassifiers = promptClassifiers,
 	musicTracks = { explore = "musicExplore", siege = "musicSiege" },
 	teamRivals = {
-		Red = "Blue",
-		Blue = "Red",
+		["Red"] = "Blue",
+		["Blue"] = "Red",
 	},
 }
 

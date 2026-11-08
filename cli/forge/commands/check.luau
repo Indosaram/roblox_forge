@@ -10,6 +10,7 @@ local codegen = require("../lib/codegen")
 local crafting = require("../lib/craftinggenerate")
 local contentrender = require("../lib/contentrender")
 local assetsLib = require("../lib/assets")
+local audiocoverage = require("../lib/audiocoverage")
 local gameYml = require("../lib/gameyml")
 local lock = require("../lib/lock")
 local buildtargets = require("../lib/buildtargets")
@@ -256,6 +257,8 @@ local STAGE_TOOLS: { [string]: { string } } = {
 	selene = { "selene" },
 	stylua = { "stylua" },
 	["luau-lsp"] = { "luau-lsp", "rojo" },
+	-- econ renders crafted content and the durable policy through stylua.
+	econ = { "stylua" },
 	locale = { "lune" },
 	specs = { "lune" },
 	build = { "rojo" },
@@ -656,6 +659,14 @@ function M.run(args: { string }?): boolean
 									.. " is out of date; run: lune run cli/forge assets codegen --pack "
 									.. pack
 							)
+						end
+						-- A cue the pack declares but has no asset for resolves to an empty
+						-- contentId and plays nothing. AudioKit reports it at runtime as the
+						-- ForgeHudAudio UnavailableCues attribute, but nothing failed the
+						-- build, so a pack could ship silently. Fail it here instead.
+						for _, missingCue in audiocoverage.missingContentIds(pack, manifest) do
+							assetsFailed = true
+							table.insert(assetsLogs, pack .. ": cue has no audio asset: " .. missingCue)
 						end
 					end
 				end

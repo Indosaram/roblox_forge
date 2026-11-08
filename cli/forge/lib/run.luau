@@ -39,6 +39,17 @@ local function resolveExecutable(tool: string): string
 	return tool
 end
 
+-- Resolves a tool through the rokit bin directory before handing the name to the
+-- OS. Generators that stream stdin to stylua use it through `M.create`; a bare
+-- `process.create("stylua", ...)` fails whenever rokit's bin is off PATH.
+function M.resolve(tool: string): string
+	return resolveExecutable(tool)
+end
+
+function M.create(tool: string, args: { string })
+	return process.create(resolveExecutable(tool), args)
+end
+
 function M.exec(tool: string, args: { string }): ExecResult
 	local candidate = resolveExecutable(tool)
 	local ok, res = pcall(process.exec, candidate, args)

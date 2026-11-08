@@ -1,7 +1,17 @@
 environments:
+  # Ids are literal because the demo experience is published under the owner's
+  # account, not provisioned per environment. Production stays unset (0/0).
   staging:
-    universeId: 0
-    placeId: 0
+    universeId: 10775163735
+    placeId: 100097233115465
+    monetization:
+      coins2x: 2074629611
+      vipSlots: 2075673646
+      autoLock: 2075529604
+      creaturePack: 3729357243
+      hatchSpeedup: 3729357250
+      siegeShield: 3729357255
+      luckBoost: 3729357262
   production:
     universeId: 0
     placeId: 0

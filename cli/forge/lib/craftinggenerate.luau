@@ -8,6 +8,7 @@ local Content = require("../../../core/domain/survival/Content")
 local Capability = require("../../../core/domain/survival/Capability")
 local Ledger = require("../../../core/domain/command/Ledger")
 local contract = require("./genrecontract")
+local run = require("./run")
 local registryLib = require("./genreregistry")
 local genrespec = require("./genrespec")
 local project = require("./genreproject")
@@ -190,7 +191,7 @@ end
 
 -- Formatted bytes exactly as a published pack carries them.
 function M.durableFormatted(): string
-	local formatter = process.create("stylua", { "--config-path", "stylua.toml", "-" })
+	local formatter = run.create("stylua", { "--config-path", "stylua.toml", "-" })
 	formatter.stdin:write(M.durableSource())
 	formatter.stdin:close()
 	local text = formatter.stdout:readToEnd()
@@ -381,7 +382,7 @@ function M.render(
 		.. "\nreturn policy\n"
 	local worldConfig = existingWorld or M.worldConfig()
 	for _ = 1, 3 do
-		local formatter = process.create("stylua", { "--config-path", "stylua.toml", "-" })
+		local formatter = run.create("stylua", { "--config-path", "stylua.toml", "-" })
 		formatter.stdin:write(files["src/shared/WildlifePolicy.luau"])
 		formatter.stdin:close()
 		files["src/shared/WildlifePolicy.luau"] = formatter.stdout:readToEnd()

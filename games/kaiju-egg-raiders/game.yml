@@ -82,5 +82,5 @@ ratings:
   romance: None.
   gambling: None. Random hatching uses free currency only and shows the pool odds; every Robux item is deterministic.
   social: Default Roblox chat only - no custom chat, no user-generated text, no voice, no external links.
-  language: None (English UI strings only).
+  language: Mild - the UI ships English and Korean strings; no profanity and no user-generated text.
   paid_random: false

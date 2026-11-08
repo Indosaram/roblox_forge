@@ -186,6 +186,81 @@ local function checkProfileMigrate(): Check
 	return pass(name, "migration fills every default key")
 end
 
+-- (e) Hatch loop: buy an egg, wait out its timer, hatch it, and confirm the
+-- creature lands in the collection and the wallet paid exactly the egg price.
+-- The four checks above cover persistence shape only; nothing proved the genre's
+-- actual loop ran, so a broken buy/hatch path still passed the gate.
+local function checkHatchLoop(): Check
+	local name = "buy-hatch loop"
+	local now = 0
+	local state = Loop.newPlayer(Config, now)
+	-- Pick the cheapest egg the player can actually afford: iterating in table
+	-- order picked an unaffordable egg and failed for a reason that is not a
+	-- defect. A pack whose startingCoins buys nothing is a real defect below.
+	local sourceId: string? = nil
+	local bestPrice = math.huge
+	for id in Config.sources do
+		local price = Loop.sourcePrice(Config, state, id)
+		if price < bestPrice then
+			sourceId, bestPrice = id, price
+		end
+	end
+	if sourceId == nil then
+		return fail(name, "config declares no egg sources")
+	end
+	if state.wallet:balance(Config.currency) < bestPrice then
+		return fail(
+			name,
+			string.format(
+				"startingCoins %d cannot afford the cheapest egg (%s at %d)",
+				state.wallet:balance(Config.currency),
+				sourceId,
+				bestPrice
+			)
+		)
+	end
+	local source = Config.sources[sourceId]
+	local price = bestPrice
+	local before = state.wallet:balance(Config.currency)
+
+	local bought, buyErr = Loop.buySource(Config, state, sourceId, now)
+	if not bought then
+		return fail(name, "buySource(" .. sourceId .. ") failed: " .. tostring(buyErr))
+	end
+	local after = state.wallet:balance(Config.currency)
+	if after ~= before - price then
+		return fail(name, string.format("buy charged %d, expected %d", before - after, price))
+	end
+	if #state.incubators ~= 1 then
+		return fail(name, "expected exactly one filled incubator, got " .. #state.incubators)
+	end
+
+	local readyAt = now + source.hatchSeconds
+	local early, earlyErr = Loop.hatch(Config, state, 1, readyAt - 1, 0)
+	if early then
+		return fail(name, "hatch succeeded before the egg timer elapsed")
+	end
+	if earlyErr ~= "egg not ready" then
+		return fail(name, "early hatch failed with an unexpected reason: " .. tostring(earlyErr))
+	end
+
+	local creaturesBefore = #state.creatures
+	local hatched, creatureId = Loop.hatch(Config, state, 1, readyAt, 0)
+	if not hatched then
+		return fail(name, "hatch failed at the ready time: " .. tostring(creatureId))
+	end
+	if Config.creatures[creatureId] == nil then
+		return fail(name, "hatch produced an unknown creature: " .. tostring(creatureId))
+	end
+	if #state.creatures ~= creaturesBefore + 1 then
+		return fail(name, "hatched creature was not added to the collection")
+	end
+	if #state.incubators ~= 0 then
+		return fail(name, "incubator was not consumed by the hatch")
+	end
+	return pass(name, string.format("%s hatched %s for %d coins", sourceId, creatureId, price))
+end
+
 --- Runs every smoke check. `fixture` may be nil, a decoded save table, or a
 --- JSON path string (read lazily through @lune).
 function M.run(fixture: any?): { Check }
@@ -203,6 +278,7 @@ function M.run(fixture: any?): { Check }
 		checkEconConfig(),
 		checkSerialization(),
 		checkProfileMigrate(),
+		checkHatchLoop(),
 	}
 end
 

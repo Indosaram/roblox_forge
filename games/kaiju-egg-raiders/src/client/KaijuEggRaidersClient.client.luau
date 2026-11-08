@@ -14,6 +14,7 @@ local CreatureModels = require(Forge.games["kaiju-egg-raiders"].src.shared.Creat
 local Fx = require(Forge.games["kaiju-egg-raiders"].src.shared.Fx)
 local Copy = require(Forge.games["kaiju-egg-raiders"].src.shared.Copy)
 local AudioConfig = require(Forge.games["kaiju-egg-raiders"].src.shared.AudioConfig)
+local WorldLayout = require(Forge.games["kaiju-egg-raiders"].src.shared.WorldLayout)
 local Remotes = require(Forge.games["kaiju-egg-raiders"].src.shared.Remotes)
 
 local RARITY_RANK: { [string]: number } = { Common = 1, Rare = 2, Legendary = 3, Mythic = 4 }
@@ -56,8 +57,8 @@ Client.start({
 		worldName = "KaijuEggRaidersWorld",
 		slotPrefix = "KaijuEggRaidersSlot",
 		incubatorPrefix = "Incubator",
-		incubatorCount = 4,
-		slotCount = 3,
+		incubatorCount = 7,
+		slotCount = #WorldLayout.layout.bases[1].parade.positions,
 		models = {
 			buildSource = CreatureModels.buildEgg,
 			buildCreature = CreatureModels.buildKaiju,

@@ -73,6 +73,50 @@ return {
 		fs.removeDir(root)
 		assert(ok, tostring(reason))
 	end,
+	["published monetization ids reach the generated catalog"] = function()
+		local root = project.absolute(
+			physicalRoot() .. "/forge-catalog-ids-" .. serde.hash("sha256", tostring(os.clock())):sub(1, 16)
+		)
+		assert(not fs.isDir(root), "fixture already exists")
+		publish.ensureDir(root)
+		local ok, reason = xpcall(function()
+			local destination = root .. "/fixture"
+			local catalog = 'Catalog.gamepasses = {\n\t{ id = 0, key = "coins2x", name = "2x Coins", price = 699, grant = { kind = "multiplier", value = 2 } },\n} :: { Entry }\n'
+				.. 'Catalog.products = {\n\t{ id = 0, key = "hatchSpeedup", name = "Hatch Speed-Up", price = 699, grant = { kind = "speedup", seconds = 3600 } },\n} :: { Entry }\n'
+			local function gameYml(gamepassId: number, productId: number): string
+				return "name: Fixture\nslug: fixture\nmonetization:\n  gamepasses:\n    - key: coins2x\n      price: 699\n      id: "
+					.. gamepassId
+					.. "\n  products:\n    - key: hatchSpeedup\n      price: 699\n      id: "
+					.. productId
+					.. "\n"
+			end
+			local function write(yml: string)
+				local written, failure = publish.write({
+					files = { ["game.yml"] = yml, ["src/shared/Catalog.luau"] = catalog },
+					order = {},
+					generation = {},
+					legacy = false,
+				}, destination, "fixture", { packsDir = root })
+				assert(written, tostring(failure))
+			end
+			write(gameYml(0, 0))
+			local fresh = fs.readFile(destination .. "/src/shared/Catalog.luau")
+			assert(string.find(fresh, [[id = 0, key = "coins2x"]], 1, true), "unpublished ids stay 0")
+			fs.writeFile(destination .. "/game.yml", gameYml(2074629611, 3729357250))
+			write(gameYml(0, 0))
+			local text = fs.readFile(destination .. "/src/shared/Catalog.luau")
+			assert(
+				string.find(text, [[id = 2074629611, key = "coins2x"]], 1, true),
+				"published gamepass id must survive regeneration: " .. text
+			)
+			assert(
+				string.find(text, "id%s*=%s*3729357250", 1) and string.find(text, [[key = "hatchSpeedup"]], 1, true),
+				"published product id must survive regeneration: " .. text
+			)
+		end, debug.traceback)
+		fs.removeDir(root)
+		assert(ok, tostring(reason))
+	end,
 	["pending publication rejects consumers regardless of journal contents"] = function()
 		local root = project.absolute(
 			physicalRoot() .. "/forge-pending-" .. serde.hash("sha256", tostring(os.clock())):sub(1, 16)

@@ -14,7 +14,6 @@
 
 local fs = require("@lune/fs")
 local luau = require("@lune/luau")
-local process = require("@lune/process")
 local serde = require("@lune/serde")
 
 local Validation = require("../../../core/domain/genre/Validation")
@@ -24,6 +23,7 @@ local WorldFeedback = require("../../../core/ui-kit/genre/WorldFeedback")
 local qascenario = require("./qascenario")
 local qagen = require("./qagen")
 local audiocues = require("./audiocues")
+local run = require("./run")
 
 local M = {}
 
@@ -1609,7 +1609,7 @@ end
 --- `stylua --check` still wants to rewrite.
 function M.stabilize(source: string, fileName: string): string
 	local function format(text: string): string
-		local formatter = process.create("stylua", {
+		local formatter = run.create("stylua", {
 			"--config-path",
 			"stylua.toml",
 			"--stdin-filepath",

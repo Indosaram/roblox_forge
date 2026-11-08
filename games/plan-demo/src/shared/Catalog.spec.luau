@@ -25,10 +25,17 @@ return {
 	end,
 
 	["kaiju products name a fixed kaiju id"] = function()
+		local EconConfig = require("./EconConfig")
 		for _, entry in Catalog.products do
 			if entry.grant.kind == "kaiju" then
 				local kaijuId = entry.grant.kaijuId
 				assert(type(kaijuId) == "string" and kaijuId ~= "", "fixed kaijuId required: " .. entry.key)
+				-- A typo here passes the string check but makes the grant a no-op, so the
+				-- receipt loop would retry forever without delivering anything.
+				assert(
+					EconConfig.kaiju[kaijuId] ~= nil,
+					"kaijuId " .. tostring(kaijuId) .. " is not an EconConfig.kaiju entry: " .. entry.key
+				)
 			end
 		end
 	end,

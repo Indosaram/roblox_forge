@@ -1,0 +1,32 @@
+# Garden cue set. Generate with:
+#   lune run cli/forge gen audio --pack grow-and-defend-garden
+# Keys must match the cue keys declared in genres/grow-harvest/module/Audio.luau;
+# a declared cue with no audio here resolves to an empty asset and plays nothing.
+#
+# kind: music (mood explore|siege), sfx (type click|coin|hatch|rare|raid|error),
+#       ambience (type wind|birds). duration is seconds.
+cues:
+  - key: grow-harvest-buy
+    kind: sfx
+    type: coin
+    duration: 0.2
+    sampleRate: 44100
+    seed: 73001
+  - key: grow-harvest-plant
+    kind: sfx
+    type: click
+    duration: 0.15
+    sampleRate: 44100
+    seed: 73002
+  - key: grow-harvest-harvest
+    kind: sfx
+    type: coin
+    duration: 0.25
+    sampleRate: 44100
+    seed: 73003
+  - key: grow-harvest-sell
+    kind: sfx
+    type: coin
+    duration: 0.3
+    sampleRate: 44100
+    seed: 73004

@@ -7,5 +7,10 @@ monetization: {gamepasses: [], products: [], subscriptions: []}
 art_style: "cozy stylized low-poly garden, warm pastel palette (leaf green, pumpkin orange, berry red), soft morning light with gentle bloom"
 poly_budget: { crop: 500, prop: 700, barricade: 900, world_parts_max: 4000 }
 locales: [en-us]
+# QA: `core-loop` is the genre's legacy playtest (it targets seed-shop/plot-1/
+# sell-crop, names this hand-rolled UI does not build, and the gate only executes
+# native/studio runs). The executable run for this pack is the pack-local studio
+# scenario grow-harvest.garden-core-loop, invoked with
+#   forge qa run --pack grow-and-defend-garden --scenario grow-harvest:garden-core-loop
 qa_scenarios: [core-loop]
 liveops_cadence: weekly

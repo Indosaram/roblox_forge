@@ -10,38 +10,38 @@ monetization:
     - key: coins2x
       name: 2x Coins
       price: 699
-      id: 0
+      id: 2074629611
     - key: vipSlots
       name: VIP Slots +4
       price: 699
-      id: 0
+      id: 2075673646
     - key: autoLock
       name: Auto Lock
       price: 199
-      id: 0
+      id: 2075529604
   products:
     - key: creaturePack
       name: Guaranteed Rare Creature Pack
       price: 99
-      id: 0
+      id: 3729357243
       deterministic: true
       affectsFreeHatchOnly: false
     - key: hatchSpeedup
       name: Hatch Speed-Up
       price: 699
-      id: 0
+      id: 3729357250
       deterministic: true
       affectsFreeHatchOnly: false
     - key: siegeShield
       name: Siege Shield
       price: 99
-      id: 0
+      id: 3729357255
       deterministic: true
       affectsFreeHatchOnly: false
     - key: luckBoost
       name: Server Luck Boost 15m
       price: 199
-      id: 0
+      id: 3729357262
       deterministic: true
       affectsFreeHatchOnly: true
   subscriptions: []

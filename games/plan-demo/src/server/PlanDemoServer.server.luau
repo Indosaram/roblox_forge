@@ -26,12 +26,12 @@ Server.start({
 		"Blue",
 	},
 	teamColors = {
-		Red = BrickColor.new("Really red"),
-		Blue = BrickColor.new("Bright blue"),
+		["Red"] = BrickColor.new("Really red"),
+		["Blue"] = BrickColor.new("Bright blue"),
 	},
 	rareRarities = { Legendary = true, Mythic = true },
 	storeName = "PlanDemoProfiles_v1",
 	debugName = "PlanDemoDebug",
 	logPrefix = "PlanDemoServer",
-	incubatorsPerTeam = 4,
+	incubatorsPerTeam = 7,
 })

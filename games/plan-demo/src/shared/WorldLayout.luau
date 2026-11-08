@@ -46,7 +46,7 @@ export type Layout = {
 	flowers: { Decoration }?,
 }
 
-local INCUBATORS_PER_TEAM = 6
+local INCUBATORS_PER_TEAM = 7
 local PARADE_SLOTS = 6
 local BASE_X = 70
 
@@ -77,17 +77,46 @@ local function base(team: string, index: number, teamCount: number): BaseLayout
 	local inwardX, inwardZ = -outwardX, -outwardZ
 	local sideX, sideZ = -inwardZ, inwardX
 
+	-- Two rows (inward -6 and 5) instead of one: both stay well clear of the
+	-- vault at inward 22 and the shop at inward 16/side 20, and the 10.5-stud
+	-- pitch keeps every pair at least 10 studs apart with float headroom
+	-- (exactly 10 can round under the limit). A pedestal is a 9-stud cylinder
+	-- (radius 4.5); for a row offset (inward, side), its worst-case distance
+	-- from the base center over every possible base rotation is
+	-- sqrt(inward^2 + side^2): the platform is axis-aligned in world space
+	-- (WorldBuilder places it with `Position`, not a rotated `CFrame`), so a
+	-- diagonal base angle (e.g. the 120/240 degree bases in a 3-team layout)
+	-- can swing a row's local offset onto either world axis. HALF below is
+	-- sized against that worst case, not just the axis-aligned one.
 	local incubators: { Vec } = {}
+	local frontCount = math.ceil(INCUBATORS_PER_TEAM / 2)
+	local backCount = INCUBATORS_PER_TEAM - frontCount
 	for i = 1, INCUBATORS_PER_TEAM do
-		local t = (-(INCUBATORS_PER_TEAM - 1) / 2 + (i - 1)) * 12
-		local offsetX, offsetZ = inwardX * 14 + sideX * t, inwardZ * 14 + sideZ * t
+		local rowCount = if i <= frontCount then frontCount else backCount
+		local seat = if i <= frontCount then i else i - frontCount
+		local rowInward = if i <= frontCount then -6 else 5
+		local t = (-(rowCount - 1) / 2 + (seat - 1)) * 10.5
+		local offsetX, offsetZ = inwardX * rowInward + sideX * t, inwardZ * rowInward + sideZ * t
 		table.insert(incubators, vec(cx + offsetX, 1, cz + offsetZ))
 	end
 
+	-- Platform half-width: at least 28 (the original 56-stud platform), and
+	-- large enough that every pedestal's worst-case radius above still clears
+	-- the edge by a 2-stud margin. 6 (not 5) is used for both rows' inward
+	-- magnitude since the formula only needs a safe upper bound.
+	local rowRadius = math.sqrt(36 + ((math.max(frontCount, backCount) - 1) / 2 * 10.5) ^ 2)
+	local half = math.max(28, rowRadius + 4.5 + 2)
+
+	-- Parade pads sit on a ring just inside the platform edge. A single
+	-- row at outward 16 put three of six pads past the 56-stud platform, so
+	-- they floated over the ground. A 30 degree phase moves the first pad off
+	-- the spawn axis; every pad stays clear of the spawn, the vault and the shop.
+	local paradeRadius = math.min(half - 4.5, 24)
 	local positions: { Vec } = {}
 	for k = 1, PARADE_SLOTS do
-		local t = -16 + (k - 1) * 16
-		local offsetX, offsetZ = outwardX * 16 + sideX * t, outwardZ * 16 + sideZ * t
+		local padAngle = math.rad(30 + (k - 1) * (360 / PARADE_SLOTS))
+		local out, side = math.cos(padAngle) * paradeRadius, math.sin(padAngle) * paradeRadius
+		local offsetX, offsetZ = outwardX * out + sideX * side, outwardZ * out + sideZ * side
 		table.insert(positions, vec(cx + offsetX, 1, cz + offsetZ))
 	end
 
@@ -100,7 +129,7 @@ local function base(team: string, index: number, teamCount: number): BaseLayout
 	return {
 		team = team,
 		center = vec(cx, 0, cz),
-		size = vec(56, 8, 56),
+		size = vec(half * 2, 8, half * 2),
 		spawn = vec(cx + spawnOffsetX, 3, cz + spawnOffsetZ),
 		spawnTeamColor = TEAM_COLORS[team] or "Medium stone grey",
 		incubators = incubators,

@@ -8,6 +8,7 @@ local fs = require("@lune/fs")
 local process = require("@lune/process")
 local serde = require("@lune/serde")
 local tempdir = require("./tempdir")
+local run = require("./run")
 local new = require("../commands/new")
 local codegen = require("./codegen")
 local registryLib = require("./genreregistry")
@@ -20,8 +21,10 @@ local function scratchRoot(): string
 	return "build/" .. (string.match(tempdir.path("newpack-fixture"), "[^/]+$") :: string)
 end
 
+-- rokit's bin directory is not always on PATH (a plain `process.exec("stylua", ...)`
+-- then fails with "program not found"), so resolve through the shared helper.
 local function exec(tool: string, args: { string }): (boolean, string)
-	local result = process.exec(tool, args)
+	local result = process.exec(run.resolve(tool), args)
 	return result.ok, result.stdout .. result.stderr
 end
 

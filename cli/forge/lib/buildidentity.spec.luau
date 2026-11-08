@@ -5,13 +5,14 @@ local serde = require("@lune/serde")
 local roblox = require("@lune/roblox")
 local identity = require("./buildidentity")
 local process = require("@lune/process")
+local run = require("./run")
+local tempdir = require("./tempdir")
 
 local function fixture(callback: (string) -> ())
-	local root = "build/spec-buildidentity"
+	-- A fixed path collided when spec shards ran concurrently in the same checkout
+	-- (ACCESS_DENIED on rmdir, then a nil project tree); each call gets its own.
+	local root = tempdir.path("spec-buildidentity")
 	assert(not fs.isDir(root), "owned fixture already exists")
-	if not fs.isDir("build") then
-		fs.writeDir("build")
-	end
 	fs.writeDir(root)
 	local ok, err = pcall(function()
 		fs.writeDir(root .. "/assets")
@@ -189,10 +190,10 @@ return {
 				})
 			)
 			local project, output = root .. "/default.project.json", root .. "/place.rbxl"
-			local authored = process.exec("rojo", { "build", project, "-o", output .. ".authored.rbxl" })
+			local authored = process.exec(run.resolve("rojo"), { "build", project, "-o", output .. ".authored.rbxl" })
 			assert(authored.ok, authored.stderr)
 			local overlay = identity.prepare(project, root, output)
-			local built = process.exec("rojo", { "build", overlay.projectPath, "-o", output })
+			local built = process.exec(run.resolve("rojo"), { "build", overlay.projectPath, "-o", output })
 			assert(built.ok, built.stderr)
 			local function selection(path: string): { [string]: boolean }
 				local found: { [string]: boolean } = {}

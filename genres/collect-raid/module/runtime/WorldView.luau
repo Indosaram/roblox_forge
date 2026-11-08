@@ -8,6 +8,7 @@ local RunService = game:GetService("RunService")
 
 local Motion = require("../../../../core/domain/procgen/Motion")
 local Animator = require("../../../../core/infra/render/Animator")
+local WorldBuilderMath = require("../WorldBuilderMath")
 
 local player = Players.LocalPlayer
 
@@ -160,7 +161,16 @@ function WorldView.start(opts: Options): ()
 							end
 							local teamName = player.Team and player.Team.Name or ""
 							local yaw = opts.teamYaw[teamName] or 0
-							m:PivotTo(CFrame.new(slotPos + Vector3.new(0, 0.5, 0)) * CFrame.Angles(0, math.rad(yaw), 0))
+							-- Seat the creature on the pad surface instead of at a fixed pivot offset:
+							-- a model's pivot sits at its own origin, which differs per species, so a
+							-- constant offset floats tall creatures and sinks short ones. Build a first
+							-- pose, measure the rendered bounding box, then drop it so the bottom rests
+							-- on the pad top.
+							local padTop = slotPos.Y + slot.Size.Y / 2
+							m:PivotTo(CFrame.new(slotPos) * CFrame.Angles(0, math.rad(yaw), 0))
+							local boxCenter, boxSize = m:GetBoundingBox()
+							local lift = WorldBuilderMath.seatLift(padTop, boxCenter.Y, boxSize.Y)
+							m:PivotTo(m:GetPivot() + Vector3.new(0, lift, 0))
 							m.Parent = folder
 							creatureModels[k] = m
 							creatureHandles[k] = Animator.attach(m, profileFor(id), seedFor(id))

@@ -24,6 +24,87 @@ return {
 		assert(Math.groundCellVariant(1, 1) == 1, "even sum is variant 1")
 	end,
 
+	["parade pads sit on top of the deck, not inside it"] = function()
+		local padHeight = 0.4
+		local deckTop = Math.deckTop(0.5, 2)
+		assert(deckTop == 1.5, "a 2-high platform centred at 0.5 has its top at 1.5")
+
+		local padY = Math.paradePadCenterY(0.5, 2, padHeight)
+		assert(padY == deckTop + padHeight / 2, "the pad centre is half a pad above the deck top")
+		assert(padY - padHeight / 2 == deckTop, "the pad bottom sits flush on the deck")
+		assert(padY ~= 0.5, "a pad at the platform's centre Y would be buried inside the deck")
+	end,
+
+	["a tall shop seats on the deck instead of sinking into it"] = function()
+		local deckTop = Math.deckTop(0.5, 2)
+		local shopHeight = 6
+		local shopY = Math.seatOnDeck(deckTop, shopHeight)
+		assert(shopY == deckTop + shopHeight / 2, "the shop centre is half its height above the deck")
+		assert(shopY - shopHeight / 2 == deckTop, "the shop bottom sits flush on the deck")
+		assert(shopY ~= 1, "the authored shop Y of 1 would bury it 3.5 studs in the deck")
+	end,
+
+	["creature seating derives its lift from the rendered bounding box"] = function()
+		-- A model's pivot is at its own origin, so the same slot offset floats a tall
+		-- species and sinks a short one. Seating must use the measured box bottom.
+		local padTop = 1.9
+
+		-- Tall species: pivot near the feet, box extending upward.
+		local tallLift = Math.seatLift(padTop, 3.0, 6.0)
+		assert(tallLift == padTop - 0.0, "a 6-high box centred 3 above the pad bottom needs no lift")
+
+		-- Short species: same pad, much smaller box, still lands flush.
+		local shortLift = Math.seatLift(padTop, 0.4, 0.8)
+		assert(math.abs(shortLift - padTop) < 1e-9, "a 0.8-high box centred 0.4 up needs the same seat")
+
+		-- Pivot above the box bottom (the old +3 style): the lift must be negative.
+		local sunkBox = Math.seatLift(padTop, 7.5, 3.0)
+		assert(sunkBox < 0, "a box whose bottom is already above the pad must be pulled down")
+
+		-- The defining invariant: after lifting, the box bottom equals the pad top exactly.
+		for _, case in { { 0.4, 0.8 }, { 3.0, 6.0 }, { 7.5, 3.0 }, { -2.0, 1.0 } } do
+			local centerY, height = case[1], case[2]
+			local lift = Math.seatLift(padTop, centerY, height)
+			assert(
+				math.abs((centerY + lift) - height / 2 - padTop) < 1e-9,
+				"seated box bottom must equal the pad top for every species height"
+			)
+		end
+	end,
+
+	["terrain columns render on their authored surface instead of above it"] = function()
+		local spec: Math.TerrainSpec = {
+			half = 32,
+			flatHalf = 32,
+			cellSize = 8,
+			baseY = 0,
+			hillHeight = 26,
+			waterLevel = -4,
+			waterDepth = 14,
+			columnDepth = 40,
+			noiseScale = 0.021,
+			seed = 1337,
+		}
+		local columns = Math.terrainColumns(spec)
+		assert(#columns > 0, "the flat field has columns")
+
+		-- The rasteriser lifts a filled column by TERRAIN_RASTER_LIFT, so the
+		-- authored centre is that much lower and the rendered top lands on baseY.
+		local deckTop = Math.deckTop(0.5, 2)
+		for _, column in columns do
+			local height = column.top - column.bottom
+			assert(column.top == spec.baseY, "the flat plateau is authored at baseY")
+			local authoredCenter = Math.terrainColumnCenterY(column.top, column.bottom)
+			assert(
+				authoredCenter == (column.top + column.bottom) / 2 - Math.TERRAIN_RASTER_LIFT,
+				"the authored centre compensates for the rasteriser"
+			)
+			local renderedTop = authoredCenter + height / 2 + Math.TERRAIN_RASTER_LIFT
+			assert(renderedTop == spec.baseY, "the rendered plateau tops out at baseY")
+			assert(renderedTop < deckTop, "the plateau must stay below the deck so it cannot bury it")
+		end
+	end,
+
 	["platform trims ring the base edges"] = function()
 		local trims = Math.platformTrims({ x = -140, y = 0, z = 0 }, 45)
 		assert(#trims == 4, "four trim strips")

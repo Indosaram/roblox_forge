@@ -106,6 +106,45 @@ local function stage(
 		elseif not sameDocument(new, generated) then
 			assembly.files["game.yml"] = serde.encode("yaml", new)
 		end
+		local catalogPath = "src/shared/Catalog.luau"
+		local catalog = assembly.files[catalogPath]
+		if catalog then
+			-- `id` precedes `key` in every generated entry, so the last id before the
+			-- key is that entry's id whatever the formatter did to line breaks.
+			local function applyId(text: string, key: string, id: number): (string, boolean)
+				local keyPattern = 'key%s*=%s*"' .. string.gsub(key, "%W", "%%%0") .. '"'
+				local keyStart = string.find(text, keyPattern)
+				if not keyStart then
+					return text, false
+				end
+				local prefix = string.sub(text, 1, keyStart - 1)
+				local idStart: number?, idEnd: number? = nil, nil
+				local pos = 1
+				while true do
+					local first, last = string.find(prefix, "id%s*=%s*%d+", pos)
+					if not first or not last then
+						break
+					end
+					idStart, idEnd = first, last
+					pos = last + 1
+				end
+				if not idStart or not idEnd then
+					return text, false
+				end
+				return string.sub(text, 1, idStart - 1) .. "id = " .. tostring(id) .. string.sub(text, idEnd + 1), true
+			end
+			for _, section in { "gamepasses", "products" } do
+				for _, entry in (if new.monetization then new.monetization[section] else nil) or {} do
+					local id = entry.id
+					if type(id) == "number" and id > 0 then
+						local updated, found = applyId(catalog, entry.key, id)
+						assert(found, "catalog is missing monetization key " .. tostring(entry.key))
+						catalog = updated
+					end
+				end
+			end
+			assembly.files[catalogPath] = catalog
+		end
 	end
 	local paths = {}
 	for path in assembly.files do

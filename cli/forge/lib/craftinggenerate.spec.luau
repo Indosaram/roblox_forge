@@ -2,6 +2,7 @@
 local fs = require("@lune/fs")
 local tempdir = require("./tempdir")
 local process = require("@lune/process")
+local run = require("./run")
 local serde = require("@lune/serde")
 local luau = require("@lune/luau")
 local roblox = require("@lune/roblox")
@@ -825,7 +826,7 @@ return {
 				assert(check.ok, check.name)
 			end
 			fs.writeFile(root .. "/.luaurc", fs.readFile(".luaurc"))
-			local analyzed = process.exec("luau-lsp", {
+			local analyzed = process.exec(run.resolve("luau-lsp"), {
 				"analyze",
 				"--platform=standard",
 				dir .. "/src/shared/GenreConfig.luau",
@@ -839,7 +840,7 @@ return {
 			end
 			assert(analyzed.ok, "generated module typecheck failed")
 			local output = root .. "/fixture.rbxl"
-			local built = process.exec("rojo", { "build", dir .. "/default.project.json", "-o", output })
+			local built = process.exec(run.resolve("rojo"), { "build", dir .. "/default.project.json", "-o", output })
 			assert(built.ok, built.stdout .. built.stderr)
 			local place = roblox.deserializePlace(fs.readFile(output))
 			local server = assert(place:FindFirstChild("ServerScriptService"))
@@ -868,7 +869,8 @@ return {
 			)
 			print("CRAFTING_GENERATOR_NATIVE_SMOKE_TYPECHECK_ROJO_INSPECT=PASS")
 			local sourcemapPath = root .. "/sourcemap.json"
-			local mapped = process.exec("rojo", { "sourcemap", dir .. "/default.project.json", "-o", sourcemapPath })
+			local mapped =
+				process.exec(run.resolve("rojo"), { "sourcemap", dir .. "/default.project.json", "-o", sourcemapPath })
 			assert(mapped.ok, mapped.stdout .. mapped.stderr)
 			local sourcemap = serde.decode("json", fs.readFile(sourcemapPath))
 			type SourceNode = { filePaths: { string }?, children: { SourceNode }? }
@@ -903,7 +905,7 @@ return {
 				}
 			do
 				local executable = assert(table.remove(commandArgs, 1), "executable")
-				local checked = process.exec(executable, commandArgs)
+				local checked = process.exec(run.resolve(executable), commandArgs)
 				if not checked.ok then
 					print(checked.stdout .. checked.stderr)
 				end

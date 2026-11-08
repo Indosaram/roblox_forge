@@ -14,6 +14,7 @@ local CreatureModels = require(Forge.games["plan-demo"].src.shared.CreatureModel
 local Fx = require(Forge.games["plan-demo"].src.shared.Fx)
 local Copy = require(Forge.games["plan-demo"].src.shared.Copy)
 local AudioConfig = require(Forge.games["plan-demo"].src.shared.AudioConfig)
+local WorldLayout = require(Forge.games["plan-demo"].src.shared.WorldLayout)
 local Remotes = require(Forge.games["plan-demo"].src.shared.Remotes)
 
 local RARITY_RANK: { [string]: number } = { Common = 1, Rare = 2, Legendary = 3, Mythic = 4 }
@@ -56,16 +57,16 @@ Client.start({
 		worldName = "PlanDemoWorld",
 		slotPrefix = "PlanDemoSlot",
 		incubatorPrefix = "Incubator",
-		incubatorCount = 4,
-		slotCount = 3,
+		incubatorCount = 7,
+		slotCount = #WorldLayout.layout.bases[1].parade.positions,
 		models = {
 			buildSource = CreatureModels.buildEgg,
 			buildCreature = CreatureModels.buildKaiju,
 		},
 		procSpecs = ProcAssets,
 		teamYaw = {
-			Red = 90,
-			Blue = -90,
+			["Red"] = 90,
+			["Blue"] = -90,
 		},
 		folderName = "PlanDemoWorldView",
 	},

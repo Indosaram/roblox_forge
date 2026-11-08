@@ -32,7 +32,7 @@ local TEAMS = {
 	"Blue",
 }
 
-local INCUBATORS_PER_TEAM = 6
+local INCUBATORS_PER_TEAM = 7
 
 function tests.every_team_has_a_base()
 	assert(#WorldLayout.layout.bases == #TEAMS, "one base per team")
@@ -66,6 +66,49 @@ function tests.incubators_are_spaced()
 					team .. " incubators " .. tostring(i) .. " and " .. tostring(j) .. " too close: " .. tostring(d)
 				)
 			end
+		end
+	end
+end
+
+-- WorldBuilder places the platform, vault crate and shop with `Position`
+-- (no rotated `CFrame`), so their footprints are always axis-aligned in
+-- world space, regardless of the base's own angle around the arena. A
+-- pedestal is a 9-stud cylinder (radius 4.5).
+local PEDESTAL_RADIUS = 4.5
+local VAULT_HALF_X, VAULT_HALF_Z = 5, 5
+local SHOP_HALF_X, SHOP_HALF_Z = 3, 1.5
+
+local function circleRectClear(
+	point: WorldLayout.Vec,
+	rectCenter: WorldLayout.Vec,
+	halfX: number,
+	halfZ: number,
+	radius: number
+): boolean
+	local dx = math.max(math.abs(point.x - rectCenter.x) - halfX, 0)
+	local dz = math.max(math.abs(point.z - rectCenter.z) - halfZ, 0)
+	return math.sqrt(dx * dx + dz * dz) >= radius
+end
+
+function tests.incubators_stay_on_platform_and_clear_of_vault_shop()
+	for _, team in TEAMS do
+		local base = findBase(team)
+		local halfX, halfZ = base.size.x / 2, base.size.z / 2
+		for i, p in base.incubators do
+			local withinX = math.abs(p.x - base.center.x) + PEDESTAL_RADIUS <= halfX
+			local withinZ = math.abs(p.z - base.center.z) + PEDESTAL_RADIUS <= halfZ
+			assert(
+				withinX and withinZ,
+				team .. " incubator " .. tostring(i) .. " footprint overruns the platform bounds"
+			)
+			assert(
+				circleRectClear(p, base.vault, VAULT_HALF_X, VAULT_HALF_Z, PEDESTAL_RADIUS),
+				team .. " incubator " .. tostring(i) .. " overlaps the vault crate"
+			)
+			assert(
+				circleRectClear(p, base.shop, SHOP_HALF_X, SHOP_HALF_Z, PEDESTAL_RADIUS),
+				team .. " incubator " .. tostring(i) .. " overlaps the shop"
+			)
 		end
 	end
 end

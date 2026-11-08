@@ -26,12 +26,12 @@ Server.start({
 		"Blue",
 	},
 	teamColors = {
-		Red = BrickColor.new("Really red"),
-		Blue = BrickColor.new("Bright blue"),
+		["Red"] = BrickColor.new("Really red"),
+		["Blue"] = BrickColor.new("Bright blue"),
 	},
 	rareRarities = { Legendary = true, Mythic = true },
 	storeName = "KaijuEggRaidersProfiles_v1",
 	debugName = "KaijuDebug",
 	logPrefix = "KaijuEggRaidersServer",
-	incubatorsPerTeam = 4,
+	incubatorsPerTeam = 7,
 })

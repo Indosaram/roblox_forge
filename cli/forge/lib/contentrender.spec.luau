@@ -3,6 +3,7 @@ local fs = require("@lune/fs")
 local tempdir = require("./tempdir")
 local luau = require("@lune/luau")
 local process = require("@lune/process")
+local run = require("./run")
 local serde = require("@lune/serde")
 local Content = require("../../../core/domain/survival/Content")
 local Capability = require("../../../core/domain/survival/Capability")
@@ -125,7 +126,7 @@ return {
 			assert(rendered, table.concat(errors, "; "))
 			local path = root .. "/SurvivalContent.luau"
 			fs.writeFile(path, rendered.content)
-			local result = process.exec("luau-lsp", { "analyze", "--platform=standard", path })
+			local result = process.exec(run.resolve("luau-lsp"), { "analyze", "--platform=standard", path })
 			assert(result.ok, result.stdout .. result.stderr)
 			local decoded = luau.load(rendered.content)()
 			assert(
@@ -254,8 +255,10 @@ if vitals then
 end
 ]]
 			)
-			local result =
-				process.exec("luau-lsp", { "analyze", "--platform=standard", path, packDir .. "/consumer.luau" })
+			local result = process.exec(
+				run.resolve("luau-lsp"),
+				{ "analyze", "--platform=standard", path, packDir .. "/consumer.luau" }
+			)
 			assert(result.ok, result.stdout .. result.stderr)
 		end, debug.traceback)
 		if fs.isDir(root) then

@@ -41,13 +41,21 @@ end
 local screenGui = create("ScreenGui", { Name = "GardenGui", ResetOnSpawn = false }, playerGui)
 local frame = create("Frame", {
 	Name = "GardenFrame",
-	Size = UDim2.fromOffset(340, 0),
+	-- 340 px overflowed 320-pt phones and sat under notches. Clamp to the viewport
+	-- and inset from the real safe area instead of a fixed 20 px top-right anchor.
+	Size = UDim2.fromScale(0.9, 0),
 	AutomaticSize = Enum.AutomaticSize.Y,
-	Position = UDim2.new(1, -20, 0, 20),
+	Position = UDim2.new(1, -8, 0, 8),
 	AnchorPoint = Vector2.new(1, 0),
 	BackgroundColor3 = Color3.fromRGB(28, 38, 28),
 	BorderSizePixel = 0,
 }, screenGui)
+-- GuiService inset keeps the top row below the notch/topbar on every device.
+pcall(function()
+	local gui = game:GetService("GuiService")
+	local inset = gui:GetGuiInset()
+	frame.Position = UDim2.new(1, -8, 0, inset.Y + 8)
+end)
 create("UIListLayout", { Padding = UDim.new(0, 6) }, frame)
 
 local function makeLabel(parent: Instance, name: string, size: UDim2, color: Color3, textSize: number): TextLabel
@@ -65,11 +73,17 @@ local coinsLabel = makeLabel(frame, "Coins", UDim2.new(1, 0, 0, 26), Color3.from
 local barricadeLabel = makeLabel(frame, "Barricades", UDim2.new(1, 0, 0, 20), Color3.fromRGB(200, 220, 255), 14)
 local waveLabel = makeLabel(frame, "NextWave", UDim2.new(1, 0, 0, 20), Color3.fromRGB(255, 170, 80), 14)
 local lastWaveLabel = makeLabel(frame, "LastWave", UDim2.new(1, 0, 0, 20), Color3.fromRGB(230, 230, 230), 14)
+-- What the Sell button will sell, so harvesting has visible payoff before selling.
+local heldLabel = makeLabel(frame, "Held", UDim2.new(1, 0, 0, 20), Color3.fromRGB(190, 240, 190), 14)
+heldLabel.Text = "Held: none"
 
 type Row = { label: TextLabel, cursor: number, cropId: string? }
 
 local function makeButton(row: Instance, name: string, offset: number, color: Color3, onClick: () -> ())
-	create("TextButton", {
+	-- The instance name is the qa click target (`plot-1.Sell`, etc.), so it must be
+	-- unique per row and stable: a Text-only button is unfindable by the driver.
+	return create("TextButton", {
+		Name = name,
 		Size = UDim2.fromScale(0.14, 1),
 		Position = UDim2.fromScale(0.43 + offset * 0.1425, 0),
 		Text = name,
@@ -80,9 +94,12 @@ local function makeButton(row: Instance, name: string, offset: number, color: Co
 end
 
 local rows: { Row } = {}
+-- Latest server-side held (harvested, unsold) crop counts, keyed by crop id.
+local heldCrops: { [string]: number } = {}
 for index = 1, Config.plotCount do
 	local plotIndex = index
-	local row = create("Frame", { Size = UDim2.new(1, 0, 0, 30), BackgroundTransparency = 1 }, frame)
+	local row =
+		create("Frame", { Name = "plot-" .. index, Size = UDim2.new(1, 0, 0, 30), BackgroundTransparency = 1 }, frame)
 	local label = makeLabel(row, "Status", UDim2.fromScale(0.42, 1), Color3.fromRGB(240, 240, 240), 12)
 	label.Text = string.format("%d: - (empty, seed 0)", plotIndex)
 
@@ -101,8 +118,12 @@ for index = 1, Config.plotCount do
 	end)
 	makeButton(row, "Plant", 1, Color3.fromRGB(60, 130, 70), function()
 		local cropId = nextCrop()
-		rowState.cursor += 1
 		local planted = Plant:InvokeServer(plotIndex, cropId)
+		-- Advance only on a committed plant. Advancing first made a failed plant
+		-- silently rotate the row onto a seed the player does not hold.
+		if planted == true then
+			rowState.cursor += 1
+		end
 		audio.result("grow-harvest:plant", { ok = planted == true })
 	end)
 	makeButton(row, "Harvest", 2, Color3.fromRGB(150, 120, 50), function()
@@ -110,9 +131,14 @@ for index = 1, Config.plotCount do
 		audio.result("grow-harvest:harvest", { ok = harvested ~= nil })
 	end)
 	makeButton(row, "Sell", 3, Color3.fromRGB(80, 90, 150), function()
-		if rowState.cropId ~= nil then
-			local price = Sell:InvokeServer(rowState.cropId)
-			audio.result("grow-harvest:sell-held", { ok = type(price) == "number" and price > 0 })
+		-- Sell one unit of whatever the player actually holds. The old target was the
+		-- plot's cropId, which stays set after a harvest and is not held inventory.
+		for _, heldCropId in Config.cropOrder do
+			if (heldCrops[heldCropId] or 0) > 0 then
+				local price = Sell:InvokeServer(heldCropId)
+				audio.result("grow-harvest:sell-held", { ok = type(price) == "number" and price > 0 })
+				return
+			end
 		end
 	end)
 end
@@ -140,6 +166,15 @@ StateChanged.OnClientEvent:Connect(function(info: any)
 
 	local plots = info.plots or {}
 	local seeds: any = if type(info.seeds) == "table" then info.seeds else {}
+	heldCrops = if type(info.harvested) == "table" then info.harvested else {}
+	local heldParts: { string } = {}
+	for _, cropId in Config.cropOrder do
+		local count = heldCrops[cropId] or 0
+		if count > 0 then
+			table.insert(heldParts, string.format("%s %d", cropId, count))
+		end
+	end
+	heldLabel.Text = if #heldParts == 0 then "Held: none" else "Held: " .. table.concat(heldParts, ", ")
 	for plotIndex, rowState in rows do
 		local plot = plots[plotIndex]
 		if type(plot) == "table" then

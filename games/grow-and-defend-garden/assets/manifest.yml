@@ -1,1 +1,81 @@
-assets: []
+assets:
+  - key: grow-harvest-buy
+    kind: sfx
+    tool: forge-procgen
+    source: "procedural audio/grow-harvest-buy"
+    path: assets/audio/grow-harvest-buy.wav
+    assetId: 74778073331451
+    moderation: Approved
+    provenance:
+      digest: sha256:f462536d88df9ada943c47f00df4bd5964e80b9b57afc6f4f49341bd4cc62db0
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/audio.yml#grow-harvest-buy"
+        inputVersion: sha256:8f6b4e4f407e4b2f14528e52a7ee6520a8e4bf2bbed089837940416a403e6d35
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+  - key: grow-harvest-plant
+    kind: sfx
+    tool: forge-procgen
+    source: "procedural audio/grow-harvest-plant"
+    path: assets/audio/grow-harvest-plant.wav
+    assetId: 130121660388648
+    moderation: PendingModeration
+    provenance:
+      digest: sha256:a793f0f0d152c021e76b02fb1a487a9241c685b8f5b76f08a538e7bf28757eb1
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/audio.yml#grow-harvest-plant"
+        inputVersion: sha256:8d931d83a2a9bb69b506419419813769b3249ff19609c89ece9b875772cda937
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+  - key: grow-harvest-harvest
+    kind: sfx
+    tool: forge-procgen
+    source: "procedural audio/grow-harvest-harvest"
+    path: assets/audio/grow-harvest-harvest.wav
+    assetId: 98544237280059
+    moderation: Approved
+    provenance:
+      digest: sha256:b87dea9541eec6920993e5d5cb4577c2fb8387015b69c304c50759206dc29c47
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/audio.yml#grow-harvest-harvest"
+        inputVersion: sha256:70d6475961e704c6e077bb65e953e07b3961b44cbdd37265dd987136dc57f0ae
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+  - key: grow-harvest-sell
+    kind: sfx
+    tool: forge-procgen
+    source: "procedural audio/grow-harvest-sell"
+    path: assets/audio/grow-harvest-sell.wav
+    assetId: 116230632005191
+    moderation: Approved
+    provenance:
+      digest: sha256:9e4aa0bb6b2ba62129d85269e0ed2e9333eb3215f7e671f8e448b1d164a65a4f
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/audio.yml#grow-harvest-sell"
+        inputVersion: sha256:a5778d2c7452b84d3e910521f6facd0461107e40d35c402f2179439e581ad87b
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party

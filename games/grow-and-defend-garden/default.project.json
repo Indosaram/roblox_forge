@@ -1,6 +1,13 @@
 {
   "name": "grow-and-defend-garden",
-  "globIgnorePaths": ["**/*.spec.luau", "**/*.md", "**/.gitkeep", "**/*.yml"],
+  "globIgnorePaths": [
+    "**/*.spec.luau",
+    "**/*.fixture.luau",
+    "**/fixtures/**",
+    "**/*.md",
+    "**/.gitkeep",
+    "**/*.yml"
+  ],
   "tree": {
     "$className": "DataModel",
     "ReplicatedStorage": {
@@ -44,7 +51,37 @@
         }
       }
     },
+    "Lighting": {
+      "$className": "Lighting",
+      "$properties": {
+        "Technology": "Future",
+        "GlobalShadows": true
+      }
+    },
+    "Workspace": {
+      "$className": "Workspace",
+      "Baseplate": {
+        "$className": "Part",
+        "$properties": {
+          "Size": [200, 1, 200],
+          "Position": [0, -0.5, 0],
+          "Anchored": true,
+          "TopSurface": "Smooth",
+          "Color": [96, 128, 84]
+        }
+      },
+      "SpawnLocation": {
+        "$className": "SpawnLocation",
+        "$properties": {
+          "Size": [12, 1, 12],
+          "Position": [0, 0.5, 0],
+          "Anchored": true,
+          "Neutral": true
+        }
+      }
+    },
     "ServerScriptService": {
+      "PersistenceConfig": { "$path": "src/server/PersistenceConfig.luau" },
       "GardenServer": { "$path": "src/server/GardenServer.server.luau" }
     },
     "StarterPlayer": {

@@ -29,9 +29,9 @@ Retention leans on three hooks: daily quests (Hatch 3 eggs (+100 Coins), Buy 5 e
 
 ## Roster
 
-Eggs: Island Egg (50 Coins), Sky Egg (250 Coins).
+Eggs: Island Egg (25 Coins), Sky Egg (125 Coins).
 
-Creatures: Island Scamper (Common, 1/s), Island Serpent (Rare, 3/s), Island Colossus (Legendary, 8/s), Sky Pup (Common, 1/s), Sky Stalker (Rare, 3/s), Sky Leviathan (Legendary, 8/s).
+Creatures: Island Scamper (Common, 2/s), Island Serpent (Rare, 6/s), Island Colossus (Legendary, 16/s), Sky Pup (Common, 2/s), Sky Stalker (Rare, 6/s), Sky Leviathan (Legendary, 16/s).
 
 ## Balance
 

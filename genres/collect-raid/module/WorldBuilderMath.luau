@@ -30,6 +30,45 @@ function WorldBuilderMath.groundCellVariant(gx: number, gz: number): number
 	return ((gx + gz) % 2) + 1
 end
 
+-- Top surface of a base platform deck, in world Y.
+function WorldBuilderMath.deckTop(platformCenterY: number, platformHeight: number): number
+	return platformCenterY + platformHeight / 2
+end
+
+-- Centre Y that seats a part flush on the deck. Props authored with a bare Y
+-- (the base layout's `shop` and `spawn` both use 1/3) are written as if "about 1
+-- sits on the deck"; treating that as an absolute centre buries a tall part.
+function WorldBuilderMath.seatOnDeck(deckTopY: number, partHeight: number): number
+	return deckTopY + partHeight / 2
+end
+
+-- Centre Y that seats a parade pad flush on the deck. A pad authored at the
+-- deck's own centre Y ends up buried inside the platform.
+function WorldBuilderMath.paradePadCenterY(platformCenterY: number, platformHeight: number, padHeight: number): number
+	return WorldBuilderMath.deckTop(platformCenterY, platformHeight) + padHeight / 2
+end
+
+-- Vertical lift that seats a built model on a surface. A model's pivot sits at its
+-- own origin, which is species-specific: applying a constant offset floats tall
+-- creatures and sinks short ones. Measure the rendered bounding box and lift by the
+-- gap between the surface and the box bottom.
+function WorldBuilderMath.seatLift(surfaceTop: number, boxCenterY: number, boxHeight: number): number
+	return surfaceTop - (boxCenterY - boxHeight / 2)
+end
+
+-- Roblox rasterises a terrain FillBlock one half-voxel above the authored top
+-- edge, so a column authored to end at Y collides at Y + 2. Measured in Studio
+-- by filling blocks at several tops and raycasting each one. Authors subtract
+-- this so the rendered plateau rests exactly on the authored surface instead of
+-- burying the base deck.
+WorldBuilderMath.TERRAIN_RASTER_LIFT = 2
+
+-- Authored centre Y for a terrain column, given the surface height the world
+-- design wants. Returned value goes straight into FillBlock's CFrame.
+function WorldBuilderMath.terrainColumnCenterY(top: number, bottom: number): number
+	return (top + bottom) / 2 - WorldBuilderMath.TERRAIN_RASTER_LIFT
+end
+
 -- Four neon trim strips along the base platform edges.
 function WorldBuilderMath.platformTrims(center: Vec, half: number): { Trim }
 	return {

@@ -57,7 +57,7 @@ local EconConfig: EconData = {
 		["island"] = {
 			id = "island",
 			displayName = "Island Egg",
-			price = 50,
+			price = 25,
 			hatchSeconds = 5,
 			pool = {
 				{ id = "island-scamper", weight = 0.7 },
@@ -68,7 +68,7 @@ local EconConfig: EconData = {
 		["sky"] = {
 			id = "sky",
 			displayName = "Sky Egg",
-			price = 250,
+			price = 125,
 			hatchSeconds = 15,
 			pool = {
 				{ id = "sky-pup", weight = 0.6 },
@@ -83,37 +83,37 @@ local EconConfig: EconData = {
 			id = "island-scamper",
 			displayName = "Island Scamper",
 			rarity = "Common",
-			coinsPerSecond = 1,
+			coinsPerSecond = 2,
 		},
 		["island-serpent"] = {
 			id = "island-serpent",
 			displayName = "Island Serpent",
 			rarity = "Rare",
-			coinsPerSecond = 3,
+			coinsPerSecond = 6,
 		},
 		["island-colossus"] = {
 			id = "island-colossus",
 			displayName = "Island Colossus",
 			rarity = "Legendary",
-			coinsPerSecond = 8,
+			coinsPerSecond = 16,
 		},
 		["sky-pup"] = {
 			id = "sky-pup",
 			displayName = "Sky Pup",
 			rarity = "Common",
-			coinsPerSecond = 1,
+			coinsPerSecond = 2,
 		},
 		["sky-stalker"] = {
 			id = "sky-stalker",
 			displayName = "Sky Stalker",
 			rarity = "Rare",
-			coinsPerSecond = 3,
+			coinsPerSecond = 6,
 		},
 		["sky-leviathan"] = {
 			id = "sky-leviathan",
 			displayName = "Sky Leviathan",
 			rarity = "Legendary",
-			coinsPerSecond = 8,
+			coinsPerSecond = 16,
 		},
 	},
 }

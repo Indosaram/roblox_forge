@@ -249,6 +249,13 @@ end
 -- ---------------------------------------------------------------------------
 -- Terrain
 
+-- Roblox rasterises a terrain FillBlock one half-voxel above the authored top
+-- edge: a column authored to end at baseY collides at baseY + 2. Measured in
+-- Studio by filling blocks at several tops and raycasting the result. Without
+-- this correction the plateau lands on 2.00 and swallows the 1.50 base deck,
+-- the arena floor, and the parade pads.
+local TERRAIN_SURFACE_LIFT = WorldBuilderMath.TERRAIN_RASTER_LIFT
+
 -- Replaces the flat ground Parts with workspace.Terrain: a grass plateau with
 -- procedural hills, a sand path from each base to the arena, and an edge lake.
 -- Returns false (after clearing its region) so the caller can fall back to Parts.
@@ -278,20 +285,24 @@ local function buildTerrain(t: TerrainTheme, layout: Layout, theme: Theme): bool
 			grass = theme.materials.terrainGrass,
 			rock = theme.materials.terrainRock,
 		}
-		for _, col in WorldBuilderMath.terrainColumns(spec) do
-			local height = col.top - col.bottom
+		local function fillColumn(x: number, z: number, top: number, bottom: number, material: Enum.Material): ()
+			local height = top - bottom
 			if height > 0.1 then
 				Terrain:FillBlock(
-					CFrame.new(col.x, (col.top + col.bottom) / 2, col.z),
+					CFrame.new(x, WorldBuilderMath.terrainColumnCenterY(top, bottom), z),
 					Vector3.new(spec.cellSize, height, spec.cellSize),
-					materials[col.kind] or materials.grass
+					material
 				)
 			end
+		end
+
+		for _, col in WorldBuilderMath.terrainColumns(spec) do
+			fillColumn(col.x, col.z, col.top, col.bottom, materials[col.kind] or materials.grass)
 			if col.waterTop then
 				local waterHeight = col.waterTop - col.top
 				if waterHeight > 0.1 then
 					Terrain:FillBlock(
-						CFrame.new(col.x, (col.top + col.waterTop) / 2, col.z),
+						CFrame.new(col.x, (col.top + col.waterTop) / 2 - TERRAIN_SURFACE_LIFT, col.z),
 						Vector3.new(spec.cellSize, waterHeight, spec.cellSize),
 						Enum.Material.Water
 					)
@@ -304,7 +315,8 @@ local function buildTerrain(t: TerrainTheme, layout: Layout, theme: Theme): bool
 				WorldBuilderMath.pathBetween(base.center, base.size.x / 2, layout.arena.radius, layout.arena.center)
 			if span then
 				Terrain:FillBlock(
-					CFrame.new(span.position.x, t.baseY - 0.5, span.position.z) * CFrame.Angles(0, span.yaw, 0),
+					CFrame.new(span.position.x, t.baseY - 0.5 - TERRAIN_SURFACE_LIFT, span.position.z)
+						* CFrame.Angles(0, span.yaw, 0),
 					Vector3.new(span.size.x, 1, span.size.z),
 					theme.materials.sand
 				)
@@ -378,6 +390,14 @@ local function addSparkles(
 	return emitter
 end
 
+local PLATFORM_HEIGHT = 2
+local PLATFORM_CENTER_Y = 0.5
+local DECK_TOP = WorldBuilderMath.deckTop(PLATFORM_CENTER_Y, PLATFORM_HEIGHT)
+local PARADE_PAD_SIZE = Vector3.new(4, 0.4, 4)
+local PARADE_PAD_CENTER_Y = WorldBuilderMath.paradePadCenterY(PLATFORM_CENTER_Y, PLATFORM_HEIGHT, PARADE_PAD_SIZE.Y)
+local SHOP_SIZE = Vector3.new(6, 6, 3)
+local SHOP_CENTER_Y = WorldBuilderMath.seatOnDeck(DECK_TOP, SHOP_SIZE.Y)
+
 local function buildBase(parent: Instance, b: BaseLayout, arena: ArenaLayout, theme: Theme, terrainOk: boolean): ()
 	local color = teamColor(b, theme)
 	local half = b.size.x / 2
@@ -391,8 +411,8 @@ local function buildBase(parent: Instance, b: BaseLayout, arena: ArenaLayout, th
 
 	part({
 		Name = "Platform",
-		Size = Vector3.new(b.size.x, 2, b.size.z),
-		Position = Vector3.new(b.center.x, 0.5, b.center.z),
+		Size = Vector3.new(b.size.x, PLATFORM_HEIGHT, b.size.z),
+		Position = Vector3.new(b.center.x, PLATFORM_CENTER_Y, b.center.z),
 		Material = materials.platform,
 		Color = theme.palette.platform,
 	}, folder)
@@ -405,7 +425,7 @@ local function buildBase(parent: Instance, b: BaseLayout, arena: ArenaLayout, th
 				Name = "Corner" .. tostring(sx) .. tostring(sz),
 				Shape = Enum.PartType.Cylinder,
 				Size = Vector3.new(2, cornerRadius * 2, cornerRadius * 2),
-				CFrame = CFrame.new(b.center.x + sx * half, 0.5, b.center.z + sz * half)
+				CFrame = CFrame.new(b.center.x + sx * half, PLATFORM_CENTER_Y, b.center.z + sz * half)
 					* CFrame.Angles(0, 0, math.rad(90)),
 				Material = materials.platform,
 				Color = theme.palette.platform,
@@ -521,8 +541,8 @@ local function buildBase(parent: Instance, b: BaseLayout, arena: ArenaLayout, th
 	for k, slotPos in b.parade.positions do
 		part({
 			Name = b.parade.name .. k,
-			Size = Vector3.new(4, 0.4, 4),
-			Position = v(slotPos),
+			Size = PARADE_PAD_SIZE,
+			Position = Vector3.new(slotPos.x, PARADE_PAD_CENTER_Y, slotPos.z),
 			Material = materials.slot,
 			Color = theme.palette.slot,
 		}, folder):SetAttribute("Team", b.team)
@@ -530,8 +550,8 @@ local function buildBase(parent: Instance, b: BaseLayout, arena: ArenaLayout, th
 
 	local shop = part({
 		Name = "Shop",
-		Size = Vector3.new(6, 6, 3),
-		Position = v(b.shop),
+		Size = SHOP_SIZE,
+		Position = Vector3.new(b.shop.x, SHOP_CENTER_Y, b.shop.z),
 		Material = materials.shop,
 		Color = theme.palette.wood,
 	}, folder)

@@ -3,6 +3,7 @@ local fs = require("@lune/fs")
 local process = require("@lune/process")
 local serde = require("@lune/serde")
 local contract = require("./genrecontract")
+local run = require("./run")
 local Content = require("../../../core/domain/survival/Content")
 local WorldKit = require("../../../core/ui-kit/genre/WorldKit")
 local registryLib = require("./genreregistry")
@@ -97,7 +98,7 @@ function M.renderConfig(pack: any): string
 				.. string.sub(serialized, endAt + 1)
 		end
 		table.insert(lines, "-- stylua: ignore\nlocal config: PackConfig = " .. serialized .. "\nreturn config\n")
-		local formatter = process.create("stylua", {
+		local formatter = run.create("stylua", {
 			"--config-path",
 			"stylua.toml",
 			"--stdin-filepath",
@@ -109,7 +110,7 @@ function M.renderConfig(pack: any): string
 		local formatted = formatter.stdout:readToEnd()
 		local formatterErrors = formatter.stderr:readToEnd()
 		assert(formatter:status().ok, formatterErrors)
-		local stabilized = process.create("stylua", { "--config-path", "stylua.toml", "-" })
+		local stabilized = run.create("stylua", { "--config-path", "stylua.toml", "-" })
 		stabilized.stdin:write(formatted)
 		stabilized.stdin:close()
 		local stableSource = stabilized.stdout:readToEnd()

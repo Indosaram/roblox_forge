@@ -1,6 +1,13 @@
 {
 	"name": "kaiju-egg-raiders",
-	"globIgnorePaths": ["**/*.spec.luau", "**/*.md", "**/.gitkeep", "**/*.yml"],
+	"globIgnorePaths": [
+		"**/*.spec.luau",
+		"**/*.fixture.luau",
+		"**/fixtures/**",
+		"**/*.md",
+		"**/.gitkeep",
+		"**/*.yml"
+	],
 	"tree": {
 		"$className": "DataModel",
 		"ReplicatedStorage": {

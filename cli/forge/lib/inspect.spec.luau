@@ -2,6 +2,7 @@
 local fs = require("@lune/fs")
 local tempdir = require("./tempdir")
 local process = require("@lune/process")
+local run = require("./run")
 local serde = require("@lune/serde")
 local inspect = require("./inspect")
 return {
@@ -25,7 +26,7 @@ return {
 				})
 			)
 			local place = root .. "/place.rbxl"
-			local built = process.exec("rojo", { "build", root .. "/default.project.json", "-o", place })
+			local built = process.exec(run.resolve("rojo"), { "build", root .. "/default.project.json", "-o", place })
 			assert(built.ok, built.stderr)
 			local expected = { { path = "ServerScriptService.Entry", expected = "Script" } }
 			local result = inspect.inspectPlaceFile(place, expected)
@@ -36,7 +37,7 @@ return {
 			expected[1] = { path = "ServerScriptService.Absent", expected = "Script" }
 			assert(not inspect.inspectPlaceFile(place, expected).ok, "missing entry accepted")
 			fs.writeFile(root .. "/Shared.luau", 'return require("./Absent")\n')
-			built = process.exec("rojo", { "build", root .. "/default.project.json", "-o", place })
+			built = process.exec(run.resolve("rojo"), { "build", root .. "/default.project.json", "-o", place })
 			assert(built.ok, built.stderr)
 			expected[1] = { path = "ServerScriptService.Entry", expected = "Script" }
 			assert(not inspect.inspectPlaceFile(place, expected).ok, "unresolved require accepted")

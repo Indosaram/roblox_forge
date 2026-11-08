@@ -821,7 +821,10 @@ local function hatch(team: string, player: Player): ()
 	local model = spawnCreaturePlaceholder(hatched.key)
 	local slot = WorldBuilder.slot(LAYOUT, team, hatched.slot)
 	if slot ~= nil then
-		model:PivotTo(slot.CFrame + Vector3.new(0, 3, 0))
+		-- The placeholder is what the client seats the real model onto, so it must carry
+		-- the pad's own top face. A fixed +3 offset floated every creature above the pad.
+		local padTop = slot.Position.Y + slot.Size.Y / 2
+		model:PivotTo(CFrame.new(slot.Position.X, padTop + 0.5, slot.Position.Z))
 	end
 	model.Parent = workspace
 end

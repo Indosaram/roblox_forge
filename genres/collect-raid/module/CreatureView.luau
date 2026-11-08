@@ -50,6 +50,13 @@ function CreatureView.spawnCreature(placeholder: BasePart, specs: Specs, key: st
 		return nil, nil
 	end
 	model:PivotTo(placeholder.CFrame)
+	-- The placeholder marks the slot, not the model's resting height: pivoting onto it
+	-- directly would use each species' own origin and float or sink the creature. Seat
+	-- the rendered bounding box on the placeholder's bottom face instead.
+	local boxCenter, boxSize = model:GetBoundingBox()
+	local surfaceTop = placeholder.CFrame.Position.Y - placeholder.Size.Y / 2
+	local lift = surfaceTop - (boxCenter.Y - boxSize.Y / 2)
+	model:PivotTo(model:GetPivot() + Vector3.new(0, lift, 0))
 	model.Parent = placeholder.Parent
 	placeholder.Transparency = 1
 	local handle = Animator.attach(model, profileFor(specs, key), seedFor(specs, key))

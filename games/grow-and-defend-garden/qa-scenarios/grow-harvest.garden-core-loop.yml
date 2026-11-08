@@ -1,0 +1,87 @@
+# Garden's first-play loop on its real HUD (GardenGui.GardenFrame.plot-1.*).
+#
+# This pack hand-rolls its server, so it exposes no genre ForgeQA dispatch surface.
+# The genre's legacy playtest `core-loop` clicks seed-shop/plot-1/sell-crop, names
+# this UI does not build, and the gate only executes native/studio runs, so that
+# declaration never executed anything. This scenario drives the real buttons and
+# asserts on the state the server pushes back through StateChanged.
+name: garden-core-loop
+genre: grow-harvest
+pack: grow-and-defend-garden
+kind: studio
+contract_api: 1
+timeout_seconds: 300
+players: [desktop]
+steps:
+  - {op: expect_members, members: [desktop]}
+  - {op: device, player: desktop, surface: desktop, width: 1280, height: 720, timeout_seconds: 30}
+  - op: wait_for
+    player: desktop
+    timeout_seconds: 60
+    predicate:
+      source: property
+      target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.Coins"
+      field: Text
+      equals: "Coins: 50"
+  - op: wait_for
+    player: desktop
+    timeout_seconds: 30
+    predicate:
+      source: property
+      target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.plot-1.Status"
+      field: Text
+      equals: "1: - (empty, seed 0)"
+  - {op: click, player: desktop, target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.plot-1.Buy", timeout_seconds: 30}
+  - op: wait_for
+    player: desktop
+    timeout_seconds: 30
+    predicate:
+      source: property
+      target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.plot-1.Status"
+      field: Text
+      equals: "1: - (empty, seed 1)"
+  - {op: click, player: desktop, target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.plot-1.Plant", timeout_seconds: 30}
+  - op: wait_for
+    player: desktop
+    timeout_seconds: 30
+    predicate:
+      source: property
+      target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.plot-1.Status"
+      field: Text
+      not_equals: "1: - (empty, seed 0)"
+  - op: wait_for
+    player: desktop
+    timeout_seconds: 180
+    predicate:
+      source: property
+      target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.plot-1.Status"
+      field: Text
+      equals: "1: carrot (ready, seed 0)"
+  - {op: click, player: desktop, target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.plot-1.Harvest", timeout_seconds: 30}
+  - op: wait_for
+    player: desktop
+    timeout_seconds: 30
+    predicate:
+      source: property
+      target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.Held"
+      field: Text
+      equals: "Held: carrot 1"
+  - {op: capture, target: garden-after-harvest}
+  - {op: click, player: desktop, target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.plot-1.Sell", timeout_seconds: 30}
+  - op: wait_for
+    player: desktop
+    timeout_seconds: 30
+    predicate:
+      source: property
+      target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.Held"
+      field: Text
+      equals: "Held: none"
+  - op: wait_for
+    player: desktop
+    timeout_seconds: 30
+    predicate:
+      source: property
+      target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.Coins"
+      field: Text
+      equals: "Coins: 59"
+  - {op: capture, target: garden-after-sell, settle: true}

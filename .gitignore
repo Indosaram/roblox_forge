@@ -1,5 +1,7 @@
 # omo tool state
 .omo/
+# senpi agent session state
+.senpi/
 
 # build output
 build/

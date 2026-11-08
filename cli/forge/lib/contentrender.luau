@@ -15,7 +15,7 @@ local contract = require("./genrecontract")
 local Content = require("../../../core/domain/survival/Content")
 local ContentV2 = require("../../../core/domain/survival/ContentV2")
 local Capability = require("../../../core/domain/survival/Capability")
-local process = require("@lune/process")
+local run = require("./run")
 
 local M = {}
 
@@ -369,7 +369,7 @@ function M.render(document: Content.Document, mode: string): string
 	source ..= typeSource .. (if document.version == 2 then "\n-- stylua: ignore\n" else "\n") .. "local content: Content = " .. serialized .. "\nreturn content\n"
 	if extended or hasContracts or hasCamp or document.version == 2 then
 		for _ = 1, 2 do
-			local formatter = process.create("stylua", { "--config-path", "stylua.toml", "-" })
+			local formatter = run.create("stylua", { "--config-path", "stylua.toml", "-" })
 			formatter.stdin:write(source)
 			formatter.stdin:close()
 			source = formatter.stdout:readToEnd()

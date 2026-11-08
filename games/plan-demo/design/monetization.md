@@ -23,14 +23,14 @@ Ladder source: `price_ladder` in `genres/collect-raid/econ-template.yml` (low 99
 ## Game passes
 
 - **2x Coins** (699 Robux) - Doubles coin income.
-- **VIP Slots +4** (699 Robux) - Adds four production slots.
+- **VIP Slots +4** (699 Robux) - Adds four incubator slots.
 - **Auto Lock** (199 Robux) - Auto-locks your creatures before a siege.
 
 ## Developer products
 
 - **Guaranteed Rare Creature Pack** (99 Robux) - Grants one fixed Rare creature.
 - **Hatch Speed-Up** (699 Robux) - Instantly finishes the current hatch.
-- **Siege Shield** (99 Robux) - Blocks one incoming siege for 30 minutes.
+- **Siege Shield** (99 Robux) - Protects your team vault from raids for 10 minutes while you remain in the server.
 - **Server Luck Boost 15m** (199 Robux) - Improves free-hatch odds for the server for 15 minutes.
 
 ## First-purchase moment

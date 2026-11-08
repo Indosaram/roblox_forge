@@ -114,8 +114,13 @@ return {
 		-- requires: a ForgeQA folder whose dispatch drives the pack's own hatch, whose snapshot reads
 		-- the real leaderstats balance, and whose save writes the real profile.
 		local server = extracted["src/server/CollectProofServer.server.luau"]
+		-- The baseline advanced when the creature placeholder was reseated: it used to sit
+		-- three studs above the slot's origin, so a creature model whose pivot is not its
+		-- own centre floated or sank. It now sits on the pad's top face, which is the same
+		-- rule the runtime seating uses. Only the server starter moved; the client hash above
+		-- is unchanged, so the drift is exactly this one placement.
 		assert(
-			serde.hash("sha256", server) == "d6dc495a796391e3b37b43f4a3af8e257e7af0f25f52e7a6beb2168618f94a1b",
+			serde.hash("sha256", server) == "daffd78a5f09a82995de81584e4ce738abe8fbd446ef65f8ff60386f34420d68",
 			"scaffolded server bytes changed"
 		)
 		-- The standard surface is published by the pack's own server and backed by the real runtime:
