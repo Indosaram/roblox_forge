@@ -589,9 +589,9 @@ function M.run(host: any, p: any, options: any?): any
 					table.insert(candidates, l)
 				end
 			elseif row.route then
-				for _, stage in Content.stages or {} do
-					if stage.route == row.route then
-						local l = layoutOf(stage.layout)
+				for _, stageRow in Content.stages or {} do
+					if stageRow.route == row.route then
+						local l = layoutOf(stageRow.layout)
 						if l then
 							table.insert(candidates, l)
 						end
@@ -694,12 +694,12 @@ function M.run(host: any, p: any, options: any?): any
 		local h = p.h()
 		local pets = (extensions().taming.companions or {}).pets or {}
 		local ids = {}
-		local kind = want or "dodo"
+		local wantKind = want or "dodo"
 		local scan = function()
 			table.clear(ids)
 			for id, model in h.creatures or {} do
 				if
-					model:GetAttribute("ForgeWildlifeKind") == kind
+					model:GetAttribute("ForgeWildlifeKind") == wantKind
 					and not pets[id]
 					and (model:GetAttribute("ForgeWildlifeHealthMilli") or 0) > 0
 				then
