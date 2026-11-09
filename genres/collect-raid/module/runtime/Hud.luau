@@ -908,7 +908,12 @@ function Hud.start(opts: Options): ()
 
 	local questFrame = Instance.new("Frame")
 	questFrame.Name = "Quests"
-	questFrame.Size = UDim2.new(1, 0, 0, 108)
+	-- Three 44 px quest rows plus 4 px padding need 140 px, but this was pinned at
+	-- 108: the third row overflowed its parent (measured live at y=302-346 while the
+	-- next sibling started at 320) and drew on top of the Merge button. Grow with the
+	-- rows instead of assuming a count, the same way Incubators already does.
+	questFrame.Size = UDim2.fromScale(1, 0)
+	questFrame.AutomaticSize = Enum.AutomaticSize.Y
 	questFrame.BackgroundTransparency = 1
 	questFrame.Parent = frame
 
@@ -926,6 +931,45 @@ function Hud.start(opts: Options): ()
 	local incLayout = Instance.new("UIListLayout")
 	incLayout.Padding = UDim.new(0, 4)
 	incLayout.Parent = incubatorFrame
+
+	-- Pin the column order. Every sibling used to keep LayoutOrder = 0, so the order
+	-- fell back to child order -- which setContentMode changes by reparenting items
+	-- into the phone sheets and back. Measured in a live session the column had
+	-- drifted into creation order no longer: "Daily Quests" rendered 350 px below its
+	-- own rows, and the first egg's Buy button (the tutorial's first instruction)
+	-- ended up at y=712 in a 575 px panel, below the fold.
+	--
+	-- Explicit, unique orders make the column independent of reparenting history, and
+	-- put the first-play path (coins -> vault -> incubators -> quests -> buy) above the
+	-- fold instead of below it.
+	local COLUMN_ORDER: { [GuiObject]: number } = {
+		[coinsLabel] = 10,
+		[vaultLabel] = 20,
+		[incubatorFrame] = 30,
+		[questHeader] = 40,
+		[questFrame] = 41,
+		[storeButton] = 50,
+		[oddsButton] = 60,
+		[creaturesLabel] = 90,
+		[creatureInventory] = 91,
+		[inviteButton] = 100,
+		[vaultedLabel] = 110,
+		[siegeLabel] = 120,
+		[raidButton] = 130,
+	}
+	for item, order in COLUMN_ORDER do
+		item.LayoutOrder = order
+	end
+	for index, button in mergeButtons do
+		button.LayoutOrder = 70 + index
+	end
+	for index, sourceId in Config.sourceOrder do
+		local button: TextButton? = buyButtons[sourceId]
+		if button ~= nil then
+			-- The first source is the tutorial's target; keep it ahead of the rest.
+			button.LayoutOrder = 80 + index
+		end
+	end
 
 	-- Store and odds panels sit top-right, left of the main panel, clear of the chat.
 	local function makePanel(name: string, width: number, rightOffset: number, header: string): Frame
@@ -1321,8 +1365,11 @@ function Hud.start(opts: Options): ()
 			row.BackgroundTransparency = 1
 			row.Parent = questFrame
 
+			-- iconButton reserves a square icon slot plus padding before the text:
+			-- at 92 px wide that left 44 px for the label and "Claim" rendered as
+			-- "Clai" (measured: Text.AbsoluteSize.X = 44). 108 px leaves 60.
 			local label = Instance.new("TextLabel")
-			label.Size = UDim2.new(1, -96, 1, 0)
+			label.Size = UDim2.new(1, -112, 1, 0)
 			label.Text = Copy.questRowText(tostring(quest.id), progress, target, quest.reward or 0)
 			label.TextColor3 = if quest.claimed then Color3.fromRGB(140, 140, 140) else Color3.fromRGB(230, 230, 230)
 			label.TextSize = 13
@@ -1339,8 +1386,8 @@ function Hud.start(opts: Options): ()
 			local claim = Components.iconButton(theme, {
 				name = "Claim",
 				text = if quest.claimed then Copy.claimedButtonText else Copy.claimButtonText,
-				size = UDim2.new(0, 92, 1, 0),
-				position = UDim2.new(1, -92, 0, 0),
+				size = UDim2.new(0, 108, 1, 0),
+				position = UDim2.new(1, -108, 0, 0),
 				baseColor = base,
 				icon = glyphContent("quest"),
 				iconSize = 20,
