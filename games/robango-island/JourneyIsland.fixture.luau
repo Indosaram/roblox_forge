@@ -729,7 +729,7 @@ function M.run(host: any, p: any, options: any?): any
 				"CAPTURE-PROBE %.1fmin %s want=%s live=%d pets=%d worldModels=%s",
 				p.minutes(),
 				host.layoutId,
-				kind,
+				wantKind,
 				#ids,
 				next(pets) ~= nil and 1 or 0,
 				h.creatures and #h.creatures or 0
