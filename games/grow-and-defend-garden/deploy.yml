@@ -5,8 +5,8 @@ environments:
     universeId: ${FORGE_STAGING_UNIVERSE_ID}
     placeId: ${FORGE_STAGING_PLACE_ID}
   production:
-    universeId: 0
-    placeId: 0
+    universeId: 10775506136
+    placeId: 121621988401104
     requiresHumanMerge: true
 # Localization Tables API target for `forge locale sync` (0 = unset).
 localizationTableId: 0
