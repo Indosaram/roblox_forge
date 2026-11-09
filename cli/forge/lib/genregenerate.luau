@@ -259,7 +259,14 @@ local function assemble(
 	-- `core.infra.genre.Server` is mounted beside it: a parallel contract runtime would expose a
 	-- ForgeQA surface whose dispatch/snapshot/save validate a fixture instead of the playable loop.
 	-- The legacy scaffold publishes its own ForgeQA surface over its real runtime instead.
-	common["default.project.json"] = M.project(input, canonical, destination, registry, worldEntry)
+	common["default.project.json"] = M.project(
+		input,
+		canonical,
+		destination,
+		registry,
+		worldEntry,
+		if legacy then files["default.project.json"] else nil
+	)
 	-- The declarative spec is serialized into every pack, legacy included: it is
 	-- the single source the presentation layer and the derived QA read. A
 	-- multi-genre recipe pack carries its owner's spec, which is the genre whose

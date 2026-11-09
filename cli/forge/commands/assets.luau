@@ -565,7 +565,8 @@ local function publishCue(
 	apiKey: string,
 	creator: Creator,
 	cue: audioassets.Cue,
-	bytes: string
+	bytes: string,
+	request: (any) -> any
 ): (PublishOutcome?, string?)
 	local boundary = "----forgeaudio" .. (audioassets.digestHex(cue.sha256) or "")
 	local requestJson = serde.encode("json", {
@@ -585,7 +586,7 @@ local function publishCue(
 		headers = createHeaders,
 		body = body,
 	}
-	local sent, response = pcall(net.request, createParams)
+	local sent, response = pcall(request, createParams)
 	if not sent then
 		return nil, "create request failed: " .. tostring(response)
 	end
@@ -603,7 +604,7 @@ local function publishCue(
 			method = "GET",
 			headers = pollHeaders,
 		}
-		local polled, poll = pcall(net.request, pollParams)
+		local polled, poll = pcall(request, pollParams)
 		if not polled then
 			return nil, "operation poll failed: " .. tostring(poll)
 		end
@@ -634,15 +635,18 @@ local function publishCue(
 	return nil, "operation did not finish after " .. tostring(UPLOAD_POLL_ATTEMPTS) .. " polls"
 end
 
-local function runUploadAudio(options: {
-	pack: string,
-	packDir: string,
-	manifestPath: string,
-	manifest: assetsLib.Manifest,
-	creator: Creator,
-	cachePath: string,
-	dryRun: boolean,
-}): boolean
+local function runUploadAudio(
+	options: {
+		pack: string,
+		packDir: string,
+		manifestPath: string,
+		manifest: assetsLib.Manifest,
+		creator: Creator,
+		cachePath: string,
+		dryRun: boolean,
+	},
+	deps: UploadDeps
+): boolean
 	local manifest = options.manifest
 	local digests = cueDigests(manifest, options.packDir)
 	local cues, skipped = audioassets.plan(manifest, digests)
@@ -654,9 +658,15 @@ local function runUploadAudio(options: {
 		return #skipped == 0
 	end
 
-	local apiKey = process.env["ROBLOX_API_KEY"]
-	if not options.dryRun and (apiKey == nil or apiKey == "") then
-		stdio.ewrite("Error: ROBLOX_API_KEY is not set; assets upload-audio needs Open Cloud access\n")
+	-- Publishing needs asset:write. ROBLOX_ASSET_API_KEY is the key minted for asset
+	-- work, so prefer it exactly like `assets status` does; the shared ROBLOX_API_KEY
+	-- stays the fallback for installs that keep one key for everything.
+	local apiKey = M.statusApiKey(deps.env or process.env)
+	local request: (any) -> any = deps.request or net.request :: any
+	if not options.dryRun and apiKey == nil then
+		stdio.ewrite(
+			"Error: neither ROBLOX_ASSET_API_KEY nor ROBLOX_API_KEY is set; assets upload-audio needs Open Cloud access\n"
+		)
 		return false
 	end
 
@@ -697,7 +707,7 @@ local function runUploadAudio(options: {
 		end
 
 		local bytes = fs.readFile(options.packDir .. "/" .. cue.path)
-		local outcome, err = publishCue(apiKey :: string, options.creator, cue, bytes)
+		local outcome, err = publishCue(apiKey :: string, options.creator, cue, bytes, request)
 		if outcome == nil then
 			failures += 1
 			stdio.ewrite(string.format("audio %s: FAIL %s\n", cue.key, tostring(err)))
@@ -1335,7 +1345,7 @@ function M.run(args: { string }, context: cliutil.CommandContext?, deps: UploadD
 		if sub == "upload-images" then
 			return runUploadImages(uploadOptions, deps or {})
 		end
-		return runUploadAudio(uploadOptions)
+		return runUploadAudio(uploadOptions, deps or {})
 	end
 
 	if not isIn(ENVS, env) then

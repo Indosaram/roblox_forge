@@ -104,68 +104,68 @@ assets:
     tool: forge-procgen
     source: "procedural audio/musicExplore"
     path: assets/audio/musicExplore.wav
-    assetId: 0
+    assetId: 113309566751431
     moderation: Approved
   - key: musicSiege
     kind: bgm
     tool: forge-procgen
     source: "procedural audio/musicSiege"
     path: assets/audio/musicSiege.wav
-    assetId: 0
+    assetId: 99166144199420
     moderation: Approved
   - key: ambienceWind
     kind: sfx
     tool: forge-procgen
     source: "procedural audio/ambienceWind"
     path: assets/audio/ambienceWind.wav
-    assetId: 0
+    assetId: 77567632445746
     moderation: Approved
   - key: ambienceBirds
     kind: sfx
     tool: forge-procgen
     source: "procedural audio/ambienceBirds"
     path: assets/audio/ambienceBirds.wav
-    assetId: 0
+    assetId: 125604701012144
     moderation: Approved
   - key: sfxClick
     kind: sfx
     tool: forge-procgen
     source: "procedural audio/sfxClick"
     path: assets/audio/sfxClick.wav
-    assetId: 0
+    assetId: 80323500107607
     moderation: Approved
   - key: sfxCoin
     kind: sfx
     tool: forge-procgen
     source: "procedural audio/sfxCoin"
     path: assets/audio/sfxCoin.wav
-    assetId: 0
+    assetId: 101022285817972
     moderation: Approved
   - key: sfxHatch
     kind: sfx
     tool: forge-procgen
     source: "procedural audio/sfxHatch"
     path: assets/audio/sfxHatch.wav
-    assetId: 0
+    assetId: 123344022634766
     moderation: Approved
   - key: sfxRare
     kind: sfx
     tool: forge-procgen
     source: "procedural audio/sfxRare"
     path: assets/audio/sfxRare.wav
-    assetId: 0
+    assetId: 81294456557269
     moderation: Approved
   - key: sfxRaid
     kind: sfx
     tool: forge-procgen
     source: "procedural audio/sfxRaid"
     path: assets/audio/sfxRaid.wav
-    assetId: 0
+    assetId: 73986598715195
     moderation: Approved
   - key: sfxError
     kind: sfx
     tool: forge-procgen
     source: "procedural audio/sfxError"
     path: assets/audio/sfxError.wav
-    assetId: 0
+    assetId: 83421723143585
     moderation: Approved

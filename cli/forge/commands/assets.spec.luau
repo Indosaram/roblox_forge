@@ -739,4 +739,77 @@ return {
 		end
 		assert(ok, tostring(reason))
 	end,
+
+	-- A shipped place cannot load rbxasset://forge/<pack>/*.wav, so a pack whose
+	-- cues were never published plays silence. Publishing needs asset:write, and
+	-- the key minted for asset work is ROBLOX_ASSET_API_KEY; before this the
+	-- command read only ROBLOX_API_KEY and every cue failed with HTTP 403
+	-- PERMISSION_DENIED "User not authenticated".
+	["upload-audio publishes with the asset key, not the shared key"] = function()
+		local root = tempdir.root() .. "/forge-audio-key-" .. serde.hash("sha256", tostring(os.clock())):sub(1, 16)
+		local packDir = root .. "/audiopack"
+		local ok, reason = pcall(function()
+			fs.writeDir(packDir .. "/assets/audio")
+			fs.writeDir(packDir .. "/src/shared")
+			fs.writeFile(packDir .. "/assets/audio/sfxOne.wav", "RIFF fixture one")
+			fs.writeFile(
+				packDir .. "/assets/manifest.yml",
+				table.concat({
+					"assets:",
+					"  - key: sfxOne",
+					"    kind: sfx",
+					"    tool: forge-procgen",
+					"    source: generated",
+					"    path: assets/audio/sfxOne.wav",
+					"    assetId: 0",
+					"",
+				}, "\n")
+			)
+			local keys: { string } = {}
+			local deps: any = {
+				env = {
+					ROBLOX_API_KEY = "shared-no-write",
+					ROBLOX_ASSET_API_KEY = "asset-write",
+					FORGE_ROBLOX_CREATOR_USER_ID = "1234567891",
+				} :: { [string]: string? },
+				wait = function() end,
+				request = function(params: any): any
+					table.insert(keys, params.headers["x-api-key"])
+					if params.method == "POST" then
+						return { ok = true, statusCode = 200, body = serde.encode("json", { operationId = "op1" }) }
+					end
+					return {
+						ok = true,
+						statusCode = 200,
+						body = serde.encode("json", {
+							done = true,
+							response = {
+								assetId = 424242,
+								assetType = "Audio",
+								moderationResult = { moderationState = "Approved" },
+							},
+						}),
+					}
+				end,
+			}
+			local passed = assetsCommand.run(
+				{ "assets", "upload-audio", "--pack-dir", packDir, "--cache", root .. "/audio-upload-cache.json" },
+				nil,
+				deps
+			)
+			assert(passed, "upload-audio passes")
+			assert(#keys == 2, "create plus one operation poll, got " .. tostring(#keys))
+			for _, key in keys do
+				assert(key == "asset-write", "every upload request uses the asset key, saw " .. tostring(key))
+			end
+			local ids = manifestIds(packDir)
+			assert(ids.sfxOne == 424242, "the published id is recorded in the manifest")
+			local generated = fs.readFile(packDir .. "/src/shared/Assets.luau")
+			assert(string.find(generated, "sfxOne=424242", 1, true) ~= nil, "Assets.luau carries the id")
+		end)
+		if fs.isDir(root) then
+			fs.removeDir(root)
+		end
+		assert(ok, tostring(reason))
+	end,
 }

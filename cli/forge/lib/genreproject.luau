@@ -137,9 +137,17 @@ function M.project(
 	order: { string },
 	destination: string,
 	registry: registryLib.Registry,
-	world: { path: string, name: string }?
+	world: { path: string, name: string }?,
+	base: string?
 ): string
-	local doc = serde.decode("json", scaffold.projectJson(input.slug, input.pascal, order))
+	-- A legacy genre ships a project tree that is part of its generated game
+	-- (named Remotes, its own server/client scripts, its own Lighting); the shared
+	-- scaffold would drop every one of those, leaving a server that waits forever
+	-- on instances the place never declares. Start from that pack's own tree when it
+	-- has one and let the shared layers below overwrite only what they own.
+	local doc = if base ~= nil
+		then serde.decode("json", base)
+		else serde.decode("json", scaffold.projectJson(input.slug, input.pascal, order))
 	local tree = doc.tree.ReplicatedStorage.Forge
 	for _, name in { "domain", "infra", "anticheat", "ui-kit" } do
 		tree.core[name]["$path"] = M.relative(destination, M.coreRoot(registry) .. "/" .. name)

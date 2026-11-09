@@ -102,12 +102,48 @@
         }
       },
       "Remotes": {
-        "$className": "Folder"
+        "$className": "Folder",
+        "BuyEgg": {
+          "$className": "RemoteFunction"
+        },
+        "ClaimQuest": {
+          "$className": "RemoteFunction"
+        },
+        "HatchEgg": {
+          "$className": "RemoteFunction"
+        },
+        "Merge": {
+          "$className": "RemoteFunction"
+        },
+        "Notify": {
+          "$className": "RemoteEvent"
+        },
+        "Raid": {
+          "$className": "RemoteFunction"
+        },
+        "RaidReplay": {
+          "$className": "RemoteEvent"
+        },
+        "SiegeState": {
+          "$className": "RemoteEvent"
+        },
+        "StateChanged": {
+          "$className": "RemoteEvent"
+        },
+        "StoreOpen": {
+          "$className": "RemoteEvent"
+        },
+        "TutorialState": {
+          "$className": "RemoteEvent"
+        }
       }
     },
     "ServerScriptService": {
       "PlanDemoServer": {
         "$path": "src/server/PlanDemoServer.server.luau"
+      },
+      "World": {
+        "$path": "src/server/World.luau"
       }
     },
     "StarterPlayer": {

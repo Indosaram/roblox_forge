@@ -59,6 +59,25 @@ return {
 			assert(a.order[1] == id and #a.order == 1, "genre contract retained")
 		end
 	end,
+	["a legacy pack keeps its own project tree in the assembled manifest"] = function()
+		local found = assert(registryLib.discover())
+		local value: contract.GenerateInput = table.clone(input)
+		value.mode = "plan"
+		value.slug = "plan-demo"
+		value.pascal = "PlanDemo"
+		value.concept = "sky whale egg keepers defend floating islands"
+		local a = generate.assemble(found, { "collect-raid" }, value, ".omo/wip/plan-demo")
+		-- The legacy scaffold is the pack's real place tree: named Remotes, its own
+		-- server/client scripts and its own lighting. The shared project renderer must
+		-- merge into that tree, not replace it, or the shipped place has a server that
+		-- waits forever on instances nothing declares.
+		local project = serde.decode("json", a.files["default.project.json"])
+		assert(a.files["src/server/World.luau"] ~= nil, "legacy world module not generated")
+		assert(project.tree.ServerScriptService.World ~= nil, "World server module not mounted")
+		assert(project.tree.ServerScriptService.PlanDemoServer ~= nil, "the pack's own server entry was dropped")
+		assert(project.tree.ReplicatedStorage.Remotes.BuyEgg ~= nil, "the genre's Remotes contract was dropped")
+		assert(project.tree.Lighting.ForgeSky ~= nil, "baked lighting was dropped")
+	end,
 	["authored hooks survive and unknown hook versions fail before writes"] = function()
 		fixture(function(root)
 			local destination = root .. "/counter"
