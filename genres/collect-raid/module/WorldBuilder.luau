@@ -353,7 +353,7 @@ local function buildIncubatorDetail(model: Instance, p: Vector3, color: Color3, 
 	part({
 		Name = "GlowRing",
 		Shape = Enum.PartType.Cylinder,
-		Size = Vector3.new(0.25, 9.6, 9.6),
+		Size = Vector3.new(0.25, 7.6, 7.6),
 		CFrame = CFrame.new(p + Vector3.new(0, 0.35, 0)) * CFrame.Angles(0, 0, math.rad(90)),
 		Material = materials.trim,
 		Color = color,
@@ -478,7 +478,7 @@ local function buildBase(parent: Instance, b: BaseLayout, arena: ArenaLayout, th
 			Size = Vector3.new(6, 6, 6),
 			Position = p + Vector3.new(0, 2.5, 0),
 			Material = materials.glass,
-			Transparency = 0.45,
+			Transparency = 0.62,
 			Color = theme.palette.glass,
 			CanCollide = false,
 		}, model)
@@ -486,7 +486,7 @@ local function buildBase(parent: Instance, b: BaseLayout, arena: ArenaLayout, th
 		part({
 			Name = "Ring",
 			Shape = Enum.PartType.Cylinder,
-			Size = Vector3.new(0.4, 7.6, 7.6),
+			Size = Vector3.new(0.4, 6.8, 6.8),
 			CFrame = CFrame.new(p + Vector3.new(0, 0.9, 0)) * CFrame.Angles(0, 0, math.rad(90)),
 			Material = materials.trim,
 			Color = color,
@@ -494,11 +494,18 @@ local function buildBase(parent: Instance, b: BaseLayout, arena: ArenaLayout, th
 
 		buildIncubatorDetail(model, p, color, theme)
 
+		-- The dome is a viewing case: keep the inner glow low enough that the
+		-- glass still reads as glass instead of a team-coloured sphere. Raised
+		-- from 0.45/10/1.5 after the first playtest showed the hatch pad as a row
+		-- of solid red balls.
+		-- Light the pedestal, never the inside of the glass: a team-coloured
+		-- PointLight parented to the dome fills the sphere and the incubator
+		-- reads as a solid red ball (seen in the first playtest capture).
 		local light = Instance.new("PointLight")
-		light.Range = 10
-		light.Brightness = 1.5
+		light.Range = 5
+		light.Brightness = 0.4
 		light.Color = color
-		light.Parent = dome
+		light.Parent = (model :: any):FindFirstChild("Pedestal") or base
 
 		if theme.particles then
 			addSparkles(base, theme.particles.sparkle or "", color, detail.incubatorSparkleRate or 4, 1.2)
