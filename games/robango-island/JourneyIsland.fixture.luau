@@ -589,12 +589,18 @@ function M.run(host: any, p: any, options: any?): any
 					table.insert(candidates, l)
 				end
 			elseif row.route then
-				for _, stageRow in Content.stages or {} do
-					if stageRow.route == row.route then
-						local l = layoutOf(stageRow.layout)
-						if l then
-							table.insert(candidates, l)
-						end
+				-- The drift route's stages follow the rw.aN.sM naming convention.
+				for _, stageId in
+					{
+						"rw.a" .. row.route .. ".s1",
+						"rw.a" .. row.route .. ".s2",
+						"rw.a" .. row.route .. ".s3",
+						"rw.a" .. row.route .. ".s4",
+					}
+				do
+					local l = layoutOf(stageId)
+					if l then
+						table.insert(candidates, l)
 					end
 				end
 			end
@@ -744,7 +750,17 @@ function M.run(host: any, p: any, options: any?): any
 		-- Weaken with the strongest club in the bag: a fresh bone knife never drops a level-30
 		-- protoceratops inside 40 ticks, and the guide capture chain then grinds travels forever
 		-- (journey6h j11/j12 g47).
-		p.equipFor(count(p.bag().items, "club-t1") > 0 and "club-t1" or "bone-knife")
+		-- The protoceratops retaliates (8 dmg / 2.2s) and its hits stagger a melee windup
+		-- permanently: every melee attack refused with WINDUP, zero damage ever (j15 capture
+		-- diagnosis). A ranged weapon outranges the stagger - the bow the journey already
+		-- crafts at g34 is the capture tool; the club is only for the melee_2 tame-hit stun.
+		if count(p.bag().items, "bow-t1") > 0 then
+			p.equipFor("bow-t1")
+		elseif count(p.bag().items, "club-t1") > 0 then
+			p.equipFor("club-t1")
+		else
+			p.equipFor("bone-knife")
+		end
 		-- Weaken by driving the server attack directly: the CombatHud's swing loop runs on
 		-- RunService.Heartbeat and os.clock cooldowns, neither of which the headless engine
 		-- advances, so the HUD never lands a hit here (journey6h g47 protoceratops).
