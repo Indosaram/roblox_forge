@@ -472,7 +472,7 @@ local function buildBase(parent: Instance, b: BaseLayout, arena: ArenaLayout, th
 			Color = theme.palette.metal,
 		}, model)
 
-		local dome = part({
+		part({
 			Name = "Dome",
 			Shape = Enum.PartType.Ball,
 			Size = Vector3.new(6, 6, 6),
