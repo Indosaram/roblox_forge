@@ -11,6 +11,8 @@ local GrowHarvest = require(Forge.genres["grow-harvest"].module.GrowHarvest)
 local SurvivalCoop = require(Forge.genres["survival-coop"].module.SurvivalCoop)
 local ProfileStore = require(Forge.core.infra.data.ProfileStore)
 local RuntimeBackend = require(Forge.core.infra.data.RuntimeBackend)
+local WorldKit = require(Forge.core["ui-kit"].genre.WorldKit)
+local WorldSpec = require(Forge.games["grow-and-defend-garden"].src.shared.WorldSpec)
 
 local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 local Plant = Remotes:WaitForChild("Plant") :: RemoteFunction
@@ -368,7 +370,7 @@ end)
 -- sell-held), so a plot is never planted for free: a seed is bought with Coins and
 -- consumed by the plant it enables. Both stages report their committed result to the
 -- client, which is what the audio policy plays the genre's declared cue for.
-BuySeed.OnServerInvoke = function(player: Player, cropId: any)
+local function buySeed(player: Player, cropId: any): boolean
 	local state = states[player]
 	if state == nil or typeof(cropId) ~= "string" or Config.crops[cropId] == nil then
 		return false
@@ -384,6 +386,7 @@ BuySeed.OnServerInvoke = function(player: Player, cropId: any)
 	StateChanged:FireClient(player, snapshot(state, os.time()))
 	return true
 end
+BuySeed.OnServerInvoke = buySeed
 
 Plant.OnServerInvoke = function(player: Player, plotIndex: any, cropId: any)
 	local state = states[player]
@@ -411,7 +414,7 @@ Harvest.OnServerInvoke = function(player: Player, plotIndex: any)
 	return cropId
 end
 
-Sell.OnServerInvoke = function(player: Player, cropId: any)
+local function sell(player: Player, cropId: any): number
 	local state = states[player]
 	if state == nil or typeof(cropId) ~= "string" or (state.harvested[cropId] or 0) <= 0 then
 		return 0
@@ -424,6 +427,43 @@ Sell.OnServerInvoke = function(player: Player, cropId: any)
 	StateChanged:FireClient(player, snapshot(state, os.time()))
 	return price
 end
+Sell.OnServerInvoke = sell
+
+-- The genre spec declares this pack's world (a farm plaza, the seed crate, the plot
+-- node and the market stall). The pack is hand-written rather than generated, so it
+-- shipped a bare Baseplate: the HUD worked and the garden did not exist. Building the
+-- declared world at boot and wiring each node's prompt to the same remote the buttons
+-- already call keeps one gameplay path for both input surfaces.
+local worldTypes = {
+	instance = function(class: string): Instance
+		return Instance.new(class)
+	end,
+	vector3 = function(x: number, y: number, z: number): Vector3
+		return Vector3.new(x, y, z)
+	end,
+	color3 = function(r: number, g: number, b: number): Color3
+		return Color3.fromRGB(r, g, b)
+	end,
+	cframe = function(x: number, y: number, z: number, rx: number?, ry: number?, rz: number?): CFrame
+		return CFrame.new(x, y, z) * CFrame.Angles(math.rad(rx or 0), math.rad(ry or 0), math.rad(rz or 0))
+	end,
+	enum = Enum,
+}
+WorldKit.applyEnvironment(game:GetService("Lighting"), worldTypes)
+WorldKit.start({
+	spec = WorldSpec,
+	parent = workspace,
+	types = worldTypes,
+	onPrompt = function(player: Player, control: string): ()
+		-- The prompt is a second surface for the button the HUD already draws, so it
+		-- calls the same handler the remote does rather than a parallel rule set.
+		if control == "grow-harvest:seed-shop" then
+			buySeed(player, Config.cropOrder[1])
+		elseif control == "grow-harvest:sell" then
+			sell(player, Config.cropOrder[1])
+		end
+	end,
+})
 
 local secondAccumulator = 0
 RunService.Heartbeat:Connect(function(dt: number)

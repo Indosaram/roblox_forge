@@ -681,26 +681,42 @@ local function buildArena(parent: Instance, arena: ArenaLayout, theme: Theme): (
 		Color = theme.palette.arena,
 	}, parent)
 
-	-- Painted center circle: a wide disc with a neon ring inset.
+	-- Painted center circle: a wide disc with a neon ring inset. It is paint on
+	-- concrete, so it takes the arena material -- a Neon disc this large blooms
+	-- out to flat white and reads as a hole in the floor.
 	part({
 		Name = "CenterCircle",
 		Shape = Enum.PartType.Cylinder,
 		Size = Vector3.new(0.2, 34, 34),
 		CFrame = CFrame.new(arena.center.x, arena.center.y + 0.75, arena.center.z) * CFrame.Angles(0, 0, math.rad(90)),
-		Material = materials.arenaLine,
+		Material = materials.arena,
 		Color = theme.palette.arenaLine,
 		CanCollide = false,
 	}, parent)
 
-	part({
-		Name = "CenterRing",
-		Shape = Enum.PartType.Cylinder,
-		Size = Vector3.new(0.24, 44, 44),
-		CFrame = CFrame.new(arena.center.x, arena.center.y + 0.76, arena.center.z) * CFrame.Angles(0, 0, math.rad(90)),
-		Material = materials.trim,
-		Color = theme.palette.accent,
-		CanCollide = false,
-	}, parent)
+	-- A ring is an annulus, not a disc: a Neon disc wider than CenterCircle
+	-- covered the whole painted circle in flat accent colour. Four thin bars
+	-- form the visible border instead.
+	local ringOuter, ringThickness, ringWidth = 22, 0.26, 0.7
+	for side = 1, 4 do
+		local alongX = side <= 2
+		local sign = if side % 2 == 1 then 1 else -1
+		local offset = sign * (ringOuter - ringWidth / 2)
+		part({
+			Name = "CenterRing" .. side,
+			Size = if alongX
+				then Vector3.new(ringOuter * 2, ringThickness, ringWidth)
+				else Vector3.new(ringWidth, ringThickness, ringOuter * 2),
+			Position = Vector3.new(
+				arena.center.x + (if alongX then 0 else offset),
+				arena.center.y + 0.76,
+				arena.center.z + (if alongX then offset else 0)
+			),
+			Material = materials.trim,
+			Color = theme.palette.accent,
+			CanCollide = false,
+		}, parent)
+	end
 
 	for i, cover in arena.covers do
 		part({
