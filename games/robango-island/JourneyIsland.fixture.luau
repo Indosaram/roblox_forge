@@ -580,10 +580,29 @@ function M.run(host: any, p: any, options: any?): any
 		local role = host.role
 		local isle: string? = nil
 		for _, row: any in require("./src/shared/SeaChart").ISLANDS :: { any } do
-			local l = row.role and layoutOf("rw." .. row.role)
-			for _, node in if l then l.resourceNodes or {} else {} do
-				if node.item == item and isle == nil and row.role ~= role then
-					isle = row.id
+			-- Route (drift) rows carry their items on the route's stage layouts (rw.aN.sM), which the
+			-- role-based scan misses entirely: hide for tan-thick-hide lives on rw.a1.s2 (journey6h g45).
+			local candidates: { any } = {}
+			if row.role then
+				local l = layoutOf("rw." .. row.role)
+				if l then
+					table.insert(candidates, l)
+				end
+			elseif row.route then
+				for _, stage in Content.stages or {} do
+					if stage.route == row.route then
+						local l = layoutOf(stage.layout)
+						if l then
+							table.insert(candidates, l)
+						end
+					end
+				end
+			end
+			for _, l in candidates do
+				for _, node in l.resourceNodes or {} do
+					if node.item == item and isle == nil and row.role ~= role then
+						isle = row.id
+					end
 				end
 			end
 		end
