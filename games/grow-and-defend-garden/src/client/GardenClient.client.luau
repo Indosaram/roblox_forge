@@ -43,6 +43,9 @@ local frame = create("Frame", {
 	Name = "GardenFrame",
 	-- 340 px overflowed 320-pt phones and sat under notches. Clamp to the viewport
 	-- and inset from the real safe area instead of a fixed 20 px top-right anchor.
+	-- A 0.9 scale also covered most of the world on desktop and every wide screen:
+	-- the panel is a readout plus three short button rows, so it gets a readable
+	-- fixed cap and shrinks to 0.9 only when the viewport is narrower than that.
 	Size = UDim2.fromScale(0.9, 0),
 	AutomaticSize = Enum.AutomaticSize.Y,
 	Position = UDim2.new(1, -8, 0, 8),
@@ -57,6 +60,10 @@ pcall(function()
 	frame.Position = UDim2.new(1, -8, 0, inset.Y + 8)
 end)
 create("UIListLayout", { Padding = UDim.new(0, 6) }, frame)
+-- 0.9 of a 1280-wide viewport is 1152 px of panel over a 340 px-wide HUD's worth of
+-- text: it covered most of the world in the release capture. The constraint keeps
+-- the phone behaviour (fill the width, inset from notches) and caps it on desktop.
+create("UISizeConstraint", { MaxSize = Vector2.new(360, math.huge) }, frame)
 
 local function makeLabel(parent: Instance, name: string, size: UDim2, color: Color3, textSize: number): TextLabel
 	return create("TextLabel", {
@@ -84,8 +91,8 @@ local function makeButton(row: Instance, name: string, offset: number, color: Co
 	-- unique per row and stable: a Text-only button is unfindable by the driver.
 	return create("TextButton", {
 		Name = name,
-		Size = UDim2.fromScale(0.14, 1),
-		Position = UDim2.fromScale(0.43 + offset * 0.1425, 0),
+		Size = UDim2.fromScale(0.16, 1),
+		Position = UDim2.fromScale(0.355 + offset * 0.1625, 0),
 		Text = name,
 		TextSize = 12,
 		TextColor3 = Color3.fromRGB(255, 255, 255),
@@ -100,8 +107,8 @@ for index = 1, Config.plotCount do
 	local plotIndex = index
 	local row =
 		create("Frame", { Name = "plot-" .. index, Size = UDim2.new(1, 0, 0, 30), BackgroundTransparency = 1 }, frame)
-	local label = makeLabel(row, "Status", UDim2.fromScale(0.42, 1), Color3.fromRGB(240, 240, 240), 12)
-	label.Text = string.format("%d: - (empty, seed 0)", plotIndex)
+	local label = makeLabel(row, "Status", UDim2.fromScale(0.34, 1), Color3.fromRGB(240, 240, 240), 12)
+	label.Text = string.format("%d: empty (seed 0)", plotIndex)
 
 	local rowState: Row = { label = label, cursor = 0, cropId = nil }
 	rows[plotIndex] = rowState
@@ -190,7 +197,7 @@ StateChanged.OnClientEvent:Connect(function(info: any)
 			local nextCropId = Config.cropOrder[(rowState.cursor % #Config.cropOrder) + 1]
 			local held = seeds[nextCropId] or 0
 			rowState.label.Text =
-				string.format("%d: %s (%s, seed %d)", plotIndex, tostring(plot.cropId or "-"), status, held)
+				string.format("%d: %s (%s, %d)", plotIndex, tostring(plot.cropId or "-"), status, held)
 		end
 	end
 end)
