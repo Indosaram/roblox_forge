@@ -1267,6 +1267,96 @@ cases["the clothing guide completes through the practice stitch operation"] = fu
 	assert(server.session.close(ACTOR).ok and server.factory.close().ok, "release")
 end
 
+-- p134 journey6h g47: the protoceratops capture must be reachable with the route-1 loadout
+-- (club-t1 + capture-bola) on the species' own isle — the six-hour journey grinded there forever.
+cases["proto capture probe: club weaken and bola capture a protoceratops on rw.a1.s2"] = function()
+	local at = { value = 1000 }
+	local server = boot(Memory.new(), "job:proto-probe", at, true, nil, true, nil, nil, "rw.a1.s2")
+	server.at = at
+	assert(server.session.join(ACTOR).ok, "join")
+	assert(server.session.dispatch(ACTOR, "survival-coop:vitals-wake", {}).ok, "Start")
+	local wild = server.factory.services.survivalWildlife
+	give(server, "guide-club", "club-t1", 1)
+	server.session.personalTransaction(ACTOR, function(raw)
+		raw.envelope.genres["survival-coop"].data.inventory.bag.items["guide-club"].durabilityMilli = 100000
+		return raw
+	end)
+	server.equip(ACTOR, "guide-club")
+	give(server, "guide-bola", "capture-bola", 1)
+	local full = 0
+	for _, row in content.wildlifeDetails do
+		full = if row.id == "protoceratops" then row.health * 1000 else full
+	end
+	assert(full > 0, "protoceratops in wildlifeDetails")
+	local sequence = 0
+	local function command(action: string, args: { any }): any
+		sequence += 1
+		server.at.value += 1
+		server.session.advance(server.at.value)
+		return server.session.command(ACTOR, {
+			requestId = "proto-probe-" .. sequence,
+			sessionEpoch = server.session.commandEpoch(ACTOR, "survival-coop:" .. action) or 0,
+			action = "survival-coop:" .. action,
+			args = args,
+		})
+	end
+	local function healthOf(id: string): number
+		local npc = wild.snapshot(ACTOR)[id]
+		return if npc then npc.healthMilli else -1
+	end
+	-- Find one live protoceratops from the authored spawns (herd members get ".N" suffixes).
+	local target: string? = nil
+	local keys: { string } = {}
+	for id, npc in wild.snapshot(ACTOR) do
+		table.insert(keys, id .. "=" .. tostring(npc.healthMilli))
+		if string.find(id, "^rw%.a1%.s2%.protoceratops%." ) and npc.healthMilli > 0 then
+			target = id
+			break
+		end
+	end
+	assert(target ~= nil, "no live protoceratops in the rw.a1.s2 snapshot; keys: " .. table.concat(keys, ","))
+	local downed = false
+	local trace = {}
+	for i = 1, 90 do
+		local npc = wild.snapshot(ACTOR)[target :: string]
+		if npc == nil or npc.healthMilli <= 0 then
+			break
+		end
+		if npc.healthMilli <= full // 4 then
+			downed = true
+			table.insert(trace, i .. ":downed " .. math.floor(npc.healthMilli / 1000))
+			break
+		end
+		local npc = wild.snapshot(ACTOR)[target :: string]
+		server.move(ACTOR, { x = npc.home.x + 2, y = npc.home.y + 1, z = npc.home.z })
+		local result = command("attack", { target :: string })
+		if i % 15 == 0 then
+			table.insert(trace, i .. ":" .. math.floor(healthOf(target :: string) / 1000) .. (result.ok and "" or "(" .. tostring(result.reason) .. ")"))
+		end
+	end
+	assert(downed, "protoceratops never reached the downed threshold; health trace: " .. table.concat(trace, " "))
+	-- survival_3 (ordinary capture) gates tame-hit; buy the chain like the g47 guide does.
+	server.session.personalTransaction(ACTOR, function(raw)
+		local progression = raw.envelope.genres["survival-coop"].data.progression
+		for _, mastery in progression.mastery do
+			mastery.level = content.progressionPolicy.tree.maxMastery
+		end
+		progression.sp += 200
+		return raw
+	end)
+	for _, node in { "melee_1", "melee_2", "survival_1", "survival_2", "survival_3" } do
+		command("skill-learn", { node })
+	end
+	give(server, "guide-rope", "capture-rope", 1)
+	for _ = 1, 4 do
+		local stun = command("tame-hit", { target :: string })
+		assert(stun.ok, "bola stun: " .. tostring(stun.reason))
+		local caught = command("tame-capture", { target :: string })
+		assert(caught.ok and caught.data.captured, "capture: " .. tostring(caught.reason))
+		return
+	end
+end
+
 cases["the first band alone lifts a fresh player to island grade 2 (route 1)"] = function()
 	local server, at = fresh(content.guides[1])
 	for _, guide in content.guides do

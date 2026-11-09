@@ -745,37 +745,28 @@ function M.run(host: any, p: any, options: any?): any
 		-- protoceratops inside 40 ticks, and the guide capture chain then grinds travels forever
 		-- (journey6h j11/j12 g47).
 		p.equipFor(count(p.bag().items, "club-t1") > 0 and "club-t1" or "bone-knife")
-		local combat = h.load("genres/survival-coop/module/CombatHud").start({
-			content = Content,
-			locale = "ko-kr",
-			send = h.captureSend,
-			approach = function(goal, _within, arrive)
-				p.walk({ x = goal.X + 2, y = goal.Y, z = goal.Z }, 0)
-				arrive()
-				return true
-			end,
-			stop = function() end,
-			hidden = function()
-				return false
-			end,
-			itemName = function(item)
-				return item
-			end,
-			name = function(kind)
-				return kind
-			end,
-			spare = h.petRing.spare,
-		})
-		combat.engage(model)
-		for _ = 1, 120 do
-			if h.petRing.capturable() then
+		-- Weaken by driving the server attack directly: the CombatHud's swing loop runs on
+		-- RunService.Heartbeat and os.clock cooldowns, neither of which the headless engine
+		-- advances, so the HUD never lands a hit here (journey6h g47 protoceratops).
+		local full = 0
+		for _, row in Content.wildlifeDetails do
+			full = if row.id == wantKind then row.health * 1000 else full
+		end
+		if full <= 0 then
+			return false
+		end
+		for _ = 1, 160 do
+			local npc = h.creatures and h.creatures[ids[1]]
+			local health = if npc then npc:GetAttribute("ForgeWildlifeHealthMilli") else 0
+			if health <= 0 then
 				break
 			end
-			p.wait(1)
-			-- Re-tap after a fleeing grazer breaks the combat chase leash.
-			combat.engage(model)
+			if health <= full // 4 then
+				break
+			end
+			h.captureSend("survival-coop:attack", { ids[1] })
+			p.wait(2)
 		end
-		combat.destroy()
 		p.event("capture-weakened", {
 			id = ids[1],
 			health = model:GetAttribute("ForgeWildlifeHealthMilli"),
