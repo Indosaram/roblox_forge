@@ -84,7 +84,10 @@ local lastWaveLabel = makeLabel(frame, "LastWave", UDim2.new(1, 0, 0, 20), Color
 local heldLabel = makeLabel(frame, "Held", UDim2.new(1, 0, 0, 20), Color3.fromRGB(190, 240, 190), 14)
 heldLabel.Text = "Held: none"
 
-type Row = { label: TextLabel, cursor: number, cropId: string? }
+-- A row remembers the crop the player chose to buy/plant next. Rotation was the only
+-- behaviour before, which meant the player never made a decision: the defense value
+-- of a harvest and its price differ by crop, so the choice IS the game.
+type Row = { label: TextLabel, cursor: number, cropId: string?, chosen: string }
 
 local function makeButton(row: Instance, name: string, offset: number, color: Color3, onClick: () -> ())
 	-- The instance name is the qa click target (`plot-1.Sell`, etc.), so it must be
@@ -100,6 +103,63 @@ local function makeButton(row: Instance, name: string, offset: number, color: Co
 	}, row).MouseButton1Click:Connect(onClick)
 end
 
+-- Seed choice is one shared selection: which crop the Buy and Plant buttons act on
+-- for every plot. One per-row selector made five buttons in a 0.34-wide label slot
+-- (0.355 + 4 * 0.1625 + 0.16 = 1.165 of the row width) and clipped the last label,
+-- the same failure the collect-raid Claim button had. A single chooser above the
+-- rows keeps four buttons that fit and still gives the player the decision.
+local selectedCrop: string = Config.cropOrder[1]
+
+local pickerRow =
+	create("Frame", { Name = "seed-picker", Size = UDim2.new(1, 0, 0, 30), BackgroundTransparency = 1 }, frame)
+local pickerLabel = makeLabel(pickerRow, "SeedChoice", UDim2.fromScale(1, 0.55), Color3.fromRGB(220, 255, 220), 12)
+local pickerButtons: { TextButton } = {}
+local function refreshPicker()
+	local crop = Config.crops[selectedCrop]
+	if crop ~= nil then
+		-- Growth, price and defense are the whole trade-off: a slower crop is worth
+		-- more Coins and defends harder, which is what answers the wave curve.
+		pickerLabel.Text = string.format(
+			"Seed: %s  %ds  %d coins  +%d defense",
+			selectedCrop,
+			crop.growthSeconds,
+			crop.sellPrice,
+			crop.defense or 1
+		)
+	end
+	for _, button in pickerButtons do
+		local isSelected = button:GetAttribute("cropId") == selectedCrop
+		button.BackgroundColor3 = if isSelected then Color3.fromRGB(70, 140, 80) else Color3.fromRGB(45, 60, 48)
+	end
+end
+
+local pickerBar =
+	create("Frame", { Name = "seed-buttons", Size = UDim2.new(1, 0, 0, 26), BackgroundTransparency = 1 }, frame)
+local pickerLayout = create("UIListLayout", {
+	FillDirection = Enum.FillDirection.Horizontal,
+	Padding = UDim.new(0, 4),
+	SortOrder = Enum.SortOrder.LayoutOrder,
+}, pickerBar)
+pickerLayout.Parent = pickerBar
+for index, cropId in Config.cropOrder do
+	local button: TextButton = create("TextButton", {
+		Name = "seed-" .. cropId,
+		LayoutOrder = index,
+		Size = UDim2.fromScale(1 / #Config.cropOrder, 1),
+		Text = cropId,
+		TextSize = 12,
+		TextColor3 = Color3.fromRGB(255, 255, 255),
+		BackgroundColor3 = Color3.fromRGB(45, 60, 48),
+	}, pickerBar)
+	button:SetAttribute("cropId", cropId)
+	button.MouseButton1Click:Connect(function()
+		selectedCrop = cropId
+		refreshPicker()
+	end)
+	table.insert(pickerButtons, button)
+end
+refreshPicker()
+
 local rows: { Row } = {}
 -- Latest server-side held (harvested, unsold) crop counts, keyed by crop id.
 local heldCrops: { [string]: number } = {}
@@ -110,13 +170,14 @@ for index = 1, Config.plotCount do
 	local label = makeLabel(row, "Status", UDim2.fromScale(0.34, 1), Color3.fromRGB(240, 240, 240), 12)
 	label.Text = string.format("%d: empty (seed 0)", plotIndex)
 
-	local rowState: Row = { label = label, cursor = 0, cropId = nil }
+	local rowState: Row = { label = label, cursor = 0, cropId = nil, chosen = "" }
 	rows[plotIndex] = rowState
 
 	-- The seed a row buys next is the seed its Plant button plants, so Buy and Plant
-	-- are two stages of the genre's buy -> plant -> harvest -> sell loop.
+	-- are two stages of the genre's buy -> plant -> harvest -> sell loop. The player
+	-- picks which crop via the Seed button, which cycles the ladder.
 	local function nextCrop(): string
-		return Config.cropOrder[(rowState.cursor % #Config.cropOrder) + 1]
+		return selectedCrop
 	end
 
 	makeButton(row, "Buy", 0, Color3.fromRGB(90, 90, 140), function()
@@ -193,9 +254,8 @@ StateChanged.OnClientEvent:Connect(function(info: any)
 				elseif plot.ready then "ready"
 				else string.format("%ds", math.floor(plot.remaining or 0))
 			-- The count is for the seed the row's Buy and Plant buttons act on, which is
-			-- the next crop in the row's own rotation.
-			local nextCropId = Config.cropOrder[(rowState.cursor % #Config.cropOrder) + 1]
-			local held = seeds[nextCropId] or 0
+			-- the shared selector's crop.
+			local held = seeds[selectedCrop] or 0
 			rowState.label.Text =
 				string.format("%d: %s (%s, %d)", plotIndex, tostring(plot.cropId or "-"), status, held)
 		end
