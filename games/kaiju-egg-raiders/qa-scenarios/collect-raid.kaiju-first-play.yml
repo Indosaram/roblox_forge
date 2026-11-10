@@ -1,3 +1,6 @@
+# A second actor is required by the Studio driver, which refuses a single-client
+# launch; it is asserted present, not merely declared.
+#
 # GuiButton:Activate() does not fire Activated, so these steps must send real
 # pointer input (op click): calling Activate leaves coins at 100.
 name: kaiju-first-play
@@ -6,9 +9,9 @@ pack: kaiju-egg-raiders
 kind: studio
 contract_api: 1
 timeout_seconds: 300
-players: [desktop]
+players: [desktop, phone]
 steps:
-  - {op: expect_members, members: [desktop]}
+  - {op: expect_members, members: [desktop, phone]}
   - {op: device, player: desktop, surface: desktop, width: 1280, height: 720, timeout_seconds: 30}
   - op: wait_for
     player: desktop
