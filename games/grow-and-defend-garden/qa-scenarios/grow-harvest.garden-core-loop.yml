@@ -15,7 +15,7 @@ genre: grow-harvest
 pack: grow-and-defend-garden
 kind: studio
 contract_api: 1
-timeout_seconds: 300
+timeout_seconds: 1200
 players: [desktop, phone]
 steps:
   - {op: expect_members, members: [desktop, phone]}

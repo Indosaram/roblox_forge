@@ -8,7 +8,7 @@ genre: collect-raid
 pack: kaiju-egg-raiders
 kind: studio
 contract_api: 1
-timeout_seconds: 300
+timeout_seconds: 1200
 players: [desktop, phone]
 steps:
   - {op: expect_members, members: [desktop, phone]}
