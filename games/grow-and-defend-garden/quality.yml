@@ -56,6 +56,12 @@ rubric:
         3: alternatives exist but their trade-offs are obscure or one dominates
         5: competing options offer legible trade-offs a player can explain and exercise
 first_play:
+  # This pack is single-player: every value in GardenServer is keyed by Player and
+  # saved under player_<UserId>, so there is no object two players can both feed.
+  # The two-player shared-facility goal is therefore not declared, and the profile
+  # validator rejects declaring it while this is false. Building a real shared
+  # structure is deferred with multiplayer; until then this pack ships solo.
+  multiplayer: false
   goals:
     - id: objective-identified
       description: the player names the current objective from visible cues without being prompted
@@ -65,10 +71,6 @@ first_play:
       description: one full pass of the pack's primary loop (buy a seed, plant, harvest and sell a crop) is completed
       within_minutes: 10
       players: 1
-    - id: shared-facility
-      description: two players contribute to and complete one shared barricade together
-      within_minutes: 20
-      players: 2
 asset_quality:
   rights_source: first-party procedural output, recorded in assets/manifest.yml
   commercial_use: true

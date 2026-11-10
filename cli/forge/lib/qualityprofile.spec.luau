@@ -325,6 +325,30 @@ return {
 		end)
 	end,
 
+	-- A solo pack may not be forced to build multiplayer before it can ship, and a
+	-- pack may not claim a two-player goal it cannot satisfy. Both directions are
+	-- asserted: dropping the goal alone still fails, and the declaration is what
+	-- makes it legal.
+	["a solo pack may omit the two-player goal by declaring multiplayer false"] = function()
+		local document = baseDocument()
+		document.first_play.multiplayer = false
+		table.remove(document.first_play.goals, 3)
+		local result = qualityprofile.validate(document)
+		assert(result.ok, "solo declaration rejected: " .. table.concat(result.errors, "; "))
+	end,
+
+	["a solo pack may not declare the two-player goal"] = function()
+		assertRejects("requires two players, but first_play.multiplayer is false", function(document)
+			document.first_play.multiplayer = false
+		end)
+	end,
+
+	["first_play.multiplayer must be a boolean"] = function()
+		assertRejects("first_play.multiplayer: must be a boolean", function(document)
+			document.first_play.multiplayer = "solo"
+		end)
+	end,
+
 	-- Parent finding: keeping the canonical goal ids while relaxing their bounds
 	-- weakened the plan's 10/20-minute and two-player gates. A goal is the goal
 	-- the plan defines, or it is rejected.

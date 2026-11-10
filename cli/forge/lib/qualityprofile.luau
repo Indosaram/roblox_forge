@@ -383,7 +383,15 @@ local function checkCriteria(raw: any, errors: { string })
 	end
 end
 
-local function checkFirstPlay(raw: any, errors: { string })
+--- Goals that only a multiplayer pack can satisfy. `shared-facility` needs two
+--- actors by definition, so a single-player pack cannot truthfully declare it —
+--- and deleting the goal instead would hide the gap. A profile states
+--- `first_play.multiplayer: false` to record that the pack is deliberately solo;
+--- the two-player goal is then not required, and declaring it is an error rather
+--- than dead weight in a gate that can never pass.
+local MULTIPLAYER_GOALS: { [string]: boolean } = { ["shared-facility"] = true }
+
+local function checkFirstPlay(raw: any, errors: { string }, multiplayer: boolean?)
 	if not dense(raw, 64) or #raw == 0 then
 		table.insert(errors, "first_play.goals: must be a non-empty list")
 		return
@@ -427,6 +435,12 @@ local function checkFirstPlay(raw: any, errors: { string })
 	for _, bound in M.REQUIRED_GOAL_BOUNDS do
 		local entry = declared[bound.id]
 		if entry == nil then
+			-- A pack that declares itself single-player is not failing a two-player
+			-- goal it never claimed; requiring one would force a solo pack to build
+			-- multiplayer before it may ship at all.
+			if multiplayer == false and MULTIPLAYER_GOALS[bound.id] then
+				continue
+			end
 			table.insert(errors, "first_play.goals: missing default goal '" .. bound.id .. "'")
 			continue
 		end
@@ -452,6 +466,17 @@ local function checkFirstPlay(raw: any, errors: { string })
 					tostring(entry.minutes)
 				)
 			)
+		end
+		if multiplayer == false and MULTIPLAYER_GOALS[bound.id] then
+			table.insert(
+				errors,
+				string.format(
+					"%s: goal '%s' requires two players, but first_play.multiplayer is false",
+					label,
+					bound.id
+				)
+			)
+			continue
 		end
 		if entry.players == nil then
 			table.insert(
@@ -586,7 +611,12 @@ function M.validate(document: any): CheckResult
 	if type(firstPlay) ~= "table" then
 		table.insert(errors, "first_play: missing first-play goals")
 	else
-		checkFirstPlay(firstPlay.goals, errors)
+		local multiplayer = firstPlay.multiplayer
+		if multiplayer ~= nil and type(multiplayer) ~= "boolean" then
+			table.insert(errors, "first_play.multiplayer: must be a boolean when present")
+		else
+			checkFirstPlay(firstPlay.goals, errors, multiplayer)
+		end
 	end
 
 	checkAssetQuality(document.asset_quality, errors)

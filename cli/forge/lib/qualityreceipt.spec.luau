@@ -1033,13 +1033,20 @@ return {
 		assert(ok, tostring(reason))
 	end,
 	["root scan skips reserved device names and still includes ordinary files"] = function()
+		-- NOTE: this case must not share a fixture path with the case above. The spec
+		-- runner splits a long file into per-test shard units, so two cases in this
+		-- file run in separate processes at once; a shared fixed path made each
+		-- process see the other's directory and fail on 'task fixture already
+		-- exists'. The seam is instantiated per root, so a private root keeps the
+		-- process isolation the runner assumes.
 		for _, name in { "nul", "NUL", "nul.txt", "Con", "prn.log", "aux", "com1", "COM9.x", "lpt1", "lpt9.dat" } do
 			assert(receipt.reservedDeviceName(name), "reserved name must be skipped: " .. name)
 		end
 		for _, name in { "null", "console.md", "com0", "com10", "lpt0", "auxiliary", "README.md", ".nul", "a.nul" } do
 			assert(not receipt.reservedDeviceName(name), "ordinary name must not be skipped: " .. name)
 		end
-		local root = ".omo/fixtures/task-4-native" -- the UNIT tree seam only answers for this root
+		local root = ".omo/fixtures/task-4-native-scan" -- its own root: see the NOTE below
+		local scanReceipt = require("../fixtures/quality-unit")(root).receipt
 		assert(not fs.isDir(root), "task fixture already exists")
 		fs.writeDir(root)
 		local ok, reason = xpcall(function()
@@ -1081,16 +1088,16 @@ return {
 					scenarios = { "evidence/scenario" },
 				},
 			}
-			local baseline, baselineError = receipt.snapshot(profile, input)
+			local baseline, baselineError = scanReceipt.snapshot(profile, input)
 			assert(baseline, baselineError)
 			-- Happy: a root file named nul is skipped and the receipt snapshot is unchanged.
 			fs.writeFile(root .. "/nul", "device-name fixture")
-			local withNul, nulError = receipt.snapshot(profile, input)
+			local withNul, nulError = scanReceipt.snapshot(profile, input)
 			assert(withNul, nulError)
 			assert(withNul.source == baseline.source, "nul must not enter the source digest")
 			-- Failure: an ordinary root file is still included in the source digest.
 			fs.writeFile(root .. "/README.md", "ordinary root file")
-			local withOrdinary, ordinaryError = receipt.snapshot(profile, input)
+			local withOrdinary, ordinaryError = scanReceipt.snapshot(profile, input)
 			assert(withOrdinary, ordinaryError)
 			assert(withOrdinary.source ~= baseline.source, "ordinary root file must change the source digest")
 		end, debug.traceback)
