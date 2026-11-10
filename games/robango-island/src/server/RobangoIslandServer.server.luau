@@ -794,9 +794,23 @@ if opening then
 			if not state or not state.inventory then
 				return nil
 			end
+			-- The opening card must count what a recipe may spend, so reserved units are excluded
+			-- exactly as SurvivalHUDModel.ingredients does: a reservation is already promised to a
+			-- workshop job and cannot fund the card's craft (p134 v81: the card showed fiber done
+			-- while the sheet refused the knife).
+			local bag = state.inventory.bag
+			local reserved: { [string]: number } = {}
+			for _, amounts: any in (bag.reservations or {}) do
+				for id: string, quantity: number in amounts do
+					reserved[id] = (reserved[id] or 0) + quantity
+				end
+			end
 			local totals: { [string]: number } = {}
-			for _, item: any in state.inventory.bag.items do
+			for _, item: any in bag.items do
 				totals[item.catalogId] = (totals[item.catalogId] or 0) + item.quantity
+			end
+			for id: string, quantity: number in reserved do
+				totals[id] = math.max(0, (totals[id] or 0) - quantity)
 			end
 			return totals
 		end,

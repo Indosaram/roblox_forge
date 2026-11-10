@@ -38,7 +38,7 @@ M.STEPS = table.freeze({
 	-- heap 20 studs west (p134 v75 A1/B1: the beam and 'show the way' led to the wrong heap).
 	{ id = "mirror", beat = 2, line = "opening.mirror.heap", target = "rw.onboarding.crash-bones" },
 	{ id = "bone", beat = 3, line = "opening.knife.bone", target = "rw.onboarding.crash-bones" },
-	{ id = "fiber", beat = 3, line = "opening.knife.fiber", target = "rw.onboarding.fiber" },
+	{ id = "fiber", beat = 3, line = "opening.knife.fiber", count = "fiber", of = 2, target = "rw.onboarding.fiber" },
 	{ id = "bone-knife", beat = 3, line = "opening.knife.craft", target = "rw.onboarding.extra-1" },
 	{
 		id = "flint",
@@ -335,7 +335,7 @@ local function satisfied(state: State, id: string, facts: Facts, now: number): b
 	elseif id == "bone" then
 		return (items.bone or 0) > 0 or knife or axe
 	elseif id == "fiber" then
-		return (items.fiber or 0) >= 3 or knife or axe
+		return (items.fiber or 0) >= 2 or knife or axe
 	elseif id == "bone-knife" then
 		return knife or axe
 	elseif id == "flint" then
@@ -480,6 +480,7 @@ function M.view(state: State, facts: Facts): any
 		boatAt = if state.beaconAt then state.beaconAt + M.BOAT_MILLIS else nil,
 		flint = math.min(facts.items.flint or 0, 2),
 		wood = math.min(facts.items.wood or 0, 7),
+		fiber = math.min(facts.items.fiber or 0, 2),
 	}
 	-- The craft sheet preselects the recipe the tracker asks for (SurvivalHUDModel.extensionPin).
 	view.craftPin = M.craftPin(view)

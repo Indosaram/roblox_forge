@@ -2903,7 +2903,7 @@ opening.mirror.signal,"Flash—flash-flash. If you're alive: flint by the bone h
 opening.mirror.heap,□ Check the bone pile by the wreck,opening beat 2 tracker line,□ Check the bone pile by the wreck,□ 추락 현장 뼈 더미 살펴보기
 opening.knife.title,A first tool,opening beat 3 tracker title,A first tool,첫 도구
 opening.knife.bone,□ 1 bone from the glowing pile by the wreck,opening beat 3 tracker line,□ 1 bone from the glowing pile by the wreck,□ 추락 현장의 빛나는 뼈 더미에서 뼈 1개
-opening.knife.fiber,□ 3 fiber,opening beat 3 tracker line,□ 3 fiber,□ 섬유 3개
+opening.knife.fiber,□ 2 fiber (%d/2),opening beat 3 tracker line,□ 2 fiber (%d/2),□ 섬유 2개 (%d/2)
 opening.knife.craft,□ Craft a Bone Knife,opening beat 3 tracker line,□ Craft a Bone Knife,□ 뼈칼 만들기
 opening.knife.banner,First tool: Bone Knife,opening beat 3 first-craft banner,First tool: Bone Knife,첫 도구: 뼈칼
 opening.hatchet.title,Knap a hatchet,opening beat 4 tracker title,Knap a hatchet,손도끼 다듬기

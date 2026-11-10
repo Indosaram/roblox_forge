@@ -205,6 +205,16 @@ return {
 			local title, lines = Scene.tracker(Scene.view(state, facts()), text)
 			assert(title == text("opening.tumble.title") and #lines == 2, "beat 1 card")
 			assert(string.find(lines[1], "1/2", 1, true) and string.find(lines[2], "2/3", 1, true), "counts")
+			-- The fiber line counts what the bone-knife recipe spends (fiber 2): it must show progress,
+			-- not a bare "2 fiber" the player cannot track (p134 v81: the card showed fiber 3 done with
+			-- no counter while the recipe needed 2).
+			state.index = Scene.INDEX.fiber
+			local fiberLines = select(2, Scene.tracker(Scene.view(state, facts()), text))
+			assert(string.find(fiberLines[2], "0/2", 1, true), "fiber line starts at 0/2: " .. fiberLines[2])
+			local enough = facts()
+			enough.items = { bone = 1, fiber = 2 }
+			local doneLines = select(2, Scene.tracker(Scene.view(state, enough), text))
+			assert(string.find(doneLines[2], "2/2", 1, true), "fiber line reads 2/2: " .. doneLines[2])
 			for index = 1, #Scene.STEPS do
 				state.index = index
 				local t = Scene.tracker(Scene.view(state, facts()), text)
