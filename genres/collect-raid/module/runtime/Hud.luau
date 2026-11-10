@@ -226,6 +226,21 @@ function Hud.start(opts: Options): ()
 	safeArea.Size = UDim2.new(1, -24, 1, -16)
 	safeArea.Parent = screenGui
 
+	-- Toast host: a right-hand strip that the toast centers itself in.
+	--
+	-- Components.toast centers the toast on its parent's width. Parented to the whole
+	-- ScreenGui it landed at x=488..792 on a 1280-wide desktop, inside the Roblox chat
+	-- window (x=0..512, y=58..282), which the QA geometry check correctly reports as
+	-- owned UI over reserved core UI. A right-hand strip keeps the toast clear of chat
+	-- at any width, and safeArea already sits below the topbar.
+	local toastHost = Instance.new("Frame")
+	toastHost.Name = "ToastHost"
+	toastHost.BackgroundTransparency = 1
+	toastHost.AnchorPoint = Vector2.new(1, 0)
+	toastHost.Size = UDim2.fromOffset(420, 0)
+	toastHost.Position = UDim2.fromScale(1, 0)
+	toastHost.Parent = safeArea
+
 	-- Local-only notifications. The raid handler fires this and both the HUD (toast)
 	-- and Audio (raidMiss cue) listen, so a rejected raid scores without a
 	-- server round-trip. Create it if the audio client did not get there first.
@@ -239,7 +254,7 @@ function Hud.start(opts: Options): ()
 	local LocalNotifyEvent = localNotify :: BindableEvent
 	LocalNotifyEvent.Event:Connect(function(text: any)
 		if type(text) == "string" then
-			Components.toast(theme, safeArea, text, "info", 5)
+			Components.toast(theme, toastHost, text, "info", 5)
 		end
 	end)
 
@@ -515,10 +530,23 @@ function Hud.start(opts: Options): ()
 			raidSheet.frame.Size = sheetSize
 			storeSheet.frame.Size = sheetSize
 			if hint ~= nil then
-				local hintWidth = math.clamp(math.floor(viewport.X * 0.5), 120, math.max(120, viewport.X - 176))
+				-- Full width minus margins. At half the screen (195 px on a 390 px phone) the
+				-- tutorial line clipped mid-sentence in a real capture: at TextSize 15 the text
+				-- needs ~255 px, and TextScaled stops shrinking at the 10 px minimum, so the tail
+				-- was cut. The full width fits it without shrinking.
+				local hintWidth = math.max(120, viewport.X - 32)
 				hint.Size = UDim2.fromOffset(hintWidth, 28)
-				hint.Position = UDim2.fromOffset(12, topInset + 8)
-				hint.AnchorPoint = Vector2.new(0, 0)
+				-- The phone layout put this at the top-left, where Roblox chat sits: a real
+				-- capture measured the hint at x=24..219, y=121..149 inside a chat window
+				-- spanning x=0..156, y=105..381, and the run failed on the overlap. Anchor it
+				-- to the bottom instead, one hint-height above the action bar's own top edge,
+				-- so it sits in the free band between the bar and the world view.
+				local barHeight = phoneBar.AbsoluteSize.Y
+				if barHeight <= 0 then
+					barHeight = 52 + PHONE_BAR_PAD * 2
+				end
+				hint.Position = UDim2.new(0.5, 0, 1, -(barHeight + 12 + 28))
+				hint.AnchorPoint = Vector2.new(0.5, 1)
 				hint.TextScaled = true
 			end
 		else
@@ -527,12 +555,25 @@ function Hud.start(opts: Options): ()
 			closePhoneSheets()
 			toggleButton.Visible = small
 			local width = if small then math.min(HUD_WIDTH, math.floor(viewport.X * 0.46)) else HUD_WIDTH
+			-- `viewport` is the camera viewport, but this ScreenGui is inset by the topbar
+			-- (CoreUISafeInsets), so the height available below the topbar is smaller.
+			-- Sizing the column as viewport.Y - 60 put its bottom at 58 + 8 + (720 - 60) = 746
+			-- on a 1280x720 desktop, i.e. 26 px past the screen: the invite button at the end
+			-- of the column measured y=716 with a clipped height of 30, its lower half off-screen.
+			-- Measure the safe area instead, so the column ends above the bottom edge at any
+			-- viewport and inset combination.
+			local available = safeArea.AbsoluteSize.Y
+			-- A first layout pass can read 0 before the safe area settles; keep the old height
+			-- rather than collapsing the column while it does.
+			if available <= 0 then
+				available = viewport.Y - 16
+			end
 			if small then
-				frame.Size = UDim2.fromOffset(width, math.max(120, viewport.Y - 60 - 110))
-				frame.Position = UDim2.new(1, -8, 0, 60)
+				frame.Size = UDim2.fromOffset(width, math.max(120, available - 110))
+				frame.Position = UDim2.new(1, -8, 0, 0)
 			else
-				frame.Size = UDim2.fromOffset(width, math.max(200, viewport.Y - 60))
-				frame.Position = UDim2.new(1, -20, 0, 20)
+				frame.Size = UDim2.fromOffset(width, math.max(200, available - 8))
+				frame.Position = UDim2.new(1, -20, 0, 0)
 			end
 			frame.Visible = not (small and collapsed)
 			if hint ~= nil then
@@ -900,7 +941,7 @@ function Hud.start(opts: Options): ()
 				SocialService:PromptGameInvite(player)
 			end)
 		else
-			Components.toast(theme, screenGui, Copy.invitesUnavailableText, "info", 3)
+			Components.toast(theme, toastHost, Copy.invitesUnavailableText, "info", 3)
 		end
 	end)
 
@@ -1314,7 +1355,7 @@ function Hud.start(opts: Options): ()
 		if type(text) ~= "string" then
 			return
 		end
-		Components.toast(theme, screenGui, text, "info", 5)
+		Components.toast(theme, toastHost, text, "info", 5)
 		if Copy.isRareHatchNotify(text) then
 			Fx.play("rare", 0.6)
 		end
@@ -1425,8 +1466,19 @@ function Hud.start(opts: Options): ()
 		end
 		renderQuests(snapshot.quests or {})
 
+		-- The incubator rows are reconciled in place instead of being destroyed and rebuilt on
+		-- every state push. Rebuilding had two costs: it churned the very button a player is
+		-- tapping (a tap landing between the destroy and the rebuild was lost -- a real run
+		-- clicked an accepted hit and saw no Activated), and it rebuilt identical rows on
+		-- every coin tick. Each incubator now owns exactly one row, named for its state, and
+		-- a row is only replaced when that state flips (timer -> ready changes the control).
+		local wanted: { [string]: boolean } = {}
+		for i, inc in (snapshot.incubators or {}) do
+			local name = if math.ceil(inc.remaining or 0) <= 0 then "Hatch_" .. tostring(i) else "Slot_" .. tostring(i)
+			wanted[name] = true
+		end
 		for _, child in incubatorFrame:GetChildren() do
-			if child:IsA("GuiObject") then
+			if child:IsA("GuiObject") and not wanted[child.Name] then
 				child:Destroy()
 			end
 		end
@@ -1435,6 +1487,9 @@ function Hud.start(opts: Options): ()
 		for i, inc in incubators do
 			local remaining = math.ceil(inc.remaining or 0)
 			if remaining <= 0 then
+				if incubatorFrame:FindFirstChild("Hatch_" .. tostring(i)) ~= nil then
+					continue
+				end
 				local hatchBtn = Components.iconButton(theme, {
 					name = "Hatch_" .. tostring(i),
 					text = Copy.hatchButtonText(i),
@@ -1444,6 +1499,8 @@ function Hud.start(opts: Options): ()
 					iconSize = 24,
 					parent = incubatorFrame,
 				})
+				-- Stable order: a row that appears later still sorts by its own index.
+				hatchBtn.LayoutOrder = i * 10
 
 				hatchBtn.Activated:Connect(function()
 					local okHatch, result = HatchEgg:InvokeServer(i)
@@ -1460,12 +1517,19 @@ function Hud.start(opts: Options): ()
 					end
 				end)
 			else
-				local status = Instance.new("TextLabel")
-				status.Size = UDim2.new(1, 0, 0, 24)
-				status.Text = Copy.slotStatusText(i, inc.sourceId or "", Layout.formatDuration(remaining))
-				status.TextColor3 = Color3.fromRGB(180, 180, 180)
-				status.BackgroundTransparency = 1
-				status.Parent = incubatorFrame
+				local existing = incubatorFrame:FindFirstChild("Slot_" .. tostring(i))
+				if existing ~= nil and existing:IsA("TextLabel") then
+					existing.Text = Copy.slotStatusText(i, inc.sourceId or "", Layout.formatDuration(remaining))
+				elseif existing == nil then
+					local status = Instance.new("TextLabel")
+					status.Name = "Slot_" .. tostring(i)
+					status.Size = UDim2.new(1, 0, 0, 24)
+					status.TextColor3 = Color3.fromRGB(180, 180, 180)
+					status.BackgroundTransparency = 1
+					status.LayoutOrder = i * 10
+					status.Text = Copy.slotStatusText(i, inc.sourceId or "", Layout.formatDuration(remaining))
+					status.Parent = incubatorFrame
+				end
 			end
 		end
 		scheduleTouchAssert()

@@ -43,6 +43,20 @@ if type(value)~='table' or value[${literal(head)}]==nil then
  elseif type(value)=='table' then for _,name in ${literal(SHARED_SNAPSHOTS)} do local shared=q.snapshot:Invoke(name,${literal(userId)});if type(shared)=='table' and shared[${literal(head)}]~=nil then value=shared;break end end end
 end`;
 export function predicateCode(predicate, genre, userId) {
+  // `exists` watches for an instance the product creates later (a hatch button that only
+  // appears when its timer elapses). Every other form resolves its target first and
+  // asserts it, so a control the HUD has not built yet could not be waited for at all.
+  // The parent is watched with ChildAdded rather than the instance, because the
+  // instance does not exist to subscribe to.
+  if (predicate.source === 'exists') {
+    const parentPath = predicate.target.split('.');
+    const name = parentPath[parentPath.length - 1];
+    const parent = parentPath.slice(0, -1).join('.');
+    return `${locate(parent, 'parent')}
+local function sample() return parent:FindFirstChild(${literal(name)}) ~= nil end
+local function matches() return sample() end
+local signal=parent.ChildAdded`;
+  }
   const path=Array.isArray(predicate.field)?predicate.field:predicate.field.split('.');
   const getter=predicate.source==='snapshot'
     ? `local qa=game:GetService('ServerStorage').ForgeQA

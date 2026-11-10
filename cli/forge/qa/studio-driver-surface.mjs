@@ -184,7 +184,11 @@ for _,item in playerGui:GetDescendants() do
   local clipMinX,clipMinY,clipMaxX,clipMaxY=-math.huge,-math.huge,math.huge,math.huge
   while ancestor and ancestor~=playerGui do
    if ancestor:IsA('GuiObject') then visible=visible and ancestor.Visible;if ancestor:IsA('GuiButton') then nested=true end
-    if ancestor.ClipsDescendants then local ap,as=ancestor.AbsolutePosition,ancestor.AbsoluteSize;clipMinX,clipMinY=math.max(clipMinX,ap.X),math.max(clipMinY,ap.Y);clipMaxX,clipMaxY=math.min(clipMaxX,ap.X+as.X),math.min(clipMaxY,ap.Y+as.Y) end end
+    -- A ScrollingFrame clips its children at its own bounds even though the engine reports
+   -- ClipsDescendants as false for it. Measuring only the property made every child below
+   -- the fold look like UI laid outside the safe area (a real run failed with an invite
+   -- button 36 px below a scrollable column), when the player simply has not scrolled to it.
+   if ancestor.ClipsDescendants or ancestor:IsA('ScrollingFrame') then local ap,as=ancestor.AbsolutePosition,ancestor.AbsoluteSize;clipMinX,clipMinY=math.max(clipMinX,ap.X),math.max(clipMinY,ap.Y);clipMaxX,clipMaxY=math.min(clipMaxX,ap.X+as.X),math.min(clipMaxY,ap.Y+as.Y) end end
    if ancestor:IsA('ScreenGui') then visible=visible and ancestor.Enabled;screenName=ancestor.Name end
    ancestor=ancestor.Parent
   end

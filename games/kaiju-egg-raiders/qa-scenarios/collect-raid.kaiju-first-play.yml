@@ -13,6 +13,7 @@ players: [desktop, phone]
 steps:
   - {op: expect_members, members: [desktop, phone]}
   - {op: device, player: desktop, surface: desktop, width: 1280, height: 720, timeout_seconds: 30}
+  - {op: device, player: phone, surface: mobile, width: 390, height: 844, timeout_seconds: 60}
   - op: wait_for
     player: desktop
     timeout_seconds: 90
@@ -26,26 +27,28 @@ steps:
     player: desktop
     timeout_seconds: 30
     predicate:
+      # CoinsLabel is a Frame (icon row); the text lives on its CoinsText child.
       source: property
-      target: "Players.LocalPlayer.PlayerGui.KaijuGui.SafeArea.MainFrame.CoinsLabel"
+      target: "Players.LocalPlayer.PlayerGui.KaijuGui.SafeArea.MainFrame.CoinsLabel.CoinsText"
       field: Text
       not_equals: "Coins: 100"
+  - {op: capture, target: kaiju-after-buy}
+  # The HUD creates Hatch_1 only when the egg's timer elapses. Every other predicate
+  # source resolves its target up front and asserts it, so this source exists to make
+  # "wait for a control the product builds later" expressible at all.
   - op: wait_for
     player: desktop
-    timeout_seconds: 30
+    timeout_seconds: 120
     predicate:
-      source: property
+      source: exists
       target: "Players.LocalPlayer.PlayerGui.KaijuGui.SafeArea.MainFrame.Incubators.Hatch_1"
-      field: Visible
-      equals: true
-  - {op: capture, target: kaiju-after-buy}
   - {op: click, player: desktop, target: "Players.LocalPlayer.PlayerGui.KaijuGui.SafeArea.MainFrame.Incubators.Hatch_1", timeout_seconds: 30}
   - op: wait_for
     player: desktop
     timeout_seconds: 60
     predicate:
       source: property
-      target: "Players.LocalPlayer.PlayerGui.KaijuGui.SafeArea.MainFrame.Quests.Quest_hatch"
-      field: Visible
-      equals: true
+      target: "Players.LocalPlayer.PlayerGui.KaijuGui.SafeArea.MainFrame.KaijuLabel"
+      field: Text
+      not_equals: "Kaiju Owned: 0"
   - {op: capture, target: kaiju-after-hatch, settle: true}

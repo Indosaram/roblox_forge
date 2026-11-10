@@ -570,18 +570,29 @@ local function validateStep(
 			local predicate = if op == "wait_for" then step.predicate else step.untilState
 			if type(predicate) ~= "table" then
 				table.insert(errors, label .. ": exact predicate required")
-			elseif not table.find({ "property", "attribute", "snapshot" }, predicate.source) then
-				table.insert(errors, label .. ": predicate source must be property|attribute|snapshot")
+			elseif not table.find({ "property", "attribute", "snapshot", "exists" }, predicate.source) then
+				table.insert(errors, label .. ": predicate source must be property|attribute|snapshot|exists")
 			else
-				if #comparatorsOf(predicate) ~= 1 then
-					table.insert(errors, label .. ": predicate needs exactly one comparator")
-				end
-				if predicate.source == "snapshot" then
-					if type(predicate.field) ~= "string" and type(predicate.field) ~= "table" then
-						table.insert(errors, label .. ": snapshot field required")
+				if predicate.source == "exists" then
+					-- An instance the product creates later has no field to read and no
+					-- comparator to satisfy: its existence is the condition. The driver
+					-- watches the parent's ChildAdded, so a target is all it needs.
+					if type(predicate.target) ~= "string" then
+						table.insert(errors, label .. ": exists predicate requires target")
+					elseif #comparatorsOf(predicate) ~= 0 then
+						table.insert(errors, label .. ": exists predicate takes no comparator")
 					end
-				elseif type(predicate.target) ~= "string" or type(predicate.field) ~= "string" then
-					table.insert(errors, label .. ": instance predicate requires target and field")
+				else
+					if #comparatorsOf(predicate) ~= 1 then
+						table.insert(errors, label .. ": predicate needs exactly one comparator")
+					end
+					if predicate.source == "snapshot" then
+						if type(predicate.field) ~= "string" and type(predicate.field) ~= "table" then
+							table.insert(errors, label .. ": snapshot field required")
+						end
+					elseif type(predicate.target) ~= "string" or type(predicate.field) ~= "string" then
+						table.insert(errors, label .. ": instance predicate requires target and field")
+					end
 				end
 			end
 		end
