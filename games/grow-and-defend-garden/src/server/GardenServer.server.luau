@@ -245,7 +245,12 @@ local function newState(player: Player, saved: any)
 	}, {
 		OnHarvest = function(context)
 			state.harvested[context.cropId] = (state.harvested[context.cropId] or 0) + 1
-			state.barricades += 1
+			-- A harvest's defense comes from its crop tier, not a flat +1. With a flat +1
+			-- the wave curve (3 + 2(N-1) per wave) outran carrot production at wave 8 and
+			-- every later run was unwinnable no matter how well the player played.
+			local crop = Config.crops[context.cropId]
+			local defense = if crop ~= nil and crop.defense ~= nil then crop.defense else 1
+			state.barricades += defense
 		end,
 	})
 	coop = SurvivalCoop.new(Config.waves, {

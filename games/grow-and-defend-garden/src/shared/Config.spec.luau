@@ -50,6 +50,17 @@ return {
 					.. " econ.yml="
 					.. tostring(crop.sellPrice)
 			)
+			-- defense is what makes a harvest answer the wave curve, so it has to stay
+			-- equal in the two files like growthSeconds and sellPrice do.
+			assert(
+				config.defense == crop.defense,
+				"defense drift for "
+					.. crop.id
+					.. ": Config="
+					.. tostring(config.defense)
+					.. " econ.yml="
+					.. tostring(crop.defense)
+			)
 		end
 		local configCount = 0
 		for _ in Config.crops do

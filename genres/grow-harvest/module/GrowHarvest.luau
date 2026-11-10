@@ -7,6 +7,10 @@ local Wallet = require("../../../core/domain/economy/Wallet")
 export type CropConfig = {
 	growthSeconds: number,
 	sellPrice: number,
+	-- Optional: barricade/defense points one harvest of this crop contributes, for
+	-- packs whose loop spends harvests on defense (grow-and-defend-garden does).
+	-- Optional so a pack that only grows and sells keeps its current config.
+	defense: number?,
 }
 
 export type Config = {
