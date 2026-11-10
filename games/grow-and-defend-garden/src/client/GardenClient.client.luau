@@ -171,17 +171,31 @@ local pickerRow =
 pickerRow.LayoutOrder = 6
 local pickerLabel = makeLabel(pickerRow, "SeedChoice", UDim2.fromScale(1, 0.55), Color3.fromRGB(220, 255, 220), 12)
 local pickerButtons: { TextButton } = {}
+-- Seeds in hand for the selected crop. Declared before refreshPicker because the
+-- picker line states it, and the state handler is what keeps it current.
+local selectedSeeds = 0
+-- Latest server-side in-hand seed counts, keyed by crop id, at module scope so the
+-- picker can re-read the count for whichever crop the player just selected.
+local seeds: { [string]: number } = {}
 local function refreshPicker()
 	local crop = Config.crops[selectedCrop]
+	-- Seeds are keyed by crop, so the count is read for the CURRENT selection before the
+	-- line is built. Reading it afterwards rendered the previous crop's count beside the
+	-- new crop's name -- a wrong number at the moment the player chooses what to plant.
+	selectedSeeds = seeds[selectedCrop] or 0
 	if crop ~= nil then
 		-- Growth, price and defense are the whole trade-off: a slower crop is worth
-		-- more Coins and defends harder, which is what answers the wave curve.
+		-- more Coins and defends harder, which is what answers the wave curve. This
+		-- line has to fit 351 px on a 390 px phone: "Seed: carrot  20s  10 coins
+		-- +1 defense  (0 in hand)" clipped to "(0 in han", so the abbreviations
+		-- are deliberate and the count trails the line.
 		pickerLabel.Text = string.format(
-			"Seed: %s  %ds  %d coins  +%d defense",
+			"%s: %ds, %dc, +%d def, %d held",
 			selectedCrop,
 			crop.growthSeconds,
 			crop.sellPrice,
-			crop.defense or 1
+			crop.defense or 1,
+			selectedSeeds
 		)
 	end
 	for _, button in pickerButtons do
@@ -227,7 +241,7 @@ for index = 1, Config.plotCount do
 		create("Frame", { Name = "plot-" .. index, Size = UDim2.new(1, 0, 0, 30), BackgroundTransparency = 1 }, frame)
 	row.LayoutOrder = 7 + index
 	local label = makeLabel(row, "Status", UDim2.fromScale(0.34, 1), Color3.fromRGB(240, 240, 240), 12)
-	label.Text = string.format("%d: empty (seed 0)", plotIndex)
+	label.Text = string.format("%d: empty", plotIndex)
 
 	local rowState: Row = { label = label, cursor = 0, cropId = nil, chosen = "" }
 	rows[plotIndex] = rowState
@@ -294,7 +308,9 @@ StateChanged.OnClientEvent:Connect(function(info: any)
 	end
 
 	local plots = info.plots or {}
-	local seeds: any = if type(info.seeds) == "table" then info.seeds else {}
+	-- The assignment, not a new local: refreshPicker reads this between pushes when the
+	-- player switches crops, and a shadowing local would leave it stale.
+	seeds = if type(info.seeds) == "table" then info.seeds else {}
 	heldCrops = if type(info.harvested) == "table" then info.harvested else {}
 	local heldParts: { string } = {}
 	for _, cropId in Config.cropOrder do
@@ -304,21 +320,26 @@ StateChanged.OnClientEvent:Connect(function(info: any)
 		end
 	end
 	heldLabel.Text = if #heldParts == 0 then "Held: none" else "Held: " .. table.concat(heldParts, ", ")
+	-- One shared number for the shared selector, so it is stated once on the picker
+	-- line rather than repeated in every plot row.
+	selectedSeeds = seeds[selectedCrop] or 0
+	refreshPicker()
 	for plotIndex, rowState in rows do
 		local plot = plots[plotIndex]
 		if type(plot) == "table" then
 			if plot.cropId ~= nil then
 				rowState.cropId = plot.cropId
 			end
-			local status = if plot.cropId == nil
+			-- 0.34 of a 360 px panel is ~122 px, and "2: pumpkin (44s, 0)" needs ~135 px,
+			-- so every capture clipped it mid-word (": pumpkin (44s, 0"). The row now
+			-- reads "2 pumpkin 44s". The held count moved to the seed line because it is
+			-- one shared number for the selected crop, not a per-row quantity; repeating
+			-- it in three rows was both wider and more confusing than stating it once.
+			local short = if plot.cropId == nil
 				then "empty"
 				elseif plot.ready then "ready"
 				else string.format("%ds", math.floor(plot.remaining or 0))
-			-- The count is for the seed the row's Buy and Plant buttons act on, which is
-			-- the shared selector's crop.
-			local held = seeds[selectedCrop] or 0
-			rowState.label.Text =
-				string.format("%d: %s (%s, %d)", plotIndex, tostring(plot.cropId or "-"), status, held)
+			rowState.label.Text = string.format("%d %s %s", plotIndex, tostring(plot.cropId or "-"), short)
 		end
 	end
 end)

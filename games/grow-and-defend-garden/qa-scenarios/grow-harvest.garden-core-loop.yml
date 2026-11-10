@@ -42,16 +42,16 @@ steps:
       source: property
       target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.plot-1.Status"
       field: Text
-      equals: "1: - (empty, 0)"
+      equals: "1 - empty"
   - {op: click, player: desktop, target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.plot-1.Buy", timeout_seconds: 30}
   - op: wait_for
     player: desktop
     timeout_seconds: 30
     predicate:
       source: property
-      target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.plot-1.Status"
+      target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.seed-picker.SeedChoice"
       field: Text
-      equals: "1: - (empty, 1)"
+      equals: "carrot: 20s, 10c, +1 def, 1 held"
   - {op: click, player: desktop, target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.plot-1.Plant", timeout_seconds: 30}
   - op: wait_for
     player: desktop
@@ -60,7 +60,7 @@ steps:
       source: property
       target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.plot-1.Status"
       field: Text
-      not_equals: "1: - (empty, 0)"
+      not_equals: "1 - empty"
   - op: wait_for
     player: desktop
     timeout_seconds: 180
@@ -68,7 +68,7 @@ steps:
       source: property
       target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.plot-1.Status"
       field: Text
-      equals: "1: carrot (ready, 0)"
+      equals: "1 carrot ready"
   - {op: click, player: desktop, target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.plot-1.Harvest", timeout_seconds: 30}
   - op: wait_for
     player: desktop
@@ -97,3 +97,70 @@ steps:
       field: Text
       equals: "Coins: 59"
   - {op: capture, target: garden-after-sell, settle: true}
+  # The picker is the only control that decides WHICH crop a plot plants, and no run
+  # has ever clicked it: every previous pass planted the default carrot. Click
+  # pumpkin, plant plot-2, and assert the status names pumpkin. Without this, a
+  # picker that never wrote selectedCrop would still pass every other step.
+  - {op: click, player: desktop, target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.seed-buttons.seed-pumpkin", timeout_seconds: 30}
+  - op: wait_for
+    player: desktop
+    timeout_seconds: 30
+    predicate:
+      source: property
+      target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.seed-picker.SeedChoice"
+      field: Text
+      equals: "pumpkin: 45s, 30c, +3 def, 0 held"
+  # Switch to carrot with ZERO carrot seeds, buy one, then switch back to pumpkin.
+  # The two counts now differ (carrot 1, pumpkin 0), and the selected crop is pumpkin,
+  # so "0 held" is only correct if the picker re-read the count for the crop it just
+  # selected. A picker that carried the previous crop's count over would print 1 here
+  # and fail, which is exactly the defect this step catches. This must run while the
+  # counts differ; buying pumpkin first would make both non-zero and stop
+  # discriminating.
+  - {op: click, player: desktop, target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.seed-buttons.seed-carrot", timeout_seconds: 30}
+  - op: wait_for
+    player: desktop
+    timeout_seconds: 30
+    predicate:
+      source: property
+      target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.seed-picker.SeedChoice"
+      field: Text
+      equals: "carrot: 20s, 10c, +1 def, 0 held"
+  - {op: click, player: desktop, target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.plot-2.Buy", timeout_seconds: 30}
+  - op: wait_for
+    player: desktop
+    timeout_seconds: 30
+    predicate:
+      source: property
+      target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.seed-picker.SeedChoice"
+      field: Text
+      equals: "carrot: 20s, 10c, +1 def, 1 held"
+  - {op: click, player: desktop, target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.seed-buttons.seed-pumpkin", timeout_seconds: 30}
+  - op: wait_for
+    player: desktop
+    timeout_seconds: 30
+    predicate:
+      source: property
+      target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.seed-picker.SeedChoice"
+      field: Text
+      equals: "pumpkin: 45s, 30c, +3 def, 0 held"
+  # Plant needs a seed in hand, so buy the pumpkin now that its count has been proved.
+  - {op: click, player: desktop, target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.plot-2.Buy", timeout_seconds: 30}
+  - op: wait_for
+    player: desktop
+    timeout_seconds: 30
+    predicate:
+      source: property
+      target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.seed-picker.SeedChoice"
+      field: Text
+      equals: "pumpkin: 45s, 30c, +3 def, 1 held"
+  - {op: click, player: desktop, target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.plot-2.Plant", timeout_seconds: 30}
+  - op: wait_for
+    player: desktop
+    timeout_seconds: 60
+    predicate:
+      source: property
+      target: "Players.LocalPlayer.PlayerGui.GardenGui.GardenFrame.plot-2.Status"
+      field: Text
+      not_equals: "2 - empty"
+  - {op: capture, target: garden-picker-pumpkin, settle: true}
