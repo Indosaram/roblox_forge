@@ -54,12 +54,56 @@ local frame = create("Frame", {
 	BorderSizePixel = 0,
 }, screenGui)
 -- GuiService inset keeps the top row below the notch/topbar on every device.
-pcall(function()
+-- The chat frame is a reserved region: Roblox draws it top-left (measured on a
+-- 390x844 phone: x 0..156, y 105..379) and the QA gate rejects any owned control
+-- inside it (CRITICAL_UI_CHAT_OVERLAP). The 360 px cap cannot fit beside chat on
+-- a narrow phone, and chat is tall enough that dropping below it wastes the top
+-- half of the screen, so a viewport too narrow to sit beside chat anchors the
+-- panel to the bottom-right instead. Width decides this, not height.
+--
+-- The bottom-right corner is not free on touch: Roblox draws its jump button
+-- there (measured top edge at y~735 on a 390x844 phone), and a flush-bottom panel
+-- put that button on top of the last seed chip.
+local CHAT_RESERVED_WIDTH = 160
+local TOUCH_CONTROL_CLEARANCE = 120
+do
 	local gui = game:GetService("GuiService")
+	local input = game:GetService("UserInputService")
 	local inset = gui:GetGuiInset()
-	frame.Position = UDim2.new(1, -8, 0, inset.Y + 8)
-end)
-create("UIListLayout", { Padding = UDim.new(0, 6) }, frame)
+	local function place()
+		local camera = workspace.CurrentCamera
+		local viewport = if camera ~= nil then camera.ViewportSize else Vector2.new(1280, 720)
+		-- 360 is the panel cap below, and 16 keeps a visible gutter beside chat.
+		local besideChat = viewport.X >= CHAT_RESERVED_WIDTH + 360 + 16
+		if besideChat then
+			frame.AnchorPoint = Vector2.new(1, 0)
+			frame.Position = UDim2.new(1, -8, 0, inset.Y + 8)
+		else
+			-- Bottom-right is diagonally opposite chat's top-left band at every
+			-- viewport height, so no fixed pixel offset has to track chat's size.
+			local bottom = if input.TouchEnabled then TOUCH_CONTROL_CLEARANCE else 8
+			frame.AnchorPoint = Vector2.new(1, 1)
+			frame.Position = UDim2.new(1, -8, 1, -bottom)
+		end
+	end
+	place()
+	input:GetPropertyChangedSignal("TouchEnabled"):Connect(place)
+	workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+		local camera = workspace.CurrentCamera
+		if camera ~= nil then
+			camera:GetPropertyChangedSignal("ViewportSize"):Connect(place)
+		end
+		place()
+	end)
+	local camera = workspace.CurrentCamera
+	if camera ~= nil then
+		camera:GetPropertyChangedSignal("ViewportSize"):Connect(place)
+	end
+end
+-- SortOrder must be stated: the default is `Name`, which sorted the panel
+-- alphabetically (Barricades, Coins, Held, NextWave, plot-1..) and ignored every
+-- element's LayoutOrder, which put the seed picker below the plots it controls.
+create("UIListLayout", { Padding = UDim.new(0, 4), SortOrder = Enum.SortOrder.LayoutOrder }, frame)
 -- 0.9 of a 1280-wide viewport is 1152 px of panel over a 340 px-wide HUD's worth of
 -- text: it covered most of the world in the release capture. The constraint keeps
 -- the phone behaviour (fill the width, inset from notches) and caps it on desktop.
@@ -79,10 +123,22 @@ end
 local coinsLabel = makeLabel(frame, "Coins", UDim2.new(1, 0, 0, 26), Color3.fromRGB(255, 215, 0), 18)
 local barricadeLabel = makeLabel(frame, "Barricades", UDim2.new(1, 0, 0, 20), Color3.fromRGB(200, 220, 255), 14)
 local waveLabel = makeLabel(frame, "NextWave", UDim2.new(1, 0, 0, 20), Color3.fromRGB(255, 170, 80), 14)
+-- "Last wave: none yet" is 176 px of text that says nothing on a first play, and on a
+-- 390x844 phone the panel below chat and above the jump button has no room for it.
+-- Waves read from NextWave; the last-wave summary appears only once a wave has run.
 local lastWaveLabel = makeLabel(frame, "LastWave", UDim2.new(1, 0, 0, 20), Color3.fromRGB(230, 230, 230), 14)
+lastWaveLabel.Visible = false
 -- What the Sell button will sell, so harvesting has visible payoff before selling.
 local heldLabel = makeLabel(frame, "Held", UDim2.new(1, 0, 0, 20), Color3.fromRGB(190, 240, 190), 14)
 heldLabel.Text = "Held: none"
+-- The list sorts by LayoutOrder and breaks ties alphabetically, which reordered the
+-- readout (Barricades before Coins) and pushed the seed picker below the plots it
+-- controls. These orders are the reading order the panel is designed around.
+coinsLabel.LayoutOrder = 1
+barricadeLabel.LayoutOrder = 2
+waveLabel.LayoutOrder = 3
+lastWaveLabel.LayoutOrder = 4
+heldLabel.LayoutOrder = 5
 
 -- A row remembers the crop the player chose to buy/plant next. Rotation was the only
 -- behaviour before, which meant the player never made a decision: the defense value
@@ -112,6 +168,7 @@ local selectedCrop: string = Config.cropOrder[1]
 
 local pickerRow =
 	create("Frame", { Name = "seed-picker", Size = UDim2.new(1, 0, 0, 30), BackgroundTransparency = 1 }, frame)
+pickerRow.LayoutOrder = 6
 local pickerLabel = makeLabel(pickerRow, "SeedChoice", UDim2.fromScale(1, 0.55), Color3.fromRGB(220, 255, 220), 12)
 local pickerButtons: { TextButton } = {}
 local function refreshPicker()
@@ -135,6 +192,7 @@ end
 
 local pickerBar =
 	create("Frame", { Name = "seed-buttons", Size = UDim2.new(1, 0, 0, 26), BackgroundTransparency = 1 }, frame)
+pickerBar.LayoutOrder = 7
 local pickerLayout = create("UIListLayout", {
 	FillDirection = Enum.FillDirection.Horizontal,
 	Padding = UDim.new(0, 4),
@@ -167,6 +225,7 @@ for index = 1, Config.plotCount do
 	local plotIndex = index
 	local row =
 		create("Frame", { Name = "plot-" .. index, Size = UDim2.new(1, 0, 0, 30), BackgroundTransparency = 1 }, frame)
+	row.LayoutOrder = 7 + index
 	local label = makeLabel(row, "Status", UDim2.fromScale(0.34, 1), Color3.fromRGB(240, 240, 240), 12)
 	label.Text = string.format("%d: empty (seed 0)", plotIndex)
 
@@ -222,6 +281,7 @@ StateChanged.OnClientEvent:Connect(function(info: any)
 	local last = info.lastWave
 	if last == nil then
 		lastWaveLabel.Text = "Last wave: none yet"
+		lastWaveLabel.Visible = false
 	else
 		lastWaveLabel.Text = string.format(
 			"Last wave %d: %s (defense %d vs %d)",
@@ -230,6 +290,7 @@ StateChanged.OnClientEvent:Connect(function(info: any)
 			last.defensePower or 0,
 			last.enemies or 0
 		)
+		lastWaveLabel.Visible = true
 	end
 
 	local plots = info.plots or {}

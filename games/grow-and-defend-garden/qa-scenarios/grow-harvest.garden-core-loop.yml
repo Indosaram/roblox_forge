@@ -1,6 +1,9 @@
 # Garden's first-play loop on its real HUD (GardenGui.GardenFrame.plot-1.*).
 #
-# This pack hand-rolls its server, so it exposes no genre ForgeQA dispatch surface.
+# This pack hand-rolls its server, so its server publishes its own ForgeQA surface
+# over that runtime (`GardenServer.server.luau`), the way the legacy scaffold does:
+# the bindables call the same handlers the buttons call, so a run that passes here
+# proves the real loop works rather than a parallel contract runtime.
 # A second actor is declared because the Studio driver refuses to launch a
 # single-client run (it cannot tell one instance from a claimed server), not
 # because the pack is multiplayer. Its presence is itself asserted: the loop
@@ -20,6 +23,10 @@ players: [desktop, phone]
 steps:
   - {op: expect_members, members: [desktop, phone]}
   - {op: device, player: desktop, surface: desktop, width: 1280, height: 720, timeout_seconds: 30}
+  # `capture` photographs every mapped client, and captureGeometry asserts the
+  # client has a configured simulated device. The phone actor is asserted present
+  # but never clicked, so it is only ever staged for its own capture.
+  - {op: device, player: phone, surface: mobile, width: 390, height: 844, timeout_seconds: 60}
   - op: wait_for
     player: desktop
     timeout_seconds: 60

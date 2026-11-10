@@ -508,6 +508,128 @@ RunService.Heartbeat:Connect(function(dt: number)
 	end
 end)
 
+-- ---- ForgeState / ForgeAction: the QA read/write surface --------------------
+-- The Studio driver's preflight requires both of these before it runs a single
+-- step, and its step vocabulary (dispatch/snapshot/save) is expressed in them.
+-- They are bound to THIS server's real handlers and real state, never to a
+-- parallel contract runtime: a second runtime beside this one would let QA pass
+-- while the plots, the visible balance or the persistence were broken.
+local forgeRevision = 0
+local ForgeAction = Instance.new("RemoteFunction")
+ForgeAction.Name = "ForgeAction"
+local ForgeState = Instance.new("RemoteEvent")
+ForgeState.Name = "ForgeState"
+
+local function pushForgeState(player: Player)
+	local state = states[player]
+	if state == nil then
+		return
+	end
+	forgeRevision += 1
+	ForgeState:FireClient(player, {
+		snapshots = { ["grow-harvest"] = snapshot(state, os.time()) },
+		revision = forgeRevision,
+	})
+end
+
+-- The driver calls ForgeAction with no arguments to fetch a fresh snapshot, so a
+-- nil action is a read, not an error.
+ForgeAction.OnServerInvoke = function(player: Player, id: any, args: any): any
+	if id == nil and args == nil then
+		pushForgeState(player)
+		return { ok = true }
+	end
+	return { ok = false, reason = "UNDECLARED_ACTION" }
+end
+
+ForgeAction.Parent, ForgeState.Parent = ReplicatedStorage, ReplicatedStorage
+
+-- ---- ForgeQA: the QA surface bound to THIS runtime --------------------------
+-- Same reasoning as ForgeState/ForgeAction above. Each bindable calls the handler
+-- the buttons call, so a scenario that passes here proves the real loop works.
+if RunService:IsStudio() then
+	assert(not ServerStorage:FindFirstChild("ForgeQA"), "ForgeQA already exists")
+	local qa = Instance.new("Folder")
+	qa.Name = "ForgeQA"
+	local changed = Instance.new("BindableEvent")
+	changed.Name, changed.Parent = "StateChanged", qa
+	local function bind(name: string, callback: (...any) -> ...any)
+		local fn = Instance.new("BindableFunction")
+		fn.Name, fn.OnInvoke, fn.Parent = name, callback, qa
+	end
+	local function playerOf(playerId: any): Player?
+		return Players:GetPlayerByUserId(tonumber(playerId) or 0)
+	end
+	bind("revision", function()
+		return forgeRevision
+	end)
+	bind("snapshot", function(_genre: string, playerId: string)
+		local player = playerOf(playerId)
+		local state = if player ~= nil then states[player] else nil
+		if state == nil then
+			return nil
+		end
+		return snapshot(state, os.time())
+	end)
+	bind("dispatch", function(genre: string, id: string, args: { any }, playerId: string)
+		local player = playerOf(playerId)
+		if player == nil then
+			return { ok = false, reason = "PLAYER_NOT_FOUND" }
+		end
+		-- Accept both the bare action id and the `<genre>:<id>` form the genre
+		-- runtime uses, so a scenario may spell either.
+		local action = tostring(id)
+		if string.sub(action, 1, #genre + 1) == genre .. ":" then
+			action = string.sub(action, #genre + 2)
+		end
+		if action == "buy-seed" then
+			local ok = buySeed(player, args[1])
+			changed:Fire(1)
+			return if ok then { ok = true } else { ok = false, reason = "REJECTED" }
+		elseif action == "plant" then
+			local state = states[player]
+			if state == nil then
+				return { ok = false, reason = "NO_STATE" }
+			end
+			local plotIndex, cropId = args[1], args[2]
+			if (state.seeds[cropId] or 0) <= 0 or not allowAction(state, os.time()) then
+				return { ok = false, reason = "REJECTED" }
+			end
+			local planted = state.grow:plant(plotIndex, cropId, os.time())
+			if planted then
+				state.seeds[cropId] -= 1
+			end
+			changed:Fire(1)
+			return if planted then { ok = true } else { ok = false, reason = "REJECTED" }
+		elseif action == "harvest" then
+			local state = states[player]
+			if state == nil then
+				return { ok = false, reason = "NO_STATE" }
+			end
+			if not allowAction(state, os.time()) then
+				return { ok = false, reason = "REJECTED" }
+			end
+			local cropId = state.grow:harvest(args[1], os.time())
+			changed:Fire(1)
+			return if cropId ~= nil then { ok = true } else { ok = false, reason = "REJECTED" }
+		elseif action == "sell-held" then
+			local price = sell(player, args[1])
+			changed:Fire(1)
+			return if price > 0 then { ok = true } else { ok = false, reason = "REJECTED" }
+		end
+		return { ok = false, reason = "UNDECLARED_ACTION" }
+	end)
+	bind("save", function(playerId: string)
+		local player = playerOf(playerId)
+		if player == nil or profiles[player] == nil then
+			return { ok = false, reason = "NO_PROFILE" }
+		end
+		savePlayer(player)
+		return { ok = true }
+	end)
+	qa.Parent = ServerStorage
+end
+
 if RunService:IsStudio() then
 	local debugFn = Instance.new("BindableFunction")
 	debugFn.Name = "GardenDebug"
