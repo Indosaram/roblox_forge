@@ -701,8 +701,18 @@ function M.start(options: Options)
 		local humanoid = body()
 		local character = player.Character
 		local backpack = player:FindFirstChildOfClass("Backpack")
-		if not humanoid or not character or not backpack or character:FindFirstChildOfClass("Tool") then
+		if not humanoid or not character or not backpack then
 			return false
+		end
+		-- A held non-melee Tool (the Hobble Bola the first-capture guide hands over) must not
+		-- block the swing: unequip it so pickWeapon can raise the melee weapon the guide's
+		-- "hit it until it stands winded" step needs.
+		local held = character:FindFirstChildOfClass("Tool")
+		if held then
+			if M.pickWeapon(options.content, { held }) then
+				return false
+			end
+			humanoid:UnequipTools()
 		end
 		local tool = M.pickWeapon(options.content, backpack:GetChildren())
 		if not tool then
