@@ -31241,7 +31241,7 @@ stages:
       -
         id: "rw.a2.s2.craft"
         action: "craft"
-        target: "dry-twig"
+        target: "tan-hide"
         quantity: 2
     provenance:
       classification: "RECONSTRUCTED"
@@ -31373,8 +31373,8 @@ stages:
       -
         id: "rw.a3.s2.craft"
         action: "craft"
-        target: "dry-twig"
-        quantity: 3
+        target: "smelt-iron"
+        quantity: 2
     provenance:
       classification: "RECONSTRUCTED"
   -
@@ -31505,8 +31505,8 @@ stages:
       -
         id: "rw.a4.s2.craft"
         action: "craft"
-        target: "dry-twig"
-        quantity: 4
+        target: "polish-stone"
+        quantity: 3
     provenance:
       classification: "RECONSTRUCTED"
   -
@@ -31637,8 +31637,8 @@ stages:
       -
         id: "rw.a5.s2.craft"
         action: "craft"
-        target: "dry-twig"
-        quantity: 5
+        target: "polish-basalt"
+        quantity: 2
     provenance:
       classification: "RECONSTRUCTED"
   -
@@ -31861,7 +31861,7 @@ missions:
       -
         id: "rw.a1.s2.craft"
         action: "craft"
-        target: "dry-twig"
+        target: "dry-fiber"
         quantity: 1
         stageId: "rw.a1.s2.craft"
     rewards:
@@ -32035,7 +32035,7 @@ missions:
       -
         id: "rw.a2.s2.craft"
         action: "craft"
-        target: "dry-twig"
+        target: "dry-hide"
         quantity: 2
         stageId: "rw.a2.s2.craft"
     rewards:
@@ -32205,8 +32205,8 @@ missions:
       -
         id: "rw.a3.s2.craft"
         action: "craft"
-        target: "dry-twig"
-        quantity: 3
+        target: "smelt-copper"
+        quantity: 2
         stageId: "rw.a3.s2.craft"
     rewards:
       xp: 900
@@ -32375,8 +32375,8 @@ missions:
       -
         id: "rw.a4.s2.craft"
         action: "craft"
-        target: "dry-twig"
-        quantity: 4
+        target: "polish-flint"
+        quantity: 3
         stageId: "rw.a4.s2.craft"
     rewards:
       xp: 1100
@@ -32545,8 +32545,8 @@ missions:
       -
         id: "rw.a5.s2.craft"
         action: "craft"
-        target: "dry-twig"
-        quantity: 5
+        target: "smelt-steel"
+        quantity: 2
         stageId: "rw.a5.s2.craft"
     rewards:
       xp: 1300
