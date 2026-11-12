@@ -380,6 +380,18 @@ return {
 				not admitted and string.find(tostring(detail), "REFERENCE_RIGHTS_BASIS", 1, true),
 				'not admitted and string.find(tostring(detail), "REFERENCE_RIGHTS_BASIS", 1, true)'
 			)
+			-- Read-only observation is a valid basis, but only while redistribution stays forbidden:
+			-- the reference bytes may be looked at, never shipped.
+			reference.rights.basis = "internal-observation"
+			reference.rights.scope.redistribution = true
+			save()
+			admitted, detail = receipt.validateReference(profile, input, candidate)
+			assert(
+				not admitted and string.find(tostring(detail), "REFERENCE_RIGHTS_REDISTRIBUTION", 1, true),
+				'not admitted and string.find(tostring(detail), "REFERENCE_RIGHTS_REDISTRIBUTION", 1, true)'
+			)
+			reference.rights.scope.redistribution = false
+			save()
 			fs.writeFile(root .. "/e/archive", "swapped")
 			admitted, detail = receipt.validateReference(profile, input, candidate)
 			assert(

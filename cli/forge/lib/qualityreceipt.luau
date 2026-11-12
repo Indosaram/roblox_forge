@@ -749,10 +749,18 @@ function M.validateReference(profile: qualityprofile.Profile, input: Inputs, rec
 			independence.archive.sha256 == source.sourceSha256 and #bytes(independence.archive) > 0,
 			"REFERENCE_SOURCE_ARCHIVE"
 		)
+		-- internal-observation covers a read-only look at a shipped game whose licence we cannot
+		-- cite: observing a running experience to judge our own feel is not redistribution, so this
+		-- basis is admitted only when the component inventory forbids redistributing its bytes.
 		assert(
-			rights.basis == "explicit-owner-permission" or rights.basis == "permissive-sample-license",
+			rights.basis == "explicit-owner-permission"
+				or rights.basis == "permissive-sample-license"
+				or rights.basis == "internal-observation",
 			"REFERENCE_RIGHTS_BASIS"
 		)
+		if rights.basis == "internal-observation" then
+			assert(rights.scope.redistribution == false, "REFERENCE_RIGHTS_REDISTRIBUTION")
+		end
 		assert(
 			rights.scope.localCapture == true
 				and rights.scope.localEvaluation == true
