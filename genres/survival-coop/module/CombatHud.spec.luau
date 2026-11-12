@@ -330,16 +330,15 @@ return {
 			"projected Tools carry their catalog id"
 		)
 		-- The first-capture guide hands the player a Hobble Bola before asking them to wind a
-		-- dodo. arm() must unequip that non-melee Tool instead of bailing out on any held Tool,
+		-- dodo. arming must lower that non-melee Tool instead of bailing out on any held Tool,
 		-- otherwise no melee weapon is ever raised and every swing is refused.
+		assert(Combat.armPlan(Content, bola) == "unequip", "a held bola is lowered before arming")
+		assert(Combat.armPlan(Content, knife) == "keep", "a held melee weapon is kept as is")
+		assert(Combat.armPlan(Content, nil) == "none", "an empty hand just equips")
 		local hud = require("@lune/fs").readFile("genres/survival-coop/module/CombatHud.luau")
 		assert(
 			string.find(hud, "humanoid:UnequipTools()", 1, true),
 			"arm() unequips a held non-melee Tool so the swing can raise a melee weapon"
-		)
-		assert(
-			not string.find(hud, 'not character or character:FindFirstChildOfClass("Tool") then', 1, true),
-			"arm() no longer refuses to arm while a non-melee Tool is held"
 		)
 	end,
 }

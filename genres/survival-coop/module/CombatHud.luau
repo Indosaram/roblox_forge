@@ -153,6 +153,16 @@ end
 -- p134 v59: the loop followed a fleeing dodo ~450 studs out to sea and ~120 studs onto the dock.
 M.CHASE_STUDS = 40
 
+--- What arming must do with the Tool already in hand: "keep" (a melee weapon is held, so a swing
+--- can go out as is), "unequip" (a non-melee Tool such as the Hobble Bola the first-capture guide
+--- hands over blocks the hand and must be lowered first), or "none" (empty hand, just equip).
+function M.armPlan(content: any, held: any): string
+	if held == nil then
+		return "none"
+	end
+	return if M.pickWeapon(content, { held }) then "keep" else "unequip"
+end
+
 --- True when the combat bar must clear: player dead or bodiless, target gone, walked away from a
 --- paused loop (p134 v50: the step-back pill outlived a death by ~10 min), or the target led the
 --- chase more than CHASE_STUDS from where it began (`chased`, flat studs).
@@ -707,11 +717,10 @@ function M.start(options: Options)
 		-- A held non-melee Tool (the Hobble Bola the first-capture guide hands over) must not
 		-- block the swing: unequip it so pickWeapon can raise the melee weapon the guide's
 		-- "hit it until it stands winded" step needs.
-		local held = character:FindFirstChildOfClass("Tool")
-		if held then
-			if M.pickWeapon(options.content, { held }) then
-				return false
-			end
+		local plan = M.armPlan(options.content, character:FindFirstChildOfClass("Tool"))
+		if plan == "keep" then
+			return false
+		elseif plan == "unequip" then
 			humanoid:UnequipTools()
 		end
 		local tool = M.pickWeapon(options.content, backpack:GetChildren())
