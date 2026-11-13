@@ -2334,7 +2334,7 @@ recipes:
     outputs:
       -
         item: "dried-wood"
-        quantity: 6
+        quantity: 2
     station: "campfire"
   -
     id: "dry-fiber"
