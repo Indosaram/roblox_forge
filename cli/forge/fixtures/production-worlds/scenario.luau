@@ -1416,7 +1416,9 @@ function M.new(ctx: any): any
 		if development.points < 200 or personal(actor).progression.level < 2 then
 			return "onboarding_progress_missing"
 		end
-		if personal(actor).progression.mastery.construction.level ~= 1 then
+		-- At least rank one: the fun-first mastery curve (owner 2026-11-03) can carry a single
+		-- settlement-place past rank 1, and a higher rank is strictly better, not a failure.
+		if personal(actor).progression.mastery.construction.level < 1 then
 			return "placement_proficiency_missing"
 		end
 		return nil

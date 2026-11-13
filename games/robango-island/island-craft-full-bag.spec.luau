@@ -61,7 +61,9 @@ local function island(heldDriedWood: boolean): any
 			bag.items[item.itemId] = item
 			slots += 1
 		end
-		put(stack("a-branch", "branch", 4))
+		-- The recipe consumes 2 branches; hold 6 so the input stack survives the craft and its
+		-- slot stays occupied (the point of this spec is collect pressure, not input churn).
+		put(stack("a-branch", "branch", 6))
 		if heldDriedWood then
 			put(stack("a-dried-wood", "dried-wood", 3))
 		end
@@ -191,7 +193,7 @@ return {
 		p.craftOnce("dry-twig")
 		local collected = assert(p.last("craft-complete"), "Complete sent")
 		assert(collected.ok, "full-bag collect refused: " .. tostring(collected.reason))
-		assert(p.held("dried-wood") == 4, "output folded into the held stack: " .. p.held("dried-wood"))
+		assert(p.held("dried-wood") == 5, "output folded into the held stack: " .. p.held("dried-wood"))
 		local slots = 0
 		for _ in p.bag().items do
 			slots += 1
@@ -225,7 +227,7 @@ return {
 		p.wait(1)
 		local collected = assert(p.last("craft-complete"), "Complete sent again")
 		assert(collected.ok, "collect after Drop: " .. tostring(collected.reason))
-		assert(p.held("dried-wood") == 1, "the job's output is in the bag")
+		assert(p.held("dried-wood") == 2, "the job's output is in the bag")
 		assert(host.personal(ACTOR).workshop.entries[jobId].job.state == "Committed", "the player's job finished")
 		assert(p.progress() == 1, OBJECTIVE .. " progress " .. p.progress())
 		host.factory.close()

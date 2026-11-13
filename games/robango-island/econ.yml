@@ -5885,7 +5885,7 @@
            'item':
             'fiber'
            'quantity':
-            1
+            2
            
           
          'outputs':
@@ -5893,7 +5893,7 @@
            'item':
             'dried-fiber'
            'quantity':
-            1
+            2
            
           
          'station':
@@ -5957,7 +5957,7 @@
            'item':
             'branch'
            'quantity':
-            1
+            2
            
           
          'outputs':
@@ -5965,7 +5965,7 @@
            'item':
             'dried-wood'
            'quantity':
-            1
+            2
            
           
          'station':

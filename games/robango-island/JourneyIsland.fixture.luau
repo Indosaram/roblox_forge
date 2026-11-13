@@ -107,12 +107,12 @@ function M.run(host: any, p: any, options: any?): any
 	-- The next open guide objective, as CharacterText.guideObjective picks it for the HUD line.
 	-- With `here`, as CharacterText.guideStep picks the drift-isle second line: a step bound to
 	-- another place is passed over while one doable here is open.
-	local function guideTarget(here: string?): (any, any)
+	local function guideTarget(here: string?, ignoreSkip: boolean?): (any, any)
 		local ch = extensions().character or {}
 		local done, progress = ch.definitions or {}, ch.progress or {}
 		local level, grade = ch.level or 1, math.floor((ch.points or 0) / 100)
 		for _, g in GuideEvents.visible(Content, true) do
-			if not done[g.id] and not skipGuide[g.id] and GuideEvents.open(g, level, grade) then
+			if not done[g.id] and (ignoreSkip or not skipGuide[g.id]) and GuideEvents.open(g, level, grade) then
 				for _, o in g.objectives do
 					if (progress[o.id] or 0) < o.quantity then
 						local at = if here then GuideEvents.where(Content, o.action, o.target, here) else nil
@@ -125,7 +125,7 @@ function M.run(host: any, p: any, options: any?): any
 			end
 		end
 		if here then
-			return guideTarget()
+			return guideTarget(nil, ignoreSkip)
 		end
 		return nil, nil
 	end
@@ -1012,20 +1012,24 @@ function M.run(host: any, p: any, options: any?): any
 		end
 		if role == "archipelago" then
 			local captureGuide, objective = guideTarget(host.layoutId)
+			-- The HUD follows GuideEvents.visible order and never consults the runner's skipGuide (that
+			-- set only stops this driver from retrying a step it cannot finish). Judging the HUD against
+			-- a skipped guide reported friction whenever a blocked guide sat in front of the next one.
+			local hudGuide = guideTarget(host.layoutId, true)
 			-- Only a step the HUD shows (the guide line under the stage objective, v74 #8): the guide
 			-- list itself is behind Menu > Guides, which a player following the HUD never opens.
-			local shownStep = captureGuide ~= nil
+			local shownStep = hudGuide ~= nil
 				and string.find(
 						text,
-						CharacterText.text("ko-kr", "guide_" .. string.sub(captureGuide.id, 4, 6)),
+						CharacterText.text("ko-kr", "guide_" .. string.sub(hudGuide.id, 4, 6)),
 						1,
 						true
 					)
 					~= nil
-			if not shownStep and captureGuide and objective then
+			if not shownStep and hudGuide and objective then
 				p.stall(
 					"friction",
-					"guide step " .. captureGuide.id .. " is open but not on the HUD in " .. tostring(host.layoutId),
+					"guide step " .. hudGuide.id .. " is open but not on the HUD in " .. tostring(host.layoutId),
 					owner("genres/survival-coop/module/ExtensionPanels.luau", "CharacterText.guideStep("),
 					"the drift-isle tracker must show the next guide step under the stage objective"
 				)
