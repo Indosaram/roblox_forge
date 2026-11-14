@@ -687,10 +687,19 @@ end
 --- Runs every target, independently: one failing target never stops the rest,
 --- and every target is reported. `environment` embeds that deploy.yml
 --- environment's role and product maps (see runTarget).
-function M.runTargets(targets: { Target }, environment: string?): { TargetResult }
+--- With `owned`, each target embeds a fresh ownership token (forge build --owned) so
+--- `forge qa run --studio --bootstrap-owned` can prove it drives an owned artifact.
+function M.runTargets(targets: { Target }, environment: string?, owned: boolean?): { TargetResult }
 	local results: { TargetResult } = {}
 	for _, target in targets do
-		table.insert(results, M.runTarget(target, nil, environment))
+		local token: string? = nil
+		if owned then
+			-- 64 hex chars from the artifact path and its position in this run; long enough for
+			-- buildidentity's 16..128 rule and inside [%w%-]. No clock is read, so a repeated
+			-- build of the same target list produces the same token and stays reproducible.
+			token = serde.hash("sha256", "owned-qa|" .. target.outputPath .. "|" .. tostring(target.slug))
+		end
+		table.insert(results, M.runTarget(target, token, environment))
 	end
 	return results
 end

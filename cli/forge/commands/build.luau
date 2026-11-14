@@ -1,5 +1,10 @@
 --!strict
--- `forge build [--all | --pack <slug> | --project <path>] [--packs-root <dir>] [--env staging|production]`
+-- `forge build [--all | --pack <slug> | --project <path>] [--packs-root <dir>] [--env staging|production] [--owned]`
+--
+-- `--owned` marks the artifact as owned QA material: it embeds a fresh ownership
+-- token in the place (buildidentity) and writes it into the identity sidecar, which
+-- is what `forge qa run --studio --bootstrap-owned` requires before it will drive an
+-- owned Studio session (`qastudio` OWNED_ARTIFACT_MARKER_MISMATCH otherwise).
 --
 -- Every selector resolves through lib/buildtargets, so build and the default
 -- check verify exactly the same target matrix. With no selector this builds the
@@ -34,6 +39,7 @@ function M.run(args: { string }?): BuildResult
 	-- `--env <staging|production>` (with an explicit --pack) embeds that
 	-- environment's deploy.yml role and product maps before the identity hash.
 	local environment: string? = nil
+	local owned = false
 	local selectorArgs: { string } = {}
 	local index = 1
 	while index <= #argv do
@@ -44,6 +50,9 @@ function M.run(args: { string }?): BuildResult
 			end
 			environment = value
 			index += 2
+		elseif argv[index] == "--owned" then
+			owned = true
+			index += 1
 		else
 			table.insert(selectorArgs, argv[index])
 			index += 1
@@ -63,7 +72,7 @@ function M.run(args: { string }?): BuildResult
 		table.insert(lines, "build: " .. err)
 	end
 
-	local results = buildtargets.runTargets(targets, environment)
+	local results = buildtargets.runTargets(targets, environment, owned)
 	local ok = #resolveErrors == 0
 	for _, result in results do
 		for _, log in result.logs do
