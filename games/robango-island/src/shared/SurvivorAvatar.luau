@@ -1169,6 +1169,7 @@ function M.picker(ctx: any): any
 	confirm.Text, confirm.Font, confirm.TextColor3 = ctx.text("confirm"), Enum.Font.GothamBold, INK
 	round(confirm, 8)
 	local shown: Model? = nil
+	local stageStand: Model? = nil
 	local clock = 0
 	local focus: string? = nil
 	local view: any = nil
@@ -1207,6 +1208,89 @@ function M.picker(ctx: any): any
 		end
 		stageName.Text = if focus then ctx.text(focus) else ""
 	end
+	-- The colours a preset wears, straight from its palette: the primitive stand-in below reads as
+	-- the same survivor the mesh package would show. Each preset differs in skin and outfit, so the
+	-- four cards stay apart at a glance.
+	local function paletteOf(id: string): any
+		for _, preset in M.PRESETS do
+			if preset.id == id then
+				return preset.palette
+			end
+		end
+		return nil
+	end
+	-- p134 v74 #14 / v75 C4 follow-up (2026-11-14): a live session can refuse the mesh package
+	-- outright ("Requester does not have permission for Asset"), and then no template ever arrives,
+	-- so the image fallback -- itself an uploaded asset -- stayed empty and the screen a first-time
+	-- player picks a character on showed four blank squares. This stand-in is built from parts in
+	-- the preset's own colours: it needs no asset at all and always renders.
+	local function blockFigure(palette: any, parent: Instance)
+		local figure = Instance.new("Model")
+		figure.Name = "PortraitFigure"
+		local colour = function(key: string, fallback: Color3): Color3
+			local rgb = palette and palette[key]
+			return if rgb then Color3.fromRGB(rgb.r, rgb.g, rgb.b) else fallback
+		end
+		local function piece(shape: Enum.PartType?, size: Vector3, at: Vector3, c: Color3): Part
+			local part = Instance.new("Part")
+			if shape then
+				part.Shape = shape
+			end
+			part.Size, part.CFrame, part.Color = size, CFrame.new(at), c
+			part.Anchored, part.CanCollide, part.Material = true, false, Enum.Material.SmoothPlastic
+			part.TopSurface, part.BottomSurface = Enum.SurfaceType.Smooth, Enum.SurfaceType.Smooth
+			part.Parent = figure
+			return part
+		end
+		-- Torso and hips: the outfit's shirt and trousers.
+		piece(nil, Vector3.new(1.5, 1.6, 0.85), Vector3.new(0, 0.15, 0), colour("shirt", Color3.fromRGB(200, 190, 164)))
+		piece(
+			nil,
+			Vector3.new(1.45, 0.55, 0.82),
+			Vector3.new(0, -0.72, 0),
+			colour("trousers", Color3.fromRGB(96, 90, 70))
+		)
+		-- A waistcoat or braces layer over the shirt, when the preset has one.
+		local layer = palette and (palette.vest or palette.jacket or palette.braces or palette.overall)
+		if layer then
+			piece(nil, Vector3.new(1.05, 1.25, 0.9), Vector3.new(0, 0.25, 0), Color3.fromRGB(layer.r, layer.g, layer.b))
+		end
+		-- Legs, then arms with the sleeves rolled to the same skin as the head.
+		local trousers = colour("trousers", Color3.fromRGB(96, 90, 70))
+		local boots = colour("boots", Color3.fromRGB(70, 50, 36))
+		for _, side in { -1, 1 } do
+			piece(nil, Vector3.new(0.55, 1.05, 0.6), Vector3.new(side * 0.36, -1.45, 0), trousers)
+			piece(nil, Vector3.new(0.6, 0.4, 0.72), Vector3.new(side * 0.36, -2.0, 0), boots)
+			piece(
+				nil,
+				Vector3.new(0.42, 1.3, 0.45),
+				Vector3.new(side * 0.95, 0.2, 0),
+				colour("shirt", Color3.fromRGB(200, 190, 164))
+			)
+			piece(
+				nil,
+				Vector3.new(0.4, 0.42, 0.42),
+				Vector3.new(side * 0.95, -0.62, 0),
+				colour("skin", Color3.fromRGB(186, 142, 104))
+			)
+		end
+		-- Head and hair.
+		piece(
+			Enum.PartType.Ball,
+			Vector3.new(0.86, 0.86, 0.86),
+			Vector3.new(0, 1.42, 0),
+			colour("skin", Color3.fromRGB(186, 142, 104))
+		)
+		piece(nil, Vector3.new(0.9, 0.28, 0.9), Vector3.new(0, 1.78, 0), colour("hair", Color3.fromRGB(74, 50, 34)))
+		-- The forager's brimmed hat and the drifter's cap read as different silhouettes from the back row.
+		local hat = palette and palette.hat
+		if hat then
+			piece(nil, Vector3.new(1.35, 0.12, 1.35), Vector3.new(0, 1.9, 0), Color3.fromRGB(hat.r, hat.g, hat.b))
+			piece(nil, Vector3.new(0.72, 0.34, 0.72), Vector3.new(0, 2.06, 0), Color3.fromRGB(hat.r, hat.g, hat.b))
+		end
+		figure.Parent = parent
+		return figure
+	end
 	local function preview(id: string)
 		focus = id
 		if shown then
@@ -1219,6 +1303,16 @@ function M.picker(ctx: any): any
 			model:PivotTo(CFrame.new())
 			model.Parent = stage
 			shown = model
+			if stageStand then
+				stageStand:Destroy()
+				stageStand = nil
+			end
+		else
+			-- No mesh package here (a refused asset, not a missing upload): stand the preset's own
+			-- colours on the stage so the highlighted survivor still reads as a person.
+			if not stageStand then
+				stageStand = blockFigure(paletteOf(id), stage)
+			end
 		end
 		render()
 	end
@@ -1232,6 +1326,9 @@ function M.picker(ctx: any): any
 				local model = (source :: Model):Clone()
 				model:PivotTo(CFrame.new())
 				model.Parent = card.art
+				if card.stand and card.stand.Parent then
+					card.stand:Destroy()
+				end
 				card.figure = model
 				card.fallback.Visible = false
 			end
@@ -1262,11 +1359,25 @@ function M.picker(ctx: any): any
 		fallback.Size, fallback.ScaleType = UDim2.fromScale(0.7, 0.7), Enum.ScaleType.Fit
 		local icon = if ctx.icons then ctx.icons.ui("member") else nil
 		fallback.Image = if icon and icon.image then icon.image else ""
+		-- Stand in immediately with the preset's own colours: this needs no asset, so the card is
+		-- never blank even when both the mesh package and the icon are refused (2026-11-14).
+		-- The card lens sits at z -2.7 looking at (0, 1.62, 0) as a head-and-shoulders crop, so the
+		-- figure stays at the origin with its head near that target.
+		local stand = blockFigure(paletteOf(id), art)
+		stand:PivotTo(CFrame.new(0, 0.2, 0))
 		local name = text("Name", frame, CREAM)
 		local note = text("Note", frame, Color3.fromRGB(206, 192, 166))
 		note.Text, note.Font, note.TextYAlignment = ctx.text(id .. "_note"), Enum.Font.Gotham, Enum.TextYAlignment.Top
-		cards[id] =
-			{ frame = frame, stroke = stroke, art = art, fallback = fallback, name = name, note = note, order = index }
+		cards[id] = {
+			frame = frame,
+			stroke = stroke,
+			art = art,
+			fallback = fallback,
+			stand = stand,
+			name = name,
+			note = note,
+			order = index,
+		}
 		table.insert(
 			connections,
 			frame.Activated:Connect(function()
@@ -1324,6 +1435,8 @@ function M.picker(ctx: any): any
 	if existing then
 		watch(existing)
 	end
+	-- The cards already carry their colour stand-ins (built with the card), and the stage picks one
+	-- up on the first preview; nothing here depends on the mesh package ever arriving.
 	table.insert(
 		connections,
 		game:GetService("RunService").RenderStepped:Connect(function(dt: number)

@@ -419,6 +419,33 @@ return {
 		local generator = fs.readFile("games/robango-island/assets/blender/gen_survivors.py")
 		assert(string.find(generator, "embed_textures=True", 1, true), "the package embeds its atlases")
 	end,
+	-- A live session can refuse the mesh package outright ("Requester does not have permission for
+	-- Asset"), and the icon fallback is itself an uploaded asset, so the picker showed four blank
+	-- squares -- the first screen a new player meets. The colour stand-in must not depend on any asset.
+	["L6c portrait stand-in renders without the mesh package"] = function()
+		local fs = require("@lune/fs")
+		local source = fs.readFile("games/robango-island/src/shared/SurvivorAvatar.luau")
+		assert(string.find(source, "local function blockFigure(", 1, true), "the picker builds a primitive stand-in")
+		assert(
+			string.find(source, "local stand = blockFigure(paletteOf(id), art)", 1, true),
+			"each card stands in immediately"
+		)
+		assert(
+			string.find(source, "stageStand = blockFigure(paletteOf(id), stage)", 1, true),
+			"the stage stands in too"
+		)
+		-- The stand-in is built from preset colours only: no asset id reaches it.
+		local start = string.find(source, "local function blockFigure(", 1, true)
+		local stop = string.find(source, "local function portraits()", 1, true)
+		assert(start and stop and stop > start, "the stand-in body is delimited")
+		local body = string.sub(source, start, stop)
+		assert(not string.find(body, "rbxassetid", 1, true), "the stand-in uses no uploaded asset")
+		assert(not string.find(body, "ImageLabel", 1, true), "the stand-in needs no image")
+		-- Every preset carries a palette, or its figure would fall back to one grey shape for all four.
+		for _, preset in Survivor.PRESETS do
+			assert(preset.palette and preset.palette.skin, preset.id .. " has a palette to stand in with")
+		end
+	end,
 	["L6 wiring: the wardrobe loads the rig package and NPCs and castaways reuse the figures"] = function()
 		local fs = require("@lune/fs")
 		local source = fs.readFile("games/robango-island/src/shared/SurvivorAvatar.luau")
