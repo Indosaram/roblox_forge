@@ -47,9 +47,9 @@ return {
 	["production plans require local approval without claiming external proof"] = function()
 		for _, quality in
 			{
-				{ ok = true, code = "LEGACY_UNASSESSED", errors = {}, releaseApproved = false },
-				{ ok = false, code = "INCONCLUSIVE", errors = {}, releaseApproved = false },
-				{ ok = false, code = "STALE_BUILD", errors = {}, releaseApproved = true },
+				{ ok = true, code = "LEGACY_UNASSESSED", errors = {}, releaseApproved = false, unverified = false },
+				{ ok = false, code = "INCONCLUSIVE", errors = {}, releaseApproved = false, unverified = false },
+				{ ok = false, code = "STALE_BUILD", errors = {}, releaseApproved = true, unverified = false },
 			}
 		do
 			assert(
@@ -71,6 +71,7 @@ return {
 			errors = {},
 			declaredTier = "release-candidate",
 			releaseApproved = true,
+			unverified = false,
 		}))
 		assert(plan.quality and plan.quality.releaseApproved, "plan.quality and plan.quality.releaseApproved")
 		assert(

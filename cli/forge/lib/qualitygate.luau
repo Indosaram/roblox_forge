@@ -16,6 +16,10 @@ export type Options = {
 	environment: string?,
 	development: boolean?,
 	buildPath: string?,
+	-- Owner-authorized release of a build that is NOT evaluated. It never approves anything: the
+	-- result keeps releaseApproved = false and carries the unverified code, so every downstream
+	-- record says "unverified release" instead of "approved".
+	acceptUnverified: boolean?,
 }
 export type Result = {
 	ok: boolean,
@@ -23,6 +27,8 @@ export type Result = {
 	errors: { string },
 	declaredTier: qualityprofile.Tier?,
 	releaseApproved: boolean,
+	-- True only when the deployment proceeds without an evaluation receipt.
+	unverified: boolean,
 }
 
 function M.check(options: Options): Result
@@ -35,6 +41,7 @@ function M.check(options: Options): Result
 				errors = {},
 				declaredTier = declaredTier,
 				releaseApproved = approved == true,
+				unverified = false,
 			}
 		end
 		assert(not options.development or options.environment == "staging", "development is staging-only")
@@ -55,6 +62,7 @@ function M.check(options: Options): Result
 				errors = { "deployment requires assessed release-candidate or explicit staging --development" },
 				declaredTier = nil,
 				releaseApproved = false,
+				unverified = false,
 			}
 		end
 		local profile, errors = qualityprofile.parse(serde.decode("yaml", fs.readFile(path)))
@@ -68,10 +76,25 @@ function M.check(options: Options): Result
 			return status("STAGING_DEVELOPMENT")
 		end
 		if options.environment ~= nil then
-			assert(
-				profile.tier == "release-candidate" and target == "release-candidate",
-				"deployment requires release-candidate or explicit staging --development"
-			)
+			local evaluated = profile.tier == "release-candidate" and target == "release-candidate"
+			if not evaluated then
+				-- An environment deploy of an unevaluated build. Only the owner's explicit
+				-- --accept-unverified-release lets it through, and the result is labelled
+				-- UNVERIFIED_RELEASE with releaseApproved = false so nothing downstream can
+				-- read it as an approval.
+				assert(
+					options.acceptUnverified == true,
+					"deployment requires release-candidate or explicit staging --development"
+				)
+				return {
+					ok = true,
+					code = "UNVERIFIED_RELEASE",
+					errors = {},
+					declaredTier = declaredTier,
+					releaseApproved = false,
+					unverified = true,
+				}
+			end
 		end
 		if target == "starter" then
 			return status("STARTER_NOT_RELEASE")
@@ -101,6 +124,7 @@ function M.check(options: Options): Result
 					errors = observationErrors,
 					declaredTier = declaredTier,
 					releaseApproved = false,
+					unverified = false,
 				}
 			end
 		end
@@ -110,6 +134,7 @@ function M.check(options: Options): Result
 			errors = checked.errors,
 			declaredTier = declaredTier,
 			releaseApproved = checked.ok and target == "release-candidate",
+			unverified = false,
 		}
 	end)
 	if not ok then
@@ -119,6 +144,7 @@ function M.check(options: Options): Result
 			errors = { tostring(result) },
 			declaredTier = declaredTier,
 			releaseApproved = false,
+			unverified = false,
 		}
 	end
 	return result

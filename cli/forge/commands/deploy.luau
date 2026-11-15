@@ -497,12 +497,16 @@ function M.run(args: { string }, ports: { env: { [string]: string? }?, request: 
 		return false
 	end
 	local packDir = packDirOverride or ("games/" .. pack)
+	-- Owner-authorized release of an unevaluated build. The flag is explicit and the result is
+	-- labelled UNVERIFIED_RELEASE; it never turns into releaseApproved.
+	local acceptUnverified = variables["FORGE_ACCEPT_UNVERIFIED_RELEASE"] == "1"
 	local function checkQuality(): qualitygate.Result
 		return qualitygate.check({
 			pack = pack,
 			packDir = packDir,
 			environment = env,
 			development = development,
+			acceptUnverified = acceptUnverified,
 			buildPath = "build/" .. pack .. ".rbxl",
 			authority = {
 				identity = variables.FORGE_QUALITY_EVALUATOR or "",
@@ -511,11 +515,26 @@ function M.run(args: { string }, ports: { env: { [string]: string? }?, request: 
 		})
 	end
 	local quality = checkQuality()
-	if not quality.ok or (not development and not quality.releaseApproved) then
+	if not quality.ok or (not development and not quality.releaseApproved and not quality.unverified) then
 		stdio.ewrite("deploy quality: " .. quality.code .. "\n" .. table.concat(quality.errors, "\n") .. "\n")
 		return false
 	end
-	stdio.write("deploy quality: " .. quality.code .. "; releaseApproved=" .. tostring(quality.releaseApproved) .. "\n")
+	stdio.write(
+		"deploy quality: "
+			.. quality.code
+			.. "; releaseApproved="
+			.. tostring(quality.releaseApproved)
+			.. "; unverified="
+			.. tostring(quality.unverified)
+			.. "\n"
+	)
+	if quality.unverified then
+		stdio.ewrite(
+			"WARNING: publishing an UNVERIFIED release (declared tier "
+				.. tostring(quality.declaredTier)
+				.. "); no evaluation receipt, no independent reference, no listening verdict\n"
+		)
+	end
 	if dryRun then
 		return runDryRun(pack, packDir, env, quality, out, variables)
 	end

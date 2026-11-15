@@ -140,7 +140,10 @@ function M.buildPlan(
 	if env ~= "staging" and env ~= "production" then
 		return nil, "invalid deployment environment"
 	end
-	if env == "production" and (quality == nil or not quality.ok or not quality.releaseApproved) then
+	if
+		env == "production"
+		and (quality == nil or not quality.ok or not (quality.releaseApproved or quality.unverified))
+	then
 		return nil, "production plan requires current release approval"
 	end
 	if quality ~= nil and not quality.ok then
