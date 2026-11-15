@@ -1311,10 +1311,11 @@ function M.picker(ctx: any): any
 			-- No mesh package here (a refused asset, not a missing upload): stand the preset's own
 			-- colours on the stage so the highlighted survivor still reads as a person.
 			if not stageStand then
-				stageStand = blockFigure(paletteOf(id), stage)
+				local figure = blockFigure(paletteOf(id), stage)
 				-- The stage camera sits at z -9.6 and frames the whole body, so the figure stands at
 				-- full size with its feet near the floor rather than at the card's crop scale.
-				stageStand:PivotTo(CFrame.new(0, 0, 0))
+				figure:PivotTo(CFrame.new(0, 0, 0))
+				stageStand = figure
 			end
 		end
 		render()
