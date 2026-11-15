@@ -1367,8 +1367,6 @@ function M.picker(ctx: any): any
 		fallback.Image = if icon and icon.image then icon.image else ""
 		-- Stand in immediately with the preset's own colours: this needs no asset, so the card is
 		-- never blank even when both the mesh package and the icon are refused (2026-11-14).
-		-- The card lens is a head-and-shoulders crop: at FOV 30 from z -2.7 it shows only ~1.5
-		-- units of height, so the figure is scaled and raised until head and shoulders fill it.
 		-- The card lens is a head-and-shoulders crop showing ~1.5 units of height, so the stand-in is
 		-- built at the crop scale and raised until head and shoulders fill the frame.
 		local stand = blockFigure(paletteOf(id), art, 0.52)
