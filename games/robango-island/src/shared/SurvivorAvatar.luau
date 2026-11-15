@@ -1224,7 +1224,8 @@ function M.picker(ctx: any): any
 	-- so the image fallback -- itself an uploaded asset -- stayed empty and the screen a first-time
 	-- player picks a character on showed four blank squares. This stand-in is built from parts in
 	-- the preset's own colours: it needs no asset at all and always renders.
-	local function blockFigure(palette: any, parent: Instance)
+	local function blockFigure(palette: any, parent: Instance, scale: number?): Model
+		local s = scale or 1
 		local figure = Instance.new("Model")
 		figure.Name = "PortraitFigure"
 		local colour = function(key: string, fallback: Color3): Color3
@@ -1236,7 +1237,9 @@ function M.picker(ctx: any): any
 			if shape then
 				part.Shape = shape
 			end
-			part.Size, part.CFrame, part.Color = size, CFrame.new(at), c
+			-- Scale is applied to the geometry itself rather than through Model:ScaleTo, which a headless
+			-- harness cannot call; the card crop and the full-body stage then share one builder.
+			part.Size, part.CFrame, part.Color = size * s, CFrame.new(at * s), c
 			part.Anchored, part.CanCollide, part.Material = true, false, Enum.Material.SmoothPlastic
 			part.TopSurface, part.BottomSurface = Enum.SurfaceType.Smooth, Enum.SurfaceType.Smooth
 			part.Parent = figure
@@ -1311,9 +1314,8 @@ function M.picker(ctx: any): any
 			-- No mesh package here (a refused asset, not a missing upload): stand the preset's own
 			-- colours on the stage so the highlighted survivor still reads as a person.
 			if not stageStand then
+				-- The stage camera sits at z -9.6 and frames the whole body, so this stands at full size.
 				local figure = blockFigure(paletteOf(id), stage)
-				-- The stage camera sits at z -9.6 and frames the whole body, so the figure stands at
-				-- full size with its feet near the floor rather than at the card's crop scale.
 				figure:PivotTo(CFrame.new(0, 0, 0))
 				stageStand = figure
 			end
@@ -1367,8 +1369,9 @@ function M.picker(ctx: any): any
 		-- never blank even when both the mesh package and the icon are refused (2026-11-14).
 		-- The card lens is a head-and-shoulders crop: at FOV 30 from z -2.7 it shows only ~1.5
 		-- units of height, so the figure is scaled and raised until head and shoulders fill it.
-		local stand = blockFigure(paletteOf(id), art)
-		stand:ScaleTo(0.52)
+		-- The card lens is a head-and-shoulders crop showing ~1.5 units of height, so the stand-in is
+		-- built at the crop scale and raised until head and shoulders fill the frame.
+		local stand = blockFigure(paletteOf(id), art, 0.52)
 		stand:PivotTo(CFrame.new(0, 0.92, 0))
 		local name = text("Name", frame, CREAM)
 		local note = text("Note", frame, Color3.fromRGB(206, 192, 166))

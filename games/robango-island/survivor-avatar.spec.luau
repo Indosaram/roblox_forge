@@ -427,13 +427,15 @@ return {
 		local source = fs.readFile("games/robango-island/src/shared/SurvivorAvatar.luau")
 		assert(string.find(source, "local function blockFigure(", 1, true), "the picker builds a primitive stand-in")
 		assert(
-			string.find(source, "local stand = blockFigure(paletteOf(id), art)", 1, true),
-			"each card stands in immediately"
+			string.find(source, "local stand = blockFigure(paletteOf(id), art, 0.52)", 1, true),
+			"each card stands in immediately at the crop scale"
 		)
 		assert(
-			string.find(source, "stageStand = blockFigure(paletteOf(id), stage)", 1, true),
+			string.find(source, "local figure = blockFigure(paletteOf(id), stage)", 1, true),
 			"the stage stands in too"
 		)
+		-- Scale is baked into the geometry: Model:ScaleTo does not exist in a headless harness.
+		assert(not string.find(source, ":ScaleTo(", 1, true), "the stand-in never calls Model:ScaleTo")
 		-- The stand-in is built from preset colours only: no asset id reaches it.
 		local start = string.find(source, "local function blockFigure(", 1, true)
 		local stop = string.find(source, "local function portraits()", 1, true)
