@@ -1312,6 +1312,9 @@ function M.picker(ctx: any): any
 			-- colours on the stage so the highlighted survivor still reads as a person.
 			if not stageStand then
 				stageStand = blockFigure(paletteOf(id), stage)
+				-- The stage camera sits at z -9.6 and frames the whole body, so the figure stands at
+				-- full size with its feet near the floor rather than at the card's crop scale.
+				stageStand:PivotTo(CFrame.new(0, 0, 0))
 			end
 		end
 		render()
@@ -1361,10 +1364,11 @@ function M.picker(ctx: any): any
 		fallback.Image = if icon and icon.image then icon.image else ""
 		-- Stand in immediately with the preset's own colours: this needs no asset, so the card is
 		-- never blank even when both the mesh package and the icon are refused (2026-11-14).
-		-- The card lens sits at z -2.7 looking at (0, 1.62, 0) as a head-and-shoulders crop, so the
-		-- figure stays at the origin with its head near that target.
+		-- The card lens is a head-and-shoulders crop: at FOV 30 from z -2.7 it shows only ~1.5
+		-- units of height, so the figure is scaled and raised until head and shoulders fill it.
 		local stand = blockFigure(paletteOf(id), art)
-		stand:PivotTo(CFrame.new(0, 0.2, 0))
+		stand:ScaleTo(0.52)
+		stand:PivotTo(CFrame.new(0, 0.92, 0))
 		local name = text("Name", frame, CREAM)
 		local note = text("Note", frame, Color3.fromRGB(206, 192, 166))
 		note.Text, note.Font, note.TextYAlignment = ctx.text(id .. "_note"), Enum.Font.Gotham, Enum.TextYAlignment.Top
