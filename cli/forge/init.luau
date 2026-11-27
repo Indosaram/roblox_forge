@@ -392,25 +392,29 @@ local USAGE_ENTRIES: { { name: string, text: string } } = {
 	{
 		name = "test",
 		text = [=[
-  test [filters...] [--quiet] [--slowest N] [--json <path>] [--jobs N|auto]
+  test [filters...] [--quiet] [--slowest N] [--json <path>] [--jobs N|auto] [--fail-fast]
                             Run every *.spec.luau (sorted) whose path or "path :: test" contains
                             any filter. --quiet prints only FAIL lines and the summary,
                             --slowest N lists the N slowest tests, --json writes a schemaVersion 1
                             report. --jobs shards spec files across N worker processes
-                            (default auto = cores - 1; --jobs 1 runs serially in-process).
+                            (default auto = physical cores - 1; --jobs 1 runs serially in-process).
+                            --fail-fast stops the remaining shards once one reports a failure.
                             Exit 0 when all pass, 1 on any failure or zero matches]=],
 	},
 	{
 		name = "gate",
 		text = [=[
-  gate [--pack <slug>] [--jobs N|auto] [--json <path>] [--out <dir>] [--no-fail-fast]
+  gate [--pack <slug>] [--jobs N|auto] [--json <path>] [--out <dir>] [--no-fail-fast] [--full]
                             Pre-commit gate in one command: check without specs/build first
                             (fails fast on lint, types and codegen/content drift), then
                             concurrently the sharded specs, every native qa scenario of the
                             pack recorded and replayed, build --all and smoke --local. The tree
                             is fingerprinted before and after; an edit during the run makes the
                             verdict INVALID. Default pack robango-island, journals in
-                            <out>/journals (default a fresh build/gate/<stamp>-<hex> per run)]=],
+                            <out>/journals (default a fresh build/gate/<stamp>-<hex> per run).
+                            Specs run the full tier when the diff touches games/, core/,
+                            genres/, content/econ or world/terrain assets, and the fast tier
+                            (world-simulation specs skipped) otherwise; --full always runs all.]=],
 	},
 	{
 		name = "replay",
@@ -477,6 +481,22 @@ local function parseSpecsArgs(args: { string }): (specsRunner.RunOptions?, strin
 		local arg = args[index]
 		if arg == "--quiet" then
 			options.quiet = true
+		elseif arg == "--fail-fast" then
+			options.failFast = true
+		elseif arg == "--exclude" then
+			-- Comma-separated spec path substrings to skip.
+			local value = args[index + 1]
+			if value == nil or value == "" or string.sub(value, 1, 2) == "--" then
+				return nil, "--exclude requires a comma-separated list of path substrings"
+			end
+			local exclude: { string } = {}
+			for part in string.gmatch(value .. ",", "([^,]+),") do
+				if part ~= "" then
+					table.insert(exclude, part)
+				end
+			end
+			options.exclude = exclude
+			index += 1
 		elseif arg == "--slowest" then
 			local count = tonumber(args[index + 1])
 			if count == nil or count < 1 or count ~= math.floor(count) then

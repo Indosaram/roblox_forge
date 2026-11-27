@@ -737,6 +737,28 @@ function M.run(args: { string }?): boolean
 		end
 
 		local coreVersion = packageVersion("core/forge-package.yml")
+		local coreFingerprint = ""
+		do
+			local okManifest, text = pcall(fs.readFile, "core/forge-package.yml")
+			if okManifest then
+				local okDecode, manifest = pcall(function()
+					return serde.decode("yaml", text)
+				end)
+				if okDecode and type(manifest) == "table" and type(manifest.modules) == "table" then
+					coreFingerprint = lock.fingerprint(
+						if coreVersion ~= nil then coreVersion else "",
+						manifest.modules,
+						function(modulePath: string): string?
+							local okRead, body = pcall(fs.readFile, modulePath)
+							if not okRead then
+								return nil
+							end
+							return serde.hash("sha256", body)
+						end
+					)
+				end
+			end
+		end
 		if coreVersion == nil then
 			lockFailed = true
 			table.insert(lockLogs, "core: could not read a version from core/forge-package.yml")
@@ -783,6 +805,7 @@ function M.run(args: { string }?): boolean
 			if coreVersion ~= nil then
 				local errors = lock.validate(lock.fromTable(decodedLock), {
 					core = coreVersion,
+					coreFingerprint = coreFingerprint,
 					genres = expectedGenres,
 					packGenres = packGenres,
 				})

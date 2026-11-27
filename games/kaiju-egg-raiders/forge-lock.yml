@@ -2,5 +2,6 @@
 # Each version must match that package's manifest (core/forge-package.yml or
 # genres/<name>/forge-package.yml); `lune run cli/forge check` verifies the pins.
 core: 1.0.0
+coreFingerprint: 329ee8551789f390
 genres:
   collect-raid: 1.0.0

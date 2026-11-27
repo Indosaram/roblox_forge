@@ -40,6 +40,24 @@ local function lines(output: string): { string }
 end
 
 return {
+	["autoJobs never exceeds the physical core count"] = function()
+		-- A hyperthreaded box reports double; one worker per logical CPU
+		-- oversubscribes and the suite slows down instead of speeding up.
+		local jobs = specs.autoJobs()
+		assert(jobs >= 1, "at least one worker")
+		assert(jobs <= 32, "implausible worker count " .. jobs)
+	end,
+
+	["autoJobs is stable across calls"] = function()
+		assert(specs.autoJobs() == specs.autoJobs(), "the detected count must not drift within a run")
+	end,
+
+	["gateJobs leaves room for the sibling jobs in the pool"] = function()
+		-- 6 physical cores, the gate runs 3 siblings beside the specs job.
+		assert(specs.gateJobs(6, 3) == 3, "specs + 3 siblings must fit the core count")
+		assert(specs.gateJobs(6, 0) == 6, "no siblings means the whole box")
+		assert(specs.gateJobs(2, 9) == 1, "never below one worker")
+	end,
 	["runs discovered specs in sorted file and test order"] = function()
 		withTree(TREE, function(root)
 			local ok, output = specs.run({ roots = { root } })
@@ -262,6 +280,29 @@ return {
 			assert(not okCrash, "a crashed shard must fail the run: " .. crashed)
 			assert(string.find(crashed, "SHARD %d+ exited 7 without a report"), crashed)
 			assert(string.find(crashed, "FAIL (shards) :: worker :: ", 1, true), crashed)
+		end)
+	end,
+	["exclude removes a file even when a path filter selected it"] = function()
+		-- The filter block runs first and can reselect every path; the exclusion
+		-- must be applied after it or a filtered run silently keeps heavy files.
+		withTree(TREE, function(root)
+			local ok, output = specs.run({
+				roots = { root },
+				filters = { "alpha/a.spec.luau" },
+				exclude = { "alpha/a.spec.luau" },
+			})
+			assert(not ok, "excluding the only matched file must not pass")
+			assert(string.find(output, "no tests matched", 1, true) ~= nil, output)
+		end)
+	end,
+
+	["exclude keeps files that no marker matches"] = function()
+		withTree(TREE, function(root)
+			-- TREE's zeta file passes; excluding only alpha/ must leave it running.
+			local ok, output = specs.run({ roots = { root }, exclude = { "alpha/" } })
+			assert(ok, "the passing zeta file must still run and pass: " .. tostring(output))
+			assert(string.find(output, "zeta/z.spec.luau", 1, true) ~= nil, output)
+			assert(string.find(output, "alpha/a.spec.luau", 1, true) == nil, "alpha must be gone: " .. output)
 		end)
 	end,
 }

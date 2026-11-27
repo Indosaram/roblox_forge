@@ -355,6 +355,21 @@ function M.versions(entries: { Entry }): any
 		end
 	end
 	assert(versions.core ~= "" and next(versions.genres) ~= nil, "FORGE_PACKAGE_MANIFEST: missing packages")
+	-- Same fingerprint the check [lock] stage computes, from the packaged bytes
+	-- rather than the working tree, so the release proves the pins match what
+	-- ships. lock.fingerprint() keeps the rule in one place.
+	local coreDoc = yaml("core/forge-package.yml")
+	local coreFingerprint = lock.fingerprint(
+		versions.core,
+		if type(coreDoc.modules) == "table" then coreDoc.modules else {},
+		function(modulePath: string): string?
+			local body = source[modulePath]
+			if body == nil then
+				return nil
+			end
+			return serde.hash("sha256", body)
+		end
+	)
 	for genre in versions.genres do
 		local doc = yaml("genres/" .. genre .. "/forge-package.yml")
 		assert(
@@ -390,6 +405,7 @@ function M.versions(entries: { Entry }): any
 			end
 			local errors = lock.validate(lock.fromTable(yaml(base .. "forge-lock.yml")), {
 				core = versions.core,
+				coreFingerprint = coreFingerprint,
 				genres = versions.genres,
 				packGenres = game.genres,
 			})

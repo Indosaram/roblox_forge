@@ -13,6 +13,7 @@
 --      tree that changed underneath proves nothing.
 
 local fs = require("@lune/fs")
+local process = require("@lune/process")
 local serde = require("@lune/serde")
 local stdio = require("@lune/stdio")
 
@@ -24,11 +25,97 @@ local registryLib = require("../lib/genreregistry")
 local M = {}
 
 local DEFAULT_PACK = "robango-island"
+-- The world-simulation specs: 61-63% of the suite's CPU (measured over three
+-- timing snapshots) and only affected by world, terrain, rendering or content
+-- changes. The fast tier leaves them out; the full tier always runs them.
+local HEAVY_SPECS: { string } = { "walkable-paths", "world-roles", "journey6h", "production-worlds/engine" }
+-- Paths whose change means the heavy specs can no longer be assumed to pass.
+local FULL_TIER_PATHS: { string } = {
+	"games/",
+	"core/",
+	"genres/",
+	"assets/",
+	"content.yml",
+	"econ.yml",
+	"terrain",
+	"world",
+}
 -- Every run writes under its own directory below this root, so two gates running at once
 -- (one per session or worktree lane) never overwrite each other's journals.
 local OUT_ROOT = "build/gate"
 
 local runCounter = 0
+
+--- Whether the suite must run in full. `changed` is the list of paths a diff
+--- touched (empty when the diff is unavailable, which forces the full tier).
+--- The fast tier is only safe when nothing that feeds the world specs changed:
+--- their inputs are pack content, core/genres modules and the world/terrain
+--- assets. Any doubt runs everything, so a wrong call costs time, never a
+--- missed failure.
+function M.needsFullTier(changed: { string }): boolean
+	if #changed == 0 then
+		return true
+	end
+	for _, path in changed do
+		local normalized = string.gsub(path, "\\", "/")
+		for _, marker in FULL_TIER_PATHS do
+			if string.find(normalized, marker, 1, true) ~= nil then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+--- Paths this working tree changed, from git. An empty list means "unknown"
+--- (no git, no HEAD, or a failed call) and callers must treat it as "run
+--- everything": an unknown diff is not evidence of a narrow one.
+function M.gitChangedPaths(): { string }
+	local okExec, res = pcall(process.exec, "git", {
+		"diff",
+		"--name-only",
+		"HEAD",
+		"--",
+	})
+	if not okExec or not res.ok then
+		return {}
+	end
+	local paths: { string } = {}
+	for line in string.gmatch(res.stdout, "[^\r\n]+") do
+		local trimmed = string.gsub(line, "^%s+", "")
+		if trimmed ~= "" then
+			table.insert(paths, trimmed)
+		end
+	end
+	-- Untracked files count as changes: a new spec or asset is part of the diff.
+	local okUntracked, untracked = pcall(process.exec, "git", { "ls-files", "--others", "--exclude-standard" })
+	if okUntracked and untracked.ok then
+		for line in string.gmatch(untracked.stdout, "[^\r\n]+") do
+			local trimmed = string.gsub(line, "^%s+", "")
+			if trimmed ~= "" then
+				table.insert(paths, trimmed)
+			end
+		end
+	end
+	return paths
+end
+
+--- The specs step for a gate run. `--exclude` is only passed when the tier
+--- actually excludes something: an empty value would be a usage error, and the
+--- full tier must run every spec file.
+function M.specsStep(jobs: number, exclude: { string }): { string }
+	local args: { string } = { "specs-run", "--quiet", "--fail-fast", "--jobs", tostring(jobs) }
+	if #exclude > 0 then
+		table.insert(args, "--exclude")
+		table.insert(args, table.concat(exclude, ","))
+	end
+	return args
+end
+
+--- The spec-path exclusions for a gate run: none in the full tier.
+function M.specExclusions(full: boolean): { string }
+	return if full then {} else table.clone(HEAVY_SPECS)
+end
 
 -- A fresh, not-yet-existing per-run directory: "<root>/<UTC stamp>-<12 hex>". The hex part
 -- hashes the high-resolution clock and a per-process counter, so two gates started in the
@@ -45,7 +132,15 @@ function M.runDir(root: string): string
 	end
 end
 
-export type Options = { pack: string, jobs: number, json: string?, out: string, failFast: boolean }
+export type Options = {
+	pack: string,
+	jobs: number,
+	json: string?,
+	out: string,
+	failFast: boolean,
+	-- Run every spec file regardless of what the diff touched.
+	full: boolean,
+}
 
 function M.parseArgs(args: { string }): (Options?, string?)
 	local options: Options = {
@@ -54,12 +149,18 @@ function M.parseArgs(args: { string }): (Options?, string?)
 		json = nil,
 		out = "",
 		failFast = true,
+		full = false,
 	}
 	local index = 2
 	while index <= #args do
 		local flag = args[index]
+		-- Boolean flags take no value, so they must skip the value read below.
 		if flag == "--no-fail-fast" then
 			options.failFast = false
+			index += 1
+			continue
+		elseif flag == "--full" then
+			options.full = true
 			index += 1
 			continue
 		end
@@ -227,9 +328,25 @@ function M.run(args: { string }): boolean
 		-- remaining slots. Specs go first so their long tail starts immediately.
 		local scenarios = M.nativeScenarios(opts.pack, registry)
 		report.scenarioCount = #scenarios
-		local specsJobs = math.max(1, opts.jobs - 1)
+		-- The pool below runs 4 jobs at once and specs fans out internally, so
+		-- subtract the siblings sharing the box instead of one blanket slot.
+		-- --jobs already counts down from the physical core total; the pool runs
+		-- four jobs at once and specs fans out internally, so three siblings share
+		-- the box with it.
+		local specsJobs = specs.gateJobs(opts.jobs + 1, 3)
+		-- Tier: skip the world-simulation specs when the diff cannot have
+		-- invalidated them. The tier is reported so a fast pass is never
+		-- mistaken for a full one.
+		local changed = M.gitChangedPaths()
+		local fullTier = opts.full or M.needsFullTier(changed)
+		local exclude = M.specExclusions(fullTier)
+		report.specTier = if fullTier then "full" else "fast"
+		report.changedPaths = #changed
 		local jobs: { pool.Job } = {
-			{ name = "specs", steps = { { "specs-run", "--quiet", "--jobs", tostring(specsJobs) } } },
+			{
+				name = "specs",
+				steps = { M.specsStep(specsJobs, exclude) },
+			},
 			{ name = "build-all", steps = { { "build", "--all" } } },
 			{ name = "smoke", steps = { { "smoke", "--pack", opts.pack, "--local" } } },
 		}

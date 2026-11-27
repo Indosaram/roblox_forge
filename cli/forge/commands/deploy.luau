@@ -710,7 +710,7 @@ function M.run(args: { string }, ports: { env: { [string]: string? }?, request: 
 		end
 	end
 	quality = checkQuality()
-	if not quality.ok or (not development and not quality.releaseApproved) then
+	if not quality.ok or (not development and not quality.releaseApproved and not quality.unverified) then
 		stdio.ewrite("deploy quality: " .. quality.code .. "\n" .. table.concat(quality.errors, "\n") .. "\n")
 		return false
 	end

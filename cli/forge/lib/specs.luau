@@ -30,6 +30,14 @@ export type RunOptions = {
 	-- Timing record that decides which tests a "path\t<unrecorded>" entry selects.
 	-- Defaults to the saved build/cache/spec-timings.json; specs inject one.
 	timings: Timings?,
+	-- Spec path substrings to leave out. The gate's fast tier uses this to skip
+	-- the world-simulation specs, which are 61-63% of the suite's CPU and are only
+	-- affected by world, terrain and content edits.
+	exclude: { string }?,
+	-- Stop shards as soon as one reports a failure. A full run answers "is this
+	-- tree green"; when the answer is already no, finishing the remaining shards
+	-- only extends the wait, so the gate sets this and reports the first failure.
+	failFast: boolean?,
 }
 
 -- Per-file durations from the last full run, used to balance shards.
@@ -200,11 +208,33 @@ function M.run(options: RunOptions): (boolean, string)
 		end
 	end
 
+	-- Applied last, so it removes files the filter block above may have reselected.
+	local exclude = options.exclude
+	if exclude ~= nil and #exclude > 0 then
+		local kept: { string } = {}
+		for _, specFile in toRequire do
+			local skipped = false
+			for _, part in exclude do
+				if contains(specFile, part) then
+					skipped = true
+					break
+				end
+			end
+			if not skipped then
+				table.insert(kept, specFile)
+			end
+		end
+		toRequire = kept
+	end
+
 	local results: { TestResult } = {}
 	local files = 0
 	local jobs = math.min(options.jobs or 1, #toRequire)
 	if jobs > 1 then
-		local shardResults, _, shardErrors = M.runShards(toRequire, filters, jobs)
+		local shardResults, _, shardErrors, shardNote = M.runShards(toRequire, filters, jobs, options.failFast)
+		if shardNote ~= nil then
+			table.insert(logLines, shardNote)
+		end
 		results = shardResults
 		-- A heavy file can be split across shards; count each spec file once.
 		local seenFiles: { [string]: boolean } = {}
@@ -476,16 +506,34 @@ end
 -- Runs each shard as `lune run cli/forge specs-run --files <list> --json <report>`
 -- with its own TEMP root (specs name scratch dirs from os.clock, which is not
 -- unique across processes), then merges the shard reports.
-function M.runShards(files: { string }, filters: { string }, jobs: number): ({ TestResult }, number, { string })
+function M.runShards(
+	files: { string },
+	filters: { string },
+	jobs: number,
+	failFast: boolean?
+): ({ TestResult }, number, { string }, string?)
 	local shards = M.partition(files, jobs, loadTimings())
+	-- Children currently running, so a failure can stop the rest mid-flight.
+	local live: { { index: number, child: any } } = {}
+	-- Shards stopped because an earlier one failed. They are not errors: the
+	-- failure that caused the stop is already reported from its own shard.
+	local stopped: { [number]: boolean } = {}
+	local aborting = false
 	local scratch = string.gsub(process.env.TEMP or process.env.TMPDIR or "build", "\\", "/")
 		.. "/forge-specs-"
 		.. string.sub(serde.hash("sha256", tostring(os.clock()) .. tostring(os.time())), 1, 12)
 	fs.writeDir(scratch)
 	local reports: { any } = {}
 	local errors: { string } = {}
-	local pending = #shards
+	local pending = 0
+	local aborted: { number } = {}
 	for index, shard in shards do
+		if aborting then
+			-- Never started, so it must not count toward `pending`.
+			table.insert(aborted, index)
+			continue
+		end
+		pending += 1
 		task.spawn(function()
 			local dir = scratch .. "/shard-" .. index
 			fs.writeDir(dir .. "/tmp")
@@ -506,6 +554,8 @@ function M.runShards(files: { string }, filters: { string }, jobs: number): ({ T
 				pending -= 1
 				return
 			end
+			local entry = { index = index, child = child }
+			table.insert(live, entry)
 			local out: { string } = {}
 			local err: { string } = {}
 			local readers = 2
@@ -532,8 +582,22 @@ function M.runShards(files: { string }, filters: { string }, jobs: number): ({ T
 			end)
 			if okReport and type(report) == "table" then
 				table.insert(reports, report)
+				local shardFailures = report.failures
+				if failFast and not aborting and type(shardFailures) == "table" and #shardFailures > 0 then
+					aborting = true
+					for _, other in live do
+						if other.index ~= index then
+							stopped[other.index] = true
+							pcall(function()
+								other.child:kill()
+							end)
+						end
+					end
+				end
 			end
-			if killed then
+			-- A shard stopped on purpose keeps its merged report and reports no
+			-- extra error; the failure that triggered the stop speaks for itself.
+			if not stopped[index] and killed then
 				table.insert(
 					errors,
 					string.format("SHARD %d timed out after %d s: %s", index, SHARD_TIMEOUT_SECONDS, shard[1])
@@ -549,6 +613,14 @@ function M.runShards(files: { string }, filters: { string }, jobs: number): ({ T
 		task.wait(0.05)
 	end
 	pcall(fs.removeDir, scratch)
+	local note: string? = nil
+	if #aborted > 0 then
+		note = string.format(
+			"specs: stopped %d of %d shards after a failure (fail-fast; rerun without --fail-fast for a full pass)",
+			#aborted,
+			#shards
+		)
+	end
 
 	local failureErr: { [string]: string } = {}
 	local results: { TestResult } = {}
@@ -576,7 +648,7 @@ function M.runShards(files: { string }, filters: { string }, jobs: number): ({ T
 		return a.test < b.test
 	end)
 	table.sort(errors)
-	return results, fileCount, errors
+	return results, fileCount, errors, note
 end
 
 function M.luneExecutable(): string
@@ -589,14 +661,97 @@ function M.luneExecutable(): string
 	return "lune"
 end
 
--- "auto" picks one worker per core minus one, at least 1.
-function M.autoJobs(): number
+-- Logical cores as the OS reports them. Set on Windows and by POSIX
+-- shells; nproc covers a bare Lune invocation with a stripped environment.
+local function logicalCores(): number?
 	local cores = tonumber(process.env.NUMBER_OF_PROCESSORS or "")
-	if cores == nil then
-		local okExec, res = pcall(process.exec, "nproc", {})
-		cores = if okExec and res.ok then tonumber((string.gsub(res.stdout, "%s+", ""))) else nil
+	if cores ~= nil and cores > 0 then
+		return cores
 	end
-	return math.max(1, (cores or 4) - 1)
+	local okExec, res = pcall(process.exec, "nproc", {})
+	if okExec and res.ok then
+		local value = tonumber((string.gsub(res.stdout, "%s+", "")))
+		if value ~= nil and value > 0 then
+			return value
+		end
+	end
+	return nil
+end
+
+-- Physical cores, when the platform will say. A hyperthreaded CPU reports
+-- twice its real core count, and one worker per logical CPU oversubscribes:
+-- two workers then share one core's execution units and the suite runs
+-- slower, not faster. Returns nil when the count cannot be established, so
+-- callers fall back to the logical count instead of guessing a ratio.
+local function physicalCores(): number?
+	if process.os == "windows" then
+		local okExec, res = pcall(process.exec, "powershell", {
+			"-NoProfile",
+			"-Command",
+			"(Get-CimInstance Win32_Processor | Measure-Object -Property NumberOfCores -Sum).Sum",
+		})
+		if okExec and res.ok then
+			local value = tonumber((string.gsub(res.stdout, "%s+", "")))
+			if value ~= nil and value > 0 then
+				return value
+			end
+		end
+		return nil
+	end
+	local procPath = "/proc/cpuinfo"
+	if not fs.isFile(procPath) then
+		return nil
+	end
+	local okRead, text = pcall(fs.readFile, procPath)
+	if not okRead then
+		return nil
+	end
+	-- One entry per physical core is "(physical id, core id)"; siblings that
+	-- differ only by hyperthread reuse the same pair.
+	local seen: { [string]: boolean } = {}
+	local count = 0
+	local physicalId: string? = nil
+	for line in string.gmatch(text, "[^\n]+") do
+		local key, value = string.match(line, "^([%a%s]+):%s*(%d+)")
+		if key ~= nil and value ~= nil then
+			if key == "physical id" then
+				physicalId = value
+			elseif key == "core id" and physicalId ~= nil then
+				local pair = physicalId .. ":" .. value
+				if not seen[pair] then
+					seen[pair] = true
+					count += 1
+				end
+			end
+		end
+	end
+	return if count > 0 then count else nil
+end
+
+local autoJobsCache: number? = nil
+
+-- "auto" picks one worker per physical core minus one, at least 1: the
+-- spawning process needs a core to stay responsive, and leaving it at zero
+-- makes the whole run slower than using fewer workers.
+function M.autoJobs(): number
+	local cached = autoJobsCache
+	if cached ~= nil then
+		return cached
+	end
+	local cores = physicalCores() or logicalCores() or 4
+	local jobs = math.max(1, cores - 1)
+	autoJobsCache = jobs
+	return jobs
+end
+
+-- Worker count for a gate, where the specs job shares the machine with the
+-- build, smoke and QA jobs that run beside it. `siblings` is how many of those
+-- run at the same time, so the box holds `total + siblings` processes rather
+-- than oversubscribing. `headroom` workers are kept free for the parent's own
+-- polling and the OS, since every worker is a Lune process that both compiles
+-- sources and runs tests.
+function M.gateJobs(total: number, siblings: number): number
+	return math.max(1, total - math.max(0, siblings))
 end
 
 function M.runAll(): (boolean, string)

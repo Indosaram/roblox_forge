@@ -44,6 +44,59 @@ return {
 		assert(options.pack == "robango-island", options.pack)
 	end,
 
+	["an unknown diff forces the full tier"] = function()
+		-- An unavailable diff is not evidence of a narrow one.
+		assert(gate.needsFullTier({}) == true, "no changed paths must run everything")
+	end,
+
+	["a doc-only change keeps the fast tier"] = function()
+		assert(
+			gate.needsFullTier({ "docs/forge/genre-spec.md", "cli/forge/lib/specs.luau" }) == false,
+			"docs and CLI edits cannot invalidate the world specs"
+		)
+	end,
+
+	["core, genres and pack content force the full tier"] = function()
+		for _, path in
+			{
+				"core/domain/economy/Wallet.luau",
+				"genres/collect-raid/module/loop.luau",
+				"games/robango-island/src/server/init.luau",
+				"games/robango-island/econ.yml",
+				"games/robango-island/content.yml",
+			}
+		do
+			assert(gate.needsFullTier({ path }) == true, path .. " must force the full tier")
+		end
+	end,
+
+	["a world or terrain change forces the full tier"] = function()
+		assert(gate.needsFullTier({ "games/robango-island/assets/terrain/rivers.json" }) == true, "terrain")
+		assert(gate.needsFullTier({ "core/infra/render/world/Chunk.luau" }) == true, "world code")
+	end,
+
+	["windows-style paths are normalized before matching"] = function()
+		assert(gate.needsFullTier({ "core\\domain\\economy\\Wallet.luau" }) == true, "backslashes")
+	end,
+
+	["the fast tier excludes exactly the heavy specs"] = function()
+		local excluded = gate.specExclusions(false)
+		assert(#excluded == 4, "expected 4 heavy spec markers, got " .. #excluded)
+		local joined = table.concat(excluded, ",")
+		for _, marker in { "walkable-paths", "world-roles", "journey6h", "production-worlds/engine" } do
+			assert(string.find(joined, marker, 1, true) ~= nil, "missing " .. marker)
+		end
+	end,
+
+	["the full tier excludes nothing"] = function()
+		assert(#gate.specExclusions(true) == 0, "the full tier must run every spec file")
+	end,
+
+	["--full overrides the diff"] = function()
+		assert(parse({ "gate", "--full" }).full == true, "--full must be recorded")
+		assert(parse({ "gate" }).full == false, "the default is not full")
+	end,
+
 	["bad arguments are refused"] = function()
 		for _, args in
 			{ { "gate", "--jobs", "0" }, { "gate", "--jobs", "1.5" }, { "gate", "--out" }, { "gate", "--x", "y" } }
@@ -90,5 +143,23 @@ return {
 			end
 		end
 		assert(localCount > 0, "no pack-local scenario gated")
+	end,
+	["the full tier runs specs without an exclude flag"] = function()
+		-- Passing an empty --exclude was a usage error that failed the whole gate.
+		local args = gate.specsStep(4, {})
+		assert(#args == 5, "full tier expected 5 args, got " .. table.concat(args, " "))
+		for index, value in args do
+			if index > 1 then
+				assert(value ~= "--exclude" and value ~= "", "no empty exclude: " .. table.concat(args, " "))
+			end
+		end
+	end,
+
+	["the fast tier passes its markers as one comma list"] = function()
+		local args = gate.specsStep(3, { "walkable-paths", "journey6h" })
+		local joined = table.concat(args, " ")
+		assert(string.find(joined, "--exclude walkable-paths,journey6h", 1, true) ~= nil, joined)
+		assert(string.find(joined, "--fail-fast", 1, true) ~= nil, joined)
+		assert(string.find(joined, "--jobs 3", 1, true) ~= nil, joined)
 	end,
 }

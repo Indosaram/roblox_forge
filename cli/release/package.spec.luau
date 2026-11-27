@@ -37,7 +37,10 @@ local function versionsFixture(): { any }
 		},
 		{ path = "games/demo/game.yml", bytes = "name: demo\ngenres: [example]\n" },
 		{ path = "games/demo/default.project.json", bytes = "{}" },
-		{ path = "games/demo/forge-lock.yml", bytes = "core: 1.0.0\ngenres: {example: 2.0.0}\n" },
+		{
+			path = "games/demo/forge-lock.yml",
+			bytes = "core: 1.0.0\ncoreFingerprint: 60176c22e89d92d8\ngenres: {example: 2.0.0}\n",
+		},
 	}
 end
 
@@ -157,9 +160,12 @@ return {
 		)
 		for _, pins in
 			{
-				"core: 9.0.0\ngenres: {example: 2.0.0}",
-				"core: 1.0.0\ngenres: {}",
-				"core: 1.0.0\ngenres: {example: 2.0.0, other: 1.0.0}",
+				"core: 9.0.0\ncoreFingerprint: 60176c22e89d92d8\ngenres: {example: 2.0.0}",
+				"core: 1.0.0\ncoreFingerprint: 60176c22e89d92d8\ngenres: {}",
+				"core: 1.0.0\ncoreFingerprint: 60176c22e89d92d8\ngenres: {example: 2.0.0, other: 1.0.0}",
+				-- A matching version with a stale content fingerprint is still drift.
+				"core: 1.0.0\ncoreFingerprint: 0000000000000000\ngenres: {example: 2.0.0}",
+				"core: 1.0.0\ngenres: {example: 2.0.0}",
 			}
 		do
 			local entries = versionsFixture()

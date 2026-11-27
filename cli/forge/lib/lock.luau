@@ -5,14 +5,20 @@
 
 export type Lock = {
 	core: string?,
+	-- Content fingerprint of the core package the pin was taken against.
+	coreFingerprint: string?,
 	genres: { [string]: string },
 }
 
 export type Expected = {
 	core: string,
+	-- Fingerprint computed from core's manifest and module contents this run.
+	coreFingerprint: string,
 	genres: { [string]: string },
 	packGenres: { string },
 }
+
+local serde = require("@lune/serde")
 
 local M = {}
 
@@ -41,8 +47,25 @@ function M.fromTable(decoded: any): Lock
 	end
 	return {
 		core = stringField(decoded, "core"),
+		coreFingerprint = stringField(decoded, "coreFingerprint"),
 		genres = genres,
 	}
+end
+
+--- Fingerprint of the core package: the declared version plus every module's
+--- content, in manifest order. The version alone cannot detect drift, because
+--- it is a string a human edits: core can gain, lose or change modules while
+--- the version still reads 1.0.0, and a pin compared only against that string
+--- says "compatible" no matter what the code did. `hashOf` maps a module path
+--- to a content hash (or nil when the file is missing) so this module stays
+--- free of IO and unit-testable.
+function M.fingerprint(version: string, modules: { string }, hashOf: (string) -> string?): string
+	local parts: { string } = { "core@" .. version }
+	for _, module in modules do
+		local hash = hashOf(module)
+		table.insert(parts, module .. "=" .. (hash or "missing"))
+	end
+	return string.sub(serde.hash("sha256", table.concat(parts, "\n")), 1, 16)
 end
 
 local function listed(packGenres: { string }, name: string): boolean
@@ -63,6 +86,24 @@ function M.validate(lock: Lock, expected: Expected): { string }
 		table.insert(errors, "core: missing from forge-lock.yml (expected " .. expected.core .. ")")
 	elseif lock.core ~= expected.core then
 		table.insert(errors, "core: locked " .. lock.core .. " but core/forge-package.yml has " .. expected.core)
+	end
+
+	-- The version matches, but did the pinned content? A mismatch means core
+	-- changed after the pin was taken; the pack has not been verified against it.
+	if lock.coreFingerprint == nil then
+		table.insert(
+			errors,
+			"core: forge-lock.yml has no coreFingerprint (add coreFingerprint: " .. expected.coreFingerprint .. ")"
+		)
+	elseif lock.coreFingerprint ~= expected.coreFingerprint then
+		table.insert(
+			errors,
+			"core: content changed since the pin (locked fingerprint "
+				.. lock.coreFingerprint
+				.. ", current "
+				.. expected.coreFingerprint
+				.. "); run the packs' tests, then update coreFingerprint"
+		)
 	end
 
 	for _, genre in expected.packGenres do
